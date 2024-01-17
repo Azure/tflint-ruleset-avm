@@ -1,6 +1,8 @@
 package rules
 
 import (
+	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
+	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	terraform "github.com/terraform-linters/tflint-ruleset-terraform/rules"
 )
@@ -23,6 +25,17 @@ var Rules = []tflint.Rule{
 	Wrap(terraform.NewTerraformUnusedDeclarationsRule()),
 	Wrap(terraform.NewTerraformUnusedRequiredProvidersRule()),
 	Wrap(terraform.NewTerraformWorkspaceRemoteRule()),
+
+	Wrap(basic.NewTerraformHeredocUsageRule()),
+	Wrap(basic.NewTerraformModuleProviderDeclarationRule()),
+	Wrap(basic.NewTerraformOutputSeparateRule()),
+	Wrap(basic.NewTerraformRequiredProvidersDeclarationRule()),
+	Wrap(basic.NewTerraformRequiredVersionDeclarationRule()),
+	Wrap(basic.NewTerraformSensitiveVariableNoDefaultRule()),
+	Wrap(basic.NewTerraformVariableNullableFalseRule()),
+	Wrap(basic.NewTerraformVariableSeparateRule()),
+
+	Wrap(azurerm.NewAzurermResourceTagRule()),
 }
 
 type wrappedRule struct {
