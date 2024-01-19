@@ -36,6 +36,8 @@ var Rules = []tflint.Rule{
 	Wrap(basic.NewTerraformVariableSeparateRule()),
 
 	Wrap(azurerm.NewAzurermResourceTagRule()),
+
+	NewTerraformDotTfRule(),
 }
 
 type wrappedRule struct {
