@@ -168,7 +168,6 @@ stages:
                     ext=.exe
                 fi
                 chmod +x dist/${OS}-${ARCH}/${name}${ext}
-                mv dist/${OS}-${ARCH}/${name}${ext} dist/${OS}-${ARCH}/${name}${ext}
                 zip -j release/${NAME}_${OS}_${ARCH}.zip dist/${OS}-${ARCH}/${name}${ext}
               done
 
