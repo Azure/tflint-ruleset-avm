@@ -23,6 +23,14 @@ func TestTerraformTf(t *testing.T) {
 			expectedMessage: "must contain `terraform.tf` file",
 		},
 		{
+			desc: "NoTerraformDotTfFileShouldEmitIssue2",
+			files: map[string]string{
+				"main.tf": "",
+			},
+			expectIssue:     true,
+			expectedMessage: "must contain `terraform.tf` file",
+		},
+		{
 			desc: "NoTerraformBlockInTerraformDotTfFileShouldEmitError",
 			files: map[string]string{
 				"terraform.tf": "",

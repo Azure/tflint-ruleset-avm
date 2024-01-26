@@ -18,7 +18,7 @@ var (
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		RuleSet: &tflint.BuiltinRuleSet{
-			Name:    "template",
+			Name:    "avm",
 			Version: version,
 			Rules:   rules.Rules,
 		},

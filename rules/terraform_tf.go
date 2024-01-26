@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+	"strings"
 )
 
 var _ tflint.Rule = new(TerraformDotTfRule)
@@ -35,6 +36,9 @@ func (t *TerraformDotTfRule) Severity() tflint.Severity {
 func (t *TerraformDotTfRule) Check(r tflint.Runner) error {
 	tFile, err := r.GetFile("terraform.tf")
 	if err != nil {
+		if strings.Contains(err.Error(), "file not found") {
+			return r.EmitIssue(t, "All avm Terraform modules must contain `terraform.tf` file", hcl.Range{})
+		}
 		return err
 	}
 	if tFile == nil {
