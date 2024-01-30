@@ -44,7 +44,10 @@ func (t *TerraformDotTfRule) Check(r tflint.Runner) error {
 	if tFile == nil {
 		return r.EmitIssue(t, "All avm Terraform modules must contain `terraform.tf` file", hcl.Range{})
 	}
-	body := tFile.Body.(*hclsyntax.Body)
+	body, ok := tFile.Body.(*hclsyntax.Body)
+	if !ok {
+		return nil
+	}
 	terraformBlockFound := false
 	for _, b := range body.Blocks {
 		if b.Type == "terraform" {
