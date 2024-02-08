@@ -78,13 +78,13 @@ func (t *TerraformLockInterfaceRule) Check(r tflint.Runner) error {
 			}
 			continue
 		}
-		if err := checkLockInterface(typeattr); err != nil {
-			if err2 := r.EmitIssue(
+		if interfaceErr := checkLockInterface(typeattr); interfaceErr != nil {
+			if err := r.EmitIssue(
 				t,
-				fmt.Sprintf("`var.%s`: %s", variable.Labels[0], err.Error()),
+				fmt.Sprintf("`var.%s`: %s", variable.Labels[0], interfaceErr.Error()),
 				variable.DefRange,
-			); err2 != nil {
-				return err2
+			); err != nil {
+				return err
 			}
 		}
 
