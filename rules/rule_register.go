@@ -18,6 +18,7 @@ var Rules = func() []tflint.Rule {
 		Wrap(basic.NewTerraformVariableSeparateRule()),
 		Wrap(azurerm.NewAzurermResourceTagRule()),
 		NewTerraformDotTfRule(),
+		NewAvmInterfaceLockRule(),
 	}
 }()
 
