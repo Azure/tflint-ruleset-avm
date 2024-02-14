@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/tflint-ruleset-avm/avmhelper"
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
+	"github.com/zclconf/go-cty/cty"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -55,6 +56,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 					Attributes: []hclext.AttributeSchema{
 						{Name: "type"},
 						{Name: "default"},
+						{Name: "nullable"},
 					},
 					Blocks: []hclext.BlockSchema{
 						{
@@ -117,7 +119,8 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 
 		// Check if the default value is correct.
 		defaultval, _ := defaultattr.Expr.Value(nil)
-		if defaultval != interfaces.Lock.Default {
+
+		if defaultval.Equals(t.Iface.Default) != cty.True {
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: default value is not correct, see: %s", variable.Labels[0], t.Link()),
@@ -125,6 +128,42 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 			); err != nil {
 				return err
 			}
+		}
+
+		// Check nullable
+		nullableattr, nullableExists := variable.Body.Attributes["nullable"]
+		// Raise issue if nullable not set and desired is that nullable is false.
+		if !nullableExists && !t.Iface.Nullable {
+			if err := r.EmitIssue(
+				t,
+				fmt.Sprintf("`var.%s`: nullable is not set and should be set to false", variable.Labels[0]),
+				variable.DefRange,
+			); err != nil {
+				return err
+			}
+		}
+		// Raise issue if nullable is set and desired is that nullable is true (default, should not explicitly set nullable to true).
+		if nullableExists && t.Iface.Nullable {
+			if err := r.EmitIssue(
+				t,
+				fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", variable.Labels[0]),
+				variable.DefRange,
+			); err != nil {
+				return err
+			}
+		}
+		if !t.Iface.Nullable && nullableExists {
+			nullableval, _ := nullableattr.Expr.Value(nil)
+			if nullableval != cty.BoolVal(false) {
+				if err := r.EmitIssue(
+					t,
+					fmt.Sprintf("`var.%s`: nullable is set to true and should be set to false", variable.Labels[0]),
+					variable.DefRange,
+				); err != nil {
+					return err
+				}
+			}
+
 		}
 
 		// TODO: Check validation rules.
