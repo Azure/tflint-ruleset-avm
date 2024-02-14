@@ -44,6 +44,26 @@ variable "lock" {
 			Expected: helper.Issues{},
 		},
 		{
+			Name: "lock variable incorrect nullable true",
+			Content: fmt.Sprintf(`
+variable "lock" {
+	default = null
+	type = %s
+	nullable = true
+}`, interfaces.Lock.Type),
+			Expected: helper.Issues{
+				&helper.Issue{
+					Rule:    rules.NewAvmInterfaceLockRule(),
+					Message: fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", interfaces.Lock.Name),
+					Range: hcl.Range{
+						Filename: "variables.tf",
+						Start:    hcl.Pos{Line: 2, Column: 1},
+						End:      hcl.Pos{Line: 2, Column: 16},
+					},
+				},
+			},
+		},
+		{
 			Name: "lock variable too many attributes in object",
 			Content: `
 			variable "lock" {
