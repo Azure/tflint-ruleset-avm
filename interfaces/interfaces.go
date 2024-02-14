@@ -1,3 +1,7 @@
+// Package interfaces provides the standard AVM interfaces that are checked by rules.AVMInterfaceRule.
+// It allows us to define the standard interfaces as a struct.
+// When adding a new interface, be sure to add the corresponding NewAvmInterface* function in the rules package,
+// and then add to the rule register.
 package interfaces
 
 import (
@@ -14,10 +18,6 @@ type AVMInterface struct {
 	Enabled bool      // Whether to test this interface interface.
 	Default cty.Value // Default value for the interface in cty.
 	// TODO: add validation rule checks
-}
-
-var AllInterfaces = []AVMInterface{
-	Lock,
 }
 
 // TypeExpression returns an HCL expression that represents the interface type.
