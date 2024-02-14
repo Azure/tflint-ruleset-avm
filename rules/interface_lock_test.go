@@ -154,7 +154,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewAvmInterfaceLockRule(),
-					Message: "`var.lock`: default value is not `null`",
+					Message: fmt.Sprintf("`var.%s`: default value is not correct, see: %s", interfaces.Lock.Name, interfaces.Lock.Link),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 2, Column: 4},
