@@ -39,15 +39,8 @@ variable "not_lock" {
 			Content: fmt.Sprintf(`
 variable "lock" {
 	default = null
-	type = object({
-		kind = string
-		name = optional(string, null)
-	})
-	validation {
-		condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
-		error_message = "Lock kind must be either %s\"CanNotDelete\"%s or %s\"ReadOnly\"%s."
-	}
-}`, "`", "`", "`", "`"),
+	type = %s
+}`, interfaces.Lock.Type),
 			Expected: helper.Issues{},
 		},
 		{
