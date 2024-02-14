@@ -7,9 +7,9 @@ var Lock = AVMInterface{
 	Type: `object({
 		kind = string
 		name = optional(string, null)
-	})
-	`,
-	Enabled: true,
-	Link:    "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#resource-locks",
-	Default: cty.NullVal(cty.DynamicPseudoType),
+	})`,
+	Enabled:  true,
+	Link:     "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#resource-locks",
+	Default:  cty.NullVal(cty.DynamicPseudoType),
+	Nullable: true,
 }

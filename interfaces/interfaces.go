@@ -12,11 +12,12 @@ import (
 
 // Interfaces represent the standard AVM interfaces that are checked by rules.AVMInterfaceRule.
 type AVMInterface struct {
-	Name    string    // Name of the interface.
-	Link    string    // Link to the interface documentation.
-	Type    string    // String representing the type value.
-	Enabled bool      // Whether to test this interface interface.
-	Default cty.Value // Default value for the interface in cty.
+	Name     string    // Name of the interface.
+	Link     string    // Link to the interface documentation.
+	Type     string    // String representing the type value.
+	Enabled  bool      // Whether to test this interface interface.
+	Default  cty.Value // Default value for the interface in cty.
+	Nullable bool      // Whether the interface is nullable.
 	// TODO: add validation rule checks
 }
 
