@@ -1,14 +1,25 @@
 package rules_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
 func TestTerraformLockInterface(t *testing.T) {
+	expectedLockInterfaceIssue := &helper.Issue{
+		Rule:    rules.NewAvmInterfaceLockRule(),
+		Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.Type),
+		Range: hcl.Range{
+			Filename: "variables.tf",
+			Start:    hcl.Pos{Line: 2, Column: 4},
+			End:      hcl.Pos{Line: 2, Column: 19},
+		},
+	}
 	cases := []struct {
 		Name     string
 		Content  string
@@ -47,15 +58,7 @@ variable "lock" {
 				})
 			}`,
 			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
-					Message: "`var.lock`: expression function object() argument does not have exactly two attributes",
-					Range: hcl.Range{
-						Filename: "variables.tf",
-						Start:    hcl.Pos{Line: 2, Column: 4},
-						End:      hcl.Pos{Line: 2, Column: 19},
-					},
-				},
+				expectedLockInterfaceIssue,
 			},
 		},
 		{
@@ -70,15 +73,7 @@ variable "lock" {
 				})
 			}`,
 			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
-					Message: "`var.lock`: expression function object() argument attribute `unwanted` is not valid",
-					Range: hcl.Range{
-						Filename: "variables.tf",
-						Start:    hcl.Pos{Line: 2, Column: 4},
-						End:      hcl.Pos{Line: 2, Column: 19},
-					},
-				},
+				expectedLockInterfaceIssue,
 			},
 		},
 		{
@@ -92,15 +87,7 @@ variable "lock" {
 				})
 			}`,
 			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
-					Message: "`var.lock`: expression function object() argument attribute `kind` value is not `string`",
-					Range: hcl.Range{
-						Filename: "variables.tf",
-						Start:    hcl.Pos{Line: 2, Column: 4},
-						End:      hcl.Pos{Line: 2, Column: 19},
-					},
-				},
+				expectedLockInterfaceIssue,
 			},
 		},
 		{
@@ -114,15 +101,7 @@ variable "lock" {
 				})
 			}`,
 			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
-					Message: "`var.lock`: expression function object() argument attribute `name` value `optional()` first argument is not `string`",
-					Range: hcl.Range{
-						Filename: "variables.tf",
-						Start:    hcl.Pos{Line: 2, Column: 4},
-						End:      hcl.Pos{Line: 2, Column: 19},
-					},
-				},
+				expectedLockInterfaceIssue,
 			},
 		},
 		{
@@ -136,15 +115,7 @@ variable "lock" {
 				})
 			}`,
 			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
-					Message: "`var.lock`: expression function object() argument attribute `name` value `optional()` second argument is not `null`",
-					Range: hcl.Range{
-						Filename: "variables.tf",
-						Start:    hcl.Pos{Line: 2, Column: 4},
-						End:      hcl.Pos{Line: 2, Column: 19},
-					},
-				},
+				expectedLockInterfaceIssue,
 			},
 		},
 		{
@@ -158,7 +129,7 @@ variable "lock" {
 			}`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
+					Rule:    rules.NewAvmInterfaceLockRule(),
 					Message: "`var.lock`: default not declared",
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -182,7 +153,7 @@ variable "lock" {
 			}`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewTerraformLockInterfaceRule(),
+					Rule:    rules.NewAvmInterfaceLockRule(),
 					Message: "`var.lock`: default value is not `null`",
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -194,10 +165,12 @@ variable "lock" {
 		},
 	}
 
-	rule := rules.NewTerraformLockInterfaceRule()
+	rule := rules.NewAvmInterfaceLockRule()
 
 	for _, tc := range cases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 			filename := "variables.tf"
 			if tc.JSON {
 				filename += ".json"
