@@ -1,6 +1,6 @@
 module github.com/Azure/tflint-ruleset-avm
 
-go 1.21
+go 1.21.7
 
 require (
 	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.0

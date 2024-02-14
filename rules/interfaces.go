@@ -16,7 +16,7 @@ var _ tflint.Rule = new(AVMInterfaceRule)
 // check for the correct usage of an interface.
 type AVMInterfaceRule struct {
 	tflint.DefaultRule
-	Iface interfaces.Interface
+	Iface interfaces.AVMInterface
 }
 
 func (t *AVMInterfaceRule) Name() string {
@@ -28,7 +28,7 @@ func (t *AVMInterfaceRule) Link() string {
 }
 
 func (t *AVMInterfaceRule) Enabled() bool {
-	return false
+	return t.Iface.Enabled
 }
 
 func (t *AVMInterfaceRule) Severity() tflint.Severity {
@@ -58,8 +58,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 					},
 					Blocks: []hclext.BlockSchema{
 						{
-							Type:       "validation",
-							LabelNames: []string{},
+							Type: "validation",
 							Body: &hclext.BodySchema{
 								Attributes: []hclext.AttributeSchema{
 									{Name: "condition"},
@@ -76,7 +75,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 		return err
 	}
 
-	// Iterate over the variables and check for one called `lock`.
+	// Iterate over the variables and check for the name we are interested in.
 	for _, variable := range body.Blocks {
 		if variable.Labels[0] != t.Iface.Name {
 			continue
@@ -127,6 +126,8 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 				return err
 			}
 		}
+
+		// TODO: Check validation rules.
 	}
 
 	return nil
