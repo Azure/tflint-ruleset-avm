@@ -132,8 +132,9 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 
 		// Check nullable
 		nullableattr, nullableExists := variable.Body.Attributes["nullable"]
+		switch {
 		// Raise issue if nullable not set and desired is that nullable is false.
-		if !nullableExists && !t.Iface.Nullable {
+		case !nullableExists && !t.Iface.Nullable:
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: nullable is not set and should be set to false", variable.Labels[0]),
@@ -141,9 +142,8 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 			); err != nil {
 				return err
 			}
-		}
-		// Raise issue if nullable is set and desired is that nullable is true (default, should not explicitly set nullable to true).
-		if nullableExists && t.Iface.Nullable {
+			// Raise issue if nullable is set and desired is that nullable is true (default, should not explicitly set nullable to true).
+		case nullableExists && t.Iface.Nullable:
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", variable.Labels[0]),
@@ -151,8 +151,8 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 			); err != nil {
 				return err
 			}
-		}
-		if !t.Iface.Nullable && nullableExists {
+		// Raise issue if nullable is set and desired is that nullable is false.
+		case !t.Iface.Nullable && nullableExists:
 			nullableval, _ := nullableattr.Expr.Value(nil)
 			if nullableval != cty.BoolVal(false) {
 				if err := r.EmitIssue(
@@ -163,7 +163,8 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 					return err
 				}
 			}
-
+		default:
+			continue
 		}
 
 		// TODO: Check validation rules.
