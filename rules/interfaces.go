@@ -121,7 +121,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 		if defaultval != interfaces.Lock.Default {
 			if err := r.EmitIssue(
 				t,
-				fmt.Sprintf("`var.%s`: default value is not `null`", variable.Labels[0]),
+				fmt.Sprintf("`var.%s`: default value is not correct, see: %s", variable.Labels[0], t.Link()),
 				variable.DefRange,
 			); err != nil {
 				return err
