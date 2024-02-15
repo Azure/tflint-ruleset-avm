@@ -14,7 +14,7 @@ func hclExpressionFromString(expr string) hcl.Expression {
 	return e
 }
 
-func TestCheckTypeConstraint(t *testing.T) {
+func TestCheckEqualTypeConstraints(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Want     hcl.Expression
@@ -55,7 +55,7 @@ func TestCheckTypeConstraint(t *testing.T) {
 		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			res, diags := avmhelper.CheckTypeConstraintsAreEqual(tc.Got, tc.Want)
+			res, diags := avmhelper.CheckEqualTypeConstraints(tc.Got, tc.Want)
 			if diags.HasErrors() && tc.ErrorMsg == nil {
 				t.Errorf("Test %s: Unexpected error: %s", tc.Name, diags.Error())
 			}

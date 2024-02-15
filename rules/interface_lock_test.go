@@ -42,7 +42,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewAvmInterfaceRule(interfaces.Lock),
-					Message: fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", interfaces.Lock.Name),
+					Message: fmt.Sprintf("`var.%s`: nullable should not be set.", interfaces.Lock.Name),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 8, Column: 2},

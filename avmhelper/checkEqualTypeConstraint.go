@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/hcl/v2/ext/typeexpr"
 )
 
-// CheckTypeConstraintsAreEqual checks if two supplied hcl Expressions are in fact type constraints,
+// CheckEqualTypeConstraints checks if two supplied hcl Expressions are in fact type constraints,
 // and if they are that they are equal.
-func CheckTypeConstraintsAreEqual(got, want hcl.Expression) (*bool, hcl.Diagnostics) {
+func CheckEqualTypeConstraints(got, want hcl.Expression) (*bool, hcl.Diagnostics) {
 	result := to.Ptr(false)
 	gotTy, gotDef, diags := typeexpr.TypeConstraintWithDefaults(got)
 	if diags.HasErrors() {

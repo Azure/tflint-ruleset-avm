@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/tflint-ruleset-avm/avmhelper"
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
@@ -111,7 +112,7 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 		}
 
 		// Check if the type interface is correct.
-		if eq, diags := avmhelper.CheckTypeConstraintsAreEqual(typeattr.AsNative().Expr, t.Iface.TypeExpression()); diags.HasErrors() || !*eq {
+		if eq, diags := avmhelper.CheckEqualTypeConstraints(typeattr.AsNative().Expr, t.Iface.TypeExpression()); diags.HasErrors() || !*eq {
 			if err := r.EmitIssue(t,
 				fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", variable.Labels[0], t.Iface.Type),
 				typeattr.Range,
@@ -136,7 +137,7 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 		// Check if the default value is correct.
 		defaultval, _ := defaultattr.Expr.Value(nil)
 
-		if defaultval.Equals(t.Iface.Default) != cty.True {
+		if !avmhelper.CheckEqualCtyValue(defaultval, t.Iface.Default) {
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: default value is not correct, see: %s", variable.Labels[0], t.Link()),
@@ -146,42 +147,39 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 			}
 		}
 
-		// Check nullable
-		nullableattr, nullableExists := variable.Body.Attributes["nullable"]
-		switch {
-		// Raise issue if nullable not set and desired is that nullable is false.
-		case !nullableExists && !t.Iface.Nullable:
-			if err := r.EmitIssue(
-				t,
-				fmt.Sprintf("`var.%s`: nullable is not set and should be set to false", variable.Labels[0]),
-				variable.DefRange,
-			); err != nil {
-				return err
-			}
-			// Raise issue if nullable is set and desired is that nullable is true (default, should not explicitly set nullable to true).
-		case nullableExists && t.Iface.Nullable:
-			if err := r.EmitIssue(
-				t,
-				fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", variable.Labels[0]),
-				nullableattr.Range,
-			); err != nil {
-				return err
-			}
-		// Raise issue if nullable is set and desired is that nullable is false.
-		case !t.Iface.Nullable && nullableExists:
-			nullableval, _ := nullableattr.Expr.Value(nil)
-			if nullableval != cty.BoolVal(false) {
-				if err := r.EmitIssue(
-					t,
-					fmt.Sprintf("`var.%s`: nullable is set to true and should be set to false", variable.Labels[0]),
-					nullableattr.Range,
-				); err != nil {
-					return err
+		// Check if the variable has a nullable attribute and fetch the value,
+		// else set it to null.
+		var nullableVal cty.Value
+		nullableAttr, nullableExists := variable.Body.Attributes["nullable"]
+		if !nullableExists {
+			nullableVal = cty.NullVal(cty.Bool)
+		} else {
+			var diags hcl.Diagnostics
+			if nullableVal, diags = nullableAttr.Expr.Value(nil); diags.HasErrors() {
+				if diags.HasErrors() {
+					return diags
 				}
 			}
-		default:
-			continue
 		}
+
+		// Check nullable attribute.
+		if ok := avmhelper.CheckNullable(nullableVal, t.Iface.Nullable); !ok {
+			var msg string
+			switch t.Iface.Nullable {
+			case true:
+				msg = fmt.Sprintf("`var.%s`: nullable should not be set.", variable.Labels[0])
+			case false:
+				msg = fmt.Sprintf("`var.%s`: nullable should be set to false", variable.Labels[0])
+			}
+			if err := r.EmitIssue(
+				t,
+				msg,
+				nullableAttr.Range,
+			); err != nil {
+				return err
+			}
+		}
+
 		// TODO: Check validation rules.
 	}
 	return nil

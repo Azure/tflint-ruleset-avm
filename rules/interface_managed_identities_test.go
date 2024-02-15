@@ -9,7 +9,7 @@ import (
 )
 
 // TestDiagnosticSettingsInterface tests the diagnostic settings interface.
-func TestDiagnosticSettingsInterface(t *testing.T) {
+func TestManagedIdentitiesInterface(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Content  string
@@ -19,19 +19,19 @@ func TestDiagnosticSettingsInterface(t *testing.T) {
 		{
 			Name: "not diagnostic_settings variable",
 			Content: `
-variable "not_diagnostic_settings" {
+variable "not_managed_identities" {
 	default = "default"
 }`,
 			Expected: helper.Issues{},
 		},
 		{
-			Name:     "diagnostic_settings variable correct",
-			Content:  interfaces.DiagnosticSettings.TerrafromVar(),
+			Name:     "managed_identities variable correct",
+			Content:  interfaces.ManagedIdentities.TerrafromVar(),
 			Expected: helper.Issues{},
 		},
 	}
 
-	rule := rules.NewAvmInterfaceRule(interfaces.DiagnosticSettings)
+	rule := rules.NewAvmInterfaceRule(interfaces.ManagedIdentities)
 
 	for _, tc := range cases {
 		tc := tc
