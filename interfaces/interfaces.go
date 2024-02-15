@@ -13,7 +13,7 @@ import (
 )
 
 // Interfaces represent the standard AVM interfaces that are checked by rules.AVMInterfaceRule.
-type AVMInterface struct {
+type AvmInterface struct {
 	Default  cty.Value // Default value for the interface as a cty.Value
 	Enabled  bool      // Whether to test this interface interface.
 	Link     string    // Link to the interface documentation.
@@ -25,7 +25,7 @@ type AVMInterface struct {
 
 // TypeExpression returns an HCL expression that represents the interface type.
 // If the interface cannot be correctly parsed, this function will panic.
-func (i AVMInterface) TypeExpression() hcl.Expression {
+func (i AvmInterface) TypeExpression() hcl.Expression {
 	e, d := hclsyntax.ParseExpression([]byte(i.Type), "variables.tf", hcl.Pos{})
 	if d.HasErrors() {
 		panic(d.Error())
@@ -35,7 +35,7 @@ func (i AVMInterface) TypeExpression() hcl.Expression {
 
 // TerrafromVar returns a string that represents the interface as the
 // minimum required Terraform variable definition for testing.
-func (i AVMInterface) TerrafromVar() string {
+func (i AvmInterface) TerrafromVar() string {
 	f := hclwrite.NewEmptyFile()
 	rootBody := f.Body()
 	varBlock := rootBody.AppendNewBlock("variable", []string{i.Name})

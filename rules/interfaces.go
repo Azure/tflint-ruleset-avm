@@ -11,32 +11,45 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-var _ tflint.Rule = new(AVMInterfaceRule)
+// Check interface compliance with the tflint.Rule.
+var _ tflint.Rule = new(AvmInterfaceRule)
 
-// AVMInterfaceRule is the struct that represents a rule that
+// AvmInterfaceRule is the struct that represents a rule that
 // check for the correct usage of an interface.
-type AVMInterfaceRule struct {
+// Note interfaces.AVMInterface is embedded in this struct,
+// which is used by the constructor func NewAVMInterface...Rule().
+type AvmInterfaceRule struct {
 	tflint.DefaultRule
-	Iface interfaces.AVMInterface
+	Iface interfaces.AvmInterface
 }
 
-func (t *AVMInterfaceRule) Name() string {
+// NewAVMInterfaceRule returns a new rule with the given interface.
+// The data is taken from the embedded interfaces.AVMInterface.
+func (t *AvmInterfaceRule) Name() string {
 	return t.Iface.Name
 }
 
-func (t *AVMInterfaceRule) Link() string {
+func (t *AvmInterfaceRule) Link() string {
 	return t.Iface.Link
 }
 
-func (t *AVMInterfaceRule) Enabled() bool {
+// Enabled returns whether the rule is enabled.
+// This is sourced from the embedded interfaces.AVMInterface.
+func (t *AvmInterfaceRule) Enabled() bool {
 	return t.Iface.Enabled
 }
 
-func (t *AVMInterfaceRule) Severity() tflint.Severity {
+// Severity returns the severity of the rule.
+// Currently all interfaces have severity ERROR.
+func (t *AvmInterfaceRule) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
+// Check checks whether the module satisfies the interface.
+// It will search for a variable with the same name as the interface.
+// It will check the type, default value and nullable attributes.
+// TODO: think about how we can check validation rules.
+func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 	path, err := r.GetModulePath()
 	if err != nil {
 		return err
@@ -58,6 +71,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 						{Name: "default"},
 						{Name: "nullable"},
 					},
+					// We do not do anything with the validation data at the moment.
 					Blocks: []hclext.BlockSchema{
 						{
 							Type: "validation",
@@ -98,10 +112,12 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 
 		// Check if the type interface is correct.
 		if eq, diags := avmhelper.CheckTypeConstraintsAreEqual(typeattr.AsNative().Expr, t.Iface.TypeExpression()); diags.HasErrors() || !*eq {
-			r.EmitIssue(t,
+			if err := r.EmitIssue(t,
 				fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", variable.Labels[0], t.Iface.Type),
-				variable.DefRange,
-			)
+				typeattr.Range,
+			); err != nil {
+				return err
+			}
 		}
 
 		// Check if the variable has a default attribute.
@@ -147,7 +163,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: nullable is set and should not be, we require this to be true and this is the default behaviour so no need to set explicitly", variable.Labels[0]),
-				variable.DefRange,
+				nullableattr.Range,
 			); err != nil {
 				return err
 			}
@@ -158,7 +174,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 				if err := r.EmitIssue(
 					t,
 					fmt.Sprintf("`var.%s`: nullable is set to true and should be set to false", variable.Labels[0]),
-					variable.DefRange,
+					nullableattr.Range,
 				); err != nil {
 					return err
 				}
@@ -166,9 +182,7 @@ func (t *AVMInterfaceRule) Check(r tflint.Runner) error {
 		default:
 			continue
 		}
-
 		// TODO: Check validation rules.
 	}
-
 	return nil
 }

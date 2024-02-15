@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -18,8 +19,9 @@ var Rules = func() []tflint.Rule {
 		Wrap(basic.NewTerraformVariableSeparateRule()),
 		Wrap(azurerm.NewAzurermResourceTagRule()),
 		NewTerraformDotTfRule(),
-		NewAvmInterfaceLockRule(),
-		NewAvmInterfaceDiagnosticSettingsRule(),
+		NewAvmInterfaceRule(interfaces.Lock),
+		NewAvmInterfaceRule(interfaces.ManagedIdentities),
+		NewAvmInterfaceRule(interfaces.DiagnosticSettings),
 	}
 }()
 

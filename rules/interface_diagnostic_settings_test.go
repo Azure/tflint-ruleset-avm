@@ -13,7 +13,7 @@ import (
 // TestDiagnosticSettingsInterface tests the diagnostic settings interface.
 func TestDiagnosticSettingsInterface(t *testing.T) {
 	expectedDiagnosticSettingsInterfaceIssue := &helper.Issue{
-		Rule:    rules.NewAvmInterfaceDiagnosticSettingsRule(),
+		Rule:    rules.NewAvmInterfaceRule(interfaces.DiagnosticSettings),
 		Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.DiagnosticSettings.Type),
 		Range: hcl.Range{
 			Filename: "variables.tf",
@@ -43,7 +43,7 @@ variable "not_diagnostic_settings" {
 		},
 	}
 
-	rule := rules.NewAvmInterfaceDiagnosticSettingsRule()
+	rule := rules.NewAvmInterfaceRule(interfaces.DiagnosticSettings)
 
 	for _, tc := range cases {
 		tc := tc
