@@ -3,7 +3,7 @@ package interfaces
 import "github.com/zclconf/go-cty/cty"
 
 // DiagnosticSettings represents the diagnostic_settings interface.
-var DiagnosticSettings = AVMInterface{
+var DiagnosticSettings = AvmInterface{
 	Name: "diagnostic_settings",
 	Type: `map(object({
 		name                                     = optional(string, null)
