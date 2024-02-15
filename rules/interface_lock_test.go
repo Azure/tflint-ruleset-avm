@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
+// TestLockTerraformVar tests Lock interface.
 func TestTerraformLockInterface(t *testing.T) {
 	expectedLockInterfaceIssue := &helper.Issue{
 		Rule:    rules.NewAvmInterfaceLockRule(),
@@ -35,12 +36,8 @@ variable "not_lock" {
 			Expected: helper.Issues{},
 		},
 		{
-			Name: "lock variable correct",
-			Content: fmt.Sprintf(`
-variable "lock" {
-	default = null
-	type = %s
-}`, interfaces.Lock.Type),
+			Name:     "lock variable correct",
+			Content:  interfaces.Lock.TerrafromVar(),
 			Expected: helper.Issues{},
 		},
 		{

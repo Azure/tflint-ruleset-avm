@@ -2,6 +2,7 @@ package interfaces
 
 import "github.com/zclconf/go-cty/cty"
 
+// Lock represents the lock interface.
 var Lock = AVMInterface{
 	Name: "lock",
 	Type: `object({
