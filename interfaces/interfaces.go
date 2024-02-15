@@ -40,9 +40,12 @@ func (i AVMInterface) TerrafromVar() string {
 	rootBody := f.Body()
 	varBlock := rootBody.AppendNewBlock("variable", []string{i.Name})
 	varBody := varBlock.Body()
+	// check the Type constraint is valid and panic if not
 	if _, _, diags := typeexpr.TypeConstraintWithDefaults(i.TypeExpression()); diags.HasErrors() {
 		panic(diags.Error())
 	}
+	// I couldn't get the hclwrite to work with the type constraint so I'm just adding it as a string
+	// using SetSAttributeRaw and hclWrite.Token.
 	varBody.SetAttributeRaw("type", hclwrite.Tokens{
 		{
 			Type:  hclsyntax.TokenStringLit,
@@ -50,6 +53,8 @@ func (i AVMInterface) TerrafromVar() string {
 		},
 	})
 	varBody.SetAttributeValue("default", i.Default)
+	// If the interface is not nullable, set the nullable attribute to false.
+	// the default is true so we only need to set it if it's false.
 	if !i.Nullable {
 		varBody.SetAttributeValue("nullable", cty.False)
 	}
