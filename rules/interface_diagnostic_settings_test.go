@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
+// TestDiagnosticSettingsInterface tests the diagnostic settings interface.
 func TestDiagnosticSettingsInterface(t *testing.T) {
 	expectedDiagnosticSettingsInterfaceIssue := &helper.Issue{
 		Rule:    rules.NewAvmInterfaceDiagnosticSettingsRule(),
@@ -36,13 +37,8 @@ variable "not_diagnostic_settings" {
 			Expected: helper.Issues{},
 		},
 		{
-			Name: "diagnostic_settings variable correct",
-			Content: fmt.Sprintf(`
-variable "diagnostic_settings" {
-	default = {}
-	nullable = %t
-	type = %s
-}`, interfaces.DiagnosticSettings.Nullable, interfaces.DiagnosticSettings.Type),
+			Name:     "diagnostic_settings variable correct",
+			Content:  interfaces.DiagnosticSettings.TerrafromVar(),
 			Expected: helper.Issues{},
 		},
 	}

@@ -6,18 +6,20 @@ package interfaces
 
 import (
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/ext/typeexpr"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
 
 // Interfaces represent the standard AVM interfaces that are checked by rules.AVMInterfaceRule.
 type AVMInterface struct {
-	Name     string    // Name of the interface.
-	Link     string    // Link to the interface documentation.
-	Type     string    // String representing the type value.
+	Default  cty.Value // Default value for the interface as a cty.Value
 	Enabled  bool      // Whether to test this interface interface.
-	Default  cty.Value // Default value for the interface in cty.
+	Link     string    // Link to the interface documentation.
+	Name     string    // Name of the interface.
 	Nullable bool      // Whether the interface is nullable.
+	Type     string    // String representing the type value.
 	// TODO: add validation rule checks
 }
 
@@ -29,4 +31,27 @@ func (i AVMInterface) TypeExpression() hcl.Expression {
 		panic(d.Error())
 	}
 	return e
+}
+
+// TerrafromVar returns a string that represents the interface as the
+// minimum required Terraform variable definition for testing.
+func (i AVMInterface) TerrafromVar() string {
+	f := hclwrite.NewEmptyFile()
+	rootBody := f.Body()
+	varBlock := rootBody.AppendNewBlock("variable", []string{i.Name})
+	varBody := varBlock.Body()
+	if _, _, diags := typeexpr.TypeConstraintWithDefaults(i.TypeExpression()); diags.HasErrors() {
+		panic(diags.Error())
+	}
+	varBody.SetAttributeRaw("type", hclwrite.Tokens{
+		{
+			Type:  hclsyntax.TokenStringLit,
+			Bytes: []byte(" " + i.Type),
+		},
+	})
+	varBody.SetAttributeValue("default", i.Default)
+	if !i.Nullable {
+		varBody.SetAttributeValue("nullable", cty.False)
+	}
+	return string(f.Bytes())
 }
