@@ -33,16 +33,16 @@ func (i AvmInterface) TypeExpression() hcl.Expression {
 	return e
 }
 
-// TerrafromVar returns a string that represents the interface as the
+// TerraformVar returns a string that represents the interface as the
 // minimum required Terraform variable definition for testing.
-func (i AvmInterface) TerrafromVar() string {
+func (i AvmInterface) TerraformVar() (string, error) {
 	f := hclwrite.NewEmptyFile()
 	rootBody := f.Body()
 	varBlock := rootBody.AppendNewBlock("variable", []string{i.Name})
 	varBody := varBlock.Body()
 	// check the Type constraint is valid and panic if not
 	if _, _, diags := typeexpr.TypeConstraintWithDefaults(i.TypeExpression()); diags.HasErrors() {
-		panic(diags.Error())
+		return "", diags
 	}
 	// I couldn't get the hclwrite to work with the type constraint so I'm just adding it as a string
 	// using SetSAttributeRaw and hclWrite.Token.
@@ -58,5 +58,5 @@ func (i AvmInterface) TerrafromVar() string {
 	if !i.Nullable {
 		varBody.SetAttributeValue("nullable", cty.False)
 	}
-	return string(f.Bytes())
+	return string(f.Bytes()), nil
 }

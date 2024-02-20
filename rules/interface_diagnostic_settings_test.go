@@ -26,7 +26,7 @@ variable "not_diagnostic_settings" {
 		},
 		{
 			Name:     "diagnostic_settings variable correct",
-			Content:  interfaces.DiagnosticSettings.TerrafromVar(),
+			Content:  terraformVar(interfaces.DiagnosticSettings),
 			Expected: helper.Issues{},
 		},
 	}

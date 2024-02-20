@@ -10,6 +10,14 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
+func terraformVar(r interfaces.AvmInterface) string {
+	s, err := r.TerraformVar()
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 // TestLockTerraformVar tests Lock interface.
 func TestTerraformLockInterface(t *testing.T) {
 	cases := []struct {
@@ -28,7 +36,7 @@ variable "not_lock" {
 		},
 		{
 			Name:     "lock variable correct",
-			Content:  interfaces.Lock.TerrafromVar(),
+			Content:  terraformVar(interfaces.Lock),
 			Expected: helper.Issues{},
 		},
 		{

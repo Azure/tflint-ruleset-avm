@@ -99,7 +99,7 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 		}
 
 		// Check if the variable has a type attribute.
-		typeattr, exists := variable.Body.Attributes["type"]
+		typeAttr, exists := variable.Body.Attributes["type"]
 		if !exists {
 			if err := r.EmitIssue(
 				t,
@@ -112,17 +112,25 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 		}
 
 		// Check if the type interface is correct.
-		if eq, diags := avmhelper.CheckEqualTypeConstraints(typeattr.AsNative().Expr, t.Iface.TypeExpression()); diags.HasErrors() || !*eq {
+		gotType, diags := avmhelper.NewVariableTypeFromExpression(typeAttr.AsNative().Expr)
+		if diags.HasErrors() {
+			return diags
+		}
+		wantType, diags := avmhelper.NewVariableTypeFromExpression(t.Iface.TypeExpression())
+		if diags.HasErrors() {
+			return diags
+		}
+		if eq := avmhelper.CheckEqualTypeConstraints(gotType, wantType); !eq {
 			if err := r.EmitIssue(t,
 				fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", variable.Labels[0], t.Iface.Type),
-				typeattr.Range,
+				typeAttr.Range,
 			); err != nil {
 				return err
 			}
 		}
 
 		// Check if the variable has a default attribute.
-		defaultattr, exists := variable.Body.Attributes["default"]
+		defaultAttr, exists := variable.Body.Attributes["default"]
 		if !exists {
 			if err := r.EmitIssue(
 				t,
@@ -135,9 +143,9 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 		}
 
 		// Check if the default value is correct.
-		defaultval, _ := defaultattr.Expr.Value(nil)
+		defaultVal, _ := defaultAttr.Expr.Value(nil)
 
-		if !avmhelper.CheckEqualCtyValue(defaultval, t.Iface.Default) {
+		if !avmhelper.CheckEqualCtyValue(defaultVal, t.Iface.Default) {
 			if err := r.EmitIssue(
 				t,
 				fmt.Sprintf("`var.%s`: default value is not correct, see: %s", variable.Labels[0], t.Link()),
@@ -164,11 +172,8 @@ func (t *AvmInterfaceRule) Check(r tflint.Runner) error {
 
 		// Check nullable attribute.
 		if ok := avmhelper.CheckNullable(nullableVal, t.Iface.Nullable); !ok {
-			var msg string
-			switch t.Iface.Nullable {
-			case true:
-				msg = fmt.Sprintf("`var.%s`: nullable should not be set.", variable.Labels[0])
-			case false:
+			msg := fmt.Sprintf("`var.%s`: nullable should not be set.", variable.Labels[0])
+			if !t.Iface.Nullable {
 				msg = fmt.Sprintf("`var.%s`: nullable should be set to false", variable.Labels[0])
 			}
 			if err := r.EmitIssue(

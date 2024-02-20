@@ -26,7 +26,7 @@ variable "not_managed_identities" {
 		},
 		{
 			Name:     "managed_identities variable correct",
-			Content:  interfaces.ManagedIdentities.TerrafromVar(),
+			Content:  terraformVar(interfaces.ManagedIdentities),
 			Expected: helper.Issues{},
 		},
 	}

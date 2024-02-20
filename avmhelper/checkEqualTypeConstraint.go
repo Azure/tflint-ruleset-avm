@@ -1,27 +1,31 @@
 package avmhelper
 
 import (
+	"github.com/zclconf/go-cty/cty"
 	"reflect"
 
-	"github.com/Azure/tflint-ruleset-avm/to"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/ext/typeexpr"
 )
 
+type VariableType struct {
+	Type    cty.Type
+	Default *typeexpr.Defaults
+}
+
+func NewVariableTypeFromExpression(exp hcl.Expression) (VariableType, hcl.Diagnostics) {
+	t, d, diags := typeexpr.TypeConstraintWithDefaults(exp)
+	if diags.HasErrors() {
+		return VariableType{}, diags
+	}
+	return VariableType{
+		Type:    t,
+		Default: d,
+	}, nil
+}
+
 // CheckEqualTypeConstraints checks if two supplied hcl Expressions are in fact type constraints,
 // and if they are that they are equal.
-func CheckEqualTypeConstraints(got, want hcl.Expression) (*bool, hcl.Diagnostics) {
-	result := to.Ptr(false)
-	gotTy, gotDef, diags := typeexpr.TypeConstraintWithDefaults(got)
-	if diags.HasErrors() {
-		return nil, diags
-	}
-	wantTy, wantDef, diags := typeexpr.TypeConstraintWithDefaults(want)
-	if diags.HasErrors() {
-		return nil, diags
-	}
-	if reflect.DeepEqual(gotTy, wantTy) && reflect.DeepEqual(gotDef, wantDef) {
-		result = to.Ptr(true)
-	}
-	return result, diags
+func CheckEqualTypeConstraints(type1, type2 VariableType) bool {
+	return reflect.DeepEqual(type1, type2)
 }
