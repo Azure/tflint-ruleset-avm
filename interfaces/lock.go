@@ -1,11 +1,14 @@
 package interfaces
 
-import "github.com/zclconf/go-cty/cty"
+import (
+	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+	"github.com/zclconf/go-cty/cty"
+)
 
-// Lock represents the lock interface.
+// TerraformVarLock represents the definition of the AVM Locks interface.
 var Lock = AvmInterface{
 	Name: "lock",
-	Type: `object({
+	TypeStr: `object({
 		kind = string
 		name = optional(string, null)
 	})`,
@@ -13,4 +16,5 @@ var Lock = AvmInterface{
 	Link:     "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#resource-locks",
 	Default:  cty.NullVal(cty.DynamicPseudoType),
 	Nullable: true,
+	Severity: tflint.ERROR,
 }
