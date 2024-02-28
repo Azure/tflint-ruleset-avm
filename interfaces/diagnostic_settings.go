@@ -5,7 +5,7 @@ import "github.com/zclconf/go-cty/cty"
 // DiagnosticSettings represents the diagnostic_settings interface.
 var DiagnosticSettings = AvmInterface{
 	Name: "diagnostic_settings",
-	Type: `map(object({
+	TypeStr: `map(object({
 		name                                     = optional(string, null)
 		log_categories                           = optional(set(string), [])
 		log_groups                               = optional(set(string), ["allLogs"])

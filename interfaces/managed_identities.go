@@ -5,7 +5,7 @@ import "github.com/zclconf/go-cty/cty"
 // Lock represents the lock interface.
 var ManagedIdentities = AvmInterface{
 	Name: "managed_identities",
-	Type: `object({
+	TypeStr: `object({
 		kind = string
 		name = optional(string, null)
 	})`,
