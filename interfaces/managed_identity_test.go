@@ -26,12 +26,12 @@ variable "not_managed_identities" {
 		},
 		{
 			Name:     "managed_identities variable correct",
-			Content:  interfaces.ManagedIdentities.TerrafromVar(),
+			Content:  interfaces.ManagedIdentity.TerrafromVar(),
 			Expected: helper.Issues{},
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities)
+	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentity)
 
 	for _, tc := range cases {
 		tc := tc
