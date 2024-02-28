@@ -103,7 +103,7 @@ func (vcr *VarCheckRule) Check(r tflint.Runner) error {
 		if diags.HasErrors() {
 			return diags
 		}
-		if eq := check.CheckEqualTypeConstraints(gotType, vcr.vc.TypeConstraintWithDefs); !eq {
+		if eq := check.EqualTypeConstraints(gotType, vcr.vc.TypeConstraintWithDefs); !eq {
 			if err := r.EmitIssue(vcr,
 				fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", v.Labels[0], vcr.avmInterface.TypeStr),
 				typeAttr.Range,
@@ -128,7 +128,7 @@ func (vcr *VarCheckRule) Check(r tflint.Runner) error {
 		// Check if the default value is correct.
 		defaultVal, _ := defaultAttr.Expr.Value(nil)
 
-		if !check.CheckEqualCtyValue(defaultVal, vcr.vc.Default) {
+		if !check.EqualCtyValue(defaultVal, vcr.vc.Default) {
 			if err := r.EmitIssue(
 				vcr,
 				fmt.Sprintf("`var.%s`: default value is not correct, see: %s", v.Labels[0], vcr.Link()),
@@ -154,7 +154,7 @@ func (vcr *VarCheckRule) Check(r tflint.Runner) error {
 		}
 
 		// Check nullable attribute.
-		if ok := check.CheckNullable(nullableVal, vcr.vc.Nullable); !ok {
+		if ok := check.Nullable(nullableVal, vcr.vc.Nullable); !ok {
 			msg := fmt.Sprintf("`var.%s`: nullable should not be set.", v.Labels[0])
 			if !vcr.vc.Nullable {
 				msg = fmt.Sprintf("`var.%s`: nullable should be set to false", v.Labels[0])

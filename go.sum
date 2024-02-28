@@ -53,6 +53,8 @@ github.com/lonegunmanb/terraform-azurerm-schema/v3 v3.93.0 h1:4hop5G55mN19UCataF
 github.com/lonegunmanb/terraform-azurerm-schema/v3 v3.93.0/go.mod h1:KwaGjpd14zQzYlNYrGhe5sOhoNHDH/p3E0xmYO/aEwE=
 github.com/matt-FFFFFF/tfvarcheck v0.1.0 h1:s3xw72r4bus/92MT1CV0huy7rDhb2W1B6mLL+Zc6mIc=
 github.com/matt-FFFFFF/tfvarcheck v0.1.0/go.mod h1:EiOHH3l/7X9kq5mFjWnYo+CFPllPCv5sWc1Om0k+yhY=
+github.com/matt-FFFFFF/tfvarcheck v0.2.0 h1:HiF4YVvGOgDUX+/Ajwm2jrcr8BuX0w+OI9iRAKVwFv0=
+github.com/matt-FFFFFF/tfvarcheck v0.2.0/go.mod h1:EiOHH3l/7X9kq5mFjWnYo+CFPllPCv5sWc1Om0k+yhY=
 github.com/mattn/go-colorable v0.1.9/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
