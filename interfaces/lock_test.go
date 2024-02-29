@@ -27,8 +27,11 @@ variable "not_lock" {
 			Expected: helper.Issues{},
 		},
 		{
-			Name:     "lock variable correct",
-			Content:  interfaces.Lock.TerrafromVar(),
+			Name: "lock variable correct",
+			Content: fmt.Sprintf(`variable "lock" {
+	default = null
+	type = %s
+}`, interfaces.LockTypeString),
 			Expected: helper.Issues{},
 		},
 		{
@@ -38,11 +41,11 @@ variable "lock" {
 	default = null
 	type = %s
 	nullable = true
-}`, interfaces.Lock.TypeStr),
+}`, interfaces.LockTypeString),
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`var.%s`: nullable should not be set.", interfaces.Lock.Name),
+					Message: "nullable should not be set.",
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 8, Column: 2},
@@ -65,7 +68,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.TypeStr),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 4, Column: 5},
@@ -88,7 +91,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.TypeStr),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 4, Column: 5},
@@ -110,7 +113,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.TypeStr),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 4, Column: 5},
@@ -132,7 +135,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.TypeStr),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 4, Column: 5},
@@ -154,7 +157,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`%s` variable type does not comply with the interface specification:\n\n%s", "lock", interfaces.Lock.TypeStr),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 4, Column: 5},
@@ -175,7 +178,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: "`var.lock`: default not declared",
+					Message: "default not declared",
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 2, Column: 4},
@@ -199,7 +202,7 @@ variable "lock" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-					Message: fmt.Sprintf("`var.%s`: default value is not correct, see: %s", interfaces.Lock.Name, interfaces.Lock.Link),
+					Message: fmt.Sprintf("default value is not correct, see: %s", interfaces.Lock.Link),
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 2, Column: 4},
