@@ -8,11 +8,11 @@ import (
 // AvmInterface represents the definition of an AVM interface.
 type AvmInterface struct {
 	varcheck.VarCheck
-	Name          string // Name of the interface, also the name of the variable to check.
+	RuleName      string // RuleName of the interface, also the name of the variable to check.
 	VarTypeString string
-	Enabled       bool            // Whether the rule is enabled by default.
-	Link          string          // Link to the interface specification.
-	Severity      tflint.Severity // Summary of the interface.
+	RuleEnabled   bool            // Whether the rule is enabled by default.
+	RuleLink      string          // RuleLink to the interface specification.
+	RuleSeverity  tflint.Severity // Summary of the interface.
 }
 
 func stringToTypeConstraintWithDefaults(c string) varcheck.TypeConstraintWithDefaults {
