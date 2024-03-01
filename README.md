@@ -1,12 +1,13 @@
-# TFLint Ruleset Template
-[![Build Status](https://github.com/terraform-linters/tflint-ruleset-template/workflows/build/badge.svg?branch=main)](https://github.com/terraform-linters/tflint-ruleset-template/actions)
+# Azure Verified Modules TFLint Ruleset
 
-This is a template repository for building a custom ruleset. You can create a plugin repository from "Use this template". See also [Writing Plugins](https://github.com/terraform-linters/tflint/blob/master/docs/developer-guide/plugins.md).
+[![Build Status](https://github.com/Azure/tflint-ruleset-avm/workflows/build/badge.svg?branch=main)](https://github.com/Azure/tflint-ruleset-avm/actions)
+
+This repository contains the TFLint ruleset for Azure Verified Modules.
 
 ## Requirements
 
 - TFLint v0.42+
-- Go v1.21
+- Go v1.22
 
 ## Installation
 
@@ -15,18 +16,32 @@ TODO: This template repository does not contain release binaries, so this instal
 You can install the plugin with `tflint --init`. Declare a config in `.tflint.hcl` as follows:
 
 ```hcl
-plugin "template" {
+plugin "avm" {
   enabled = true
 
-  version = "0.1.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-template"
+  version = "0.2.0"
+  source  = "github.com/Azure/tflint-ruleset-avm"
 
   signing_key = <<-KEY
-  -----BEGIN PGP PUBLIC KEY BLOCK-----
-  mQINBGCqS2YBEADJ7gHktSV5NgUe08hD/uWWPwY07d5WZ1+F9I9SoiK/mtcNGz4P
-  JLrYAIUTMBvrxk3I+kuwhp7MCk7CD/tRVkPRIklONgtKsp8jCke7FB3PuFlP/ptL
-  SlbaXx53FCZSOzCJo9puZajVWydoGfnZi5apddd11Zw1FuJma3YElHZ1A1D2YvrF
-  ...
+----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: BSN Pgp v1.1.0.0
+
+mQENBF9hII8BCADEOCDl3/1tAZQp/1BCVJN+tqIRCd3ywzhOXTC38XWC0zVbFtiA
+vbBFL1e78aoDIyUFDZcphCyYDqBkweXeYyYVCojZFVniyKklc2xZ15LDwlMBhneU
+yEPSzDCltFn67wMPQMKa4+TujZJ3TIs1OUnUTsCPrjavGgmrfAdxAF/EjCDrnVp9
+XmRWJii/9elAnMqWLDkMDfPaWkv3lWuyYCBHc7avOJE9oWypmWoEPOujwmtika/i
+FhmvZbojZN6huf7pykXGRl1wEpu0MMEFvm4UsfEOv8JHVBZEu2w6glQugT6a+IZ6
+atH3zyy+i1mmgsJPlMF1soHNEufeK1CabMklABEBAAG0Q1RlcnJhZm9ybSBBRE8g
+cHJvdmlkZXIgcmVsZWFzZSA8dGVycmFmb3JtYWRvcHJvdmlkZXJAbWljcm9zb2Z0
+LmNvbT6JATgEEwEIACIFAl9hII8CGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheA
+AAoJEG8Lkb3phHjPT+YH/3aksw2yhoqVl+Dxkrpsq9LIsXBHmHfbk8/nwbZ7F6o6
+fZetwozQzS/v5IriE42NFdk2omilDa/Iumk5soPrCamIIToYMbGvZJ9MJzCflXzp
+H3crqEgoCwu/93FVot4hhNOGmS2ra538zDQ3JsSbsVSc2TyPeBCF08+qJrr9VSML
+LceuEvCKUN8P8LH+PXN4kKM1xNlSVw4RfH6mNJKdUG1Klvh2nbq0kuw8jiHITn2F
+ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
+/i9e5KqIAEIf14OPm3h+e6kCdWXRG0RJWWVWeOHIEfQ=
+=KwXd
+-----END PGP PUBLIC KEY BLOCK-----
   KEY
 }
 ```
@@ -45,20 +60,20 @@ plugin "template" {
 Clone the repository locally and run the following command:
 
 ```
-$ make
+make
 ```
 
 You can easily install the built plugin with the following:
 
 ```
-$ make install
+make install
 ```
 
 You can run the built plugin like the following:
 
 ```
 $ cat << EOS > .tflint.hcl
-plugin "template" {
+plugin "avm" {
   enabled = true
 }
 EOS
