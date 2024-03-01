@@ -102,99 +102,143 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 	}
 
 	// Iterate over the variables and check for the name we are interested in.
-	for _, v := range body.Blocks {
-		if v.Labels[0] != vcr.RuleName {
+	for _, b := range body.Blocks {
+		if b.Labels[0] != vcr.RuleName {
 			continue
 		}
 
-		// Check if the variable has a type attribute.
-		typeAttr, exists := v.Body.Attributes["type"]
-		if !exists {
-			if err := r.EmitIssue(
-				vcr,
-				fmt.Sprintf("`%s` variable type not declared", v.Labels[0]),
-				v.DefRange,
-			); err != nil {
-				return err
-			}
-			continue
-		}
+		typeAttr, c := CheckWithReturnValue(newChecker(), getTypeAttr(vcr, r, b))
+		c = c.Check(checkVarType(vcr, r, typeAttr))
+		defaultAttr, c := CheckWithReturnValue(c, getDefaultAttr(vcr, r, b))
+		c = c.Check(checkDefaultValue(vcr, r, b, defaultAttr)).
+			Check(checkNullableValue(vcr, r, b))
 
-		// Check if the type interface is correct.
-		gotType, diags := varcheck.NewTypeConstraintWithDefaultsFromExp(typeAttr.Expr)
-		if diags.HasErrors() {
-			return diags
+		if c.err != nil {
+			return c.err
 		}
-		if eq := check.EqualTypeConstraints(gotType, vcr.TypeConstraintWithDefs); !eq {
-			if err := r.EmitIssue(vcr,
-				fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", vcr.VarTypeString),
-				typeAttr.Range,
-			); err != nil {
-				return err
-			}
-		}
+		// TODO: Check validation rules.
+	}
+	return nil
+}
 
-		// Check if the variable has a default attribute.
-		defaultAttr, exists := v.Body.Attributes["default"]
-		if !exists {
-			if err := r.EmitIssue(
-				vcr,
-				"default not declared",
-				v.DefRange,
-			); err != nil {
-				return err
-			}
-			continue
-		}
-
-		// Check if the default value is correct.
-		defaultVal, _ := defaultAttr.Expr.Value(nil)
-
-		if !check.EqualCtyValue(defaultVal, vcr.Default) {
-			if err := r.EmitIssue(
-				vcr,
-				fmt.Sprintf("default value is not correct, see: %s", vcr.Link()),
-				v.DefRange,
-			); err != nil {
-				return err
-			}
-		}
-
-		// Check if the variable has a nullable attribute and fetch the value,
-		// else set it to null.
-		var nullableVal cty.Value
-		nullableAttr, nullableExists := v.Body.Attributes["nullable"]
-		if !nullableExists {
-			nullableVal = cty.NullVal(cty.Bool)
-		} else {
+func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block) func() (bool, error) {
+	return func() (bool, error) {
+		nullableAttr, nullableExists := b.Body.Attributes["nullable"]
+		nullableVal := cty.NullVal(cty.Bool)
+		if nullableExists {
 			var diags hcl.Diagnostics
 			if nullableVal, diags = nullableAttr.Expr.Value(nil); diags.HasErrors() {
-				if diags.HasErrors() {
-					return diags
-				}
+				return false, diags
 			}
 		}
-
 		// Check nullable attribute.
 		if ok := check.Nullable(nullableVal, vcr.Nullable); !ok {
 			msg := "nullable should not be set."
 			if !vcr.Nullable {
 				msg = "nullable should be set to false"
 			}
-			rg := v.DefRange
+			rg := b.DefRange
 			if nullableAttr != nil {
 				rg = nullableAttr.Range
 			}
-			if err := r.EmitIssue(
-				vcr,
-				msg,
-				rg,
-			); err != nil {
-				return err
-			}
+			return false, r.EmitIssue(vcr, msg, rg)
 		}
-
-		// TODO: Check validation rules.
+		return true, nil
 	}
-	return nil
+}
+
+func getTypeAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block) func() (*hclext.Attribute, bool, error) {
+	return func() (*hclext.Attribute, bool, error) {
+		// Check if the variable has a type attribute.
+		typeAttr, exists := b.Body.Attributes["type"]
+		if !exists {
+			return typeAttr, false, r.EmitIssue(
+				rule,
+				fmt.Sprintf("`%s` variable type not declared", b.Labels[0]),
+				b.DefRange,
+			)
+		}
+		return typeAttr, true, nil
+	}
+}
+
+func checkVarType(vcr *InterfaceVarCheckRule, r tflint.Runner, typeAttr *hclext.Attribute) func() (bool, error) {
+	return func() (bool, error) {
+		// Check if the type interface is correct.
+		gotType, diags := varcheck.NewTypeConstraintWithDefaultsFromExp(typeAttr.Expr)
+		if diags.HasErrors() {
+			return false, diags
+		}
+		if eq := check.EqualTypeConstraints(gotType, vcr.TypeConstraintWithDefs); !eq {
+			return true, r.EmitIssue(vcr,
+				fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", vcr.VarTypeString),
+				typeAttr.Range,
+			)
+		}
+		return true, nil
+	}
+}
+
+func getDefaultAttr(vcr tflint.Rule, r tflint.Runner, b *hclext.Block) func() (*hclext.Attribute, bool, error) {
+	return func() (*hclext.Attribute, bool, error) {
+		// Check if the variable has a default attribute.
+		defaultAttr, exists := b.Body.Attributes["default"]
+		if !exists {
+			return defaultAttr, false, r.EmitIssue(
+				vcr,
+				"default not declared",
+				b.DefRange,
+			)
+		}
+		return defaultAttr, true, nil
+	}
+}
+
+func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block, defaultAttr *hclext.Attribute) func() (bool, error) {
+	return func() (bool, error) {
+		// Check if the default value is correct.
+		defaultVal, _ := defaultAttr.Expr.Value(nil)
+		if !check.EqualCtyValue(defaultVal, vcr.Default) {
+			return true, r.EmitIssue(
+				vcr,
+				fmt.Sprintf("default value is not correct, see: %s", vcr.Link()),
+				b.DefRange,
+			)
+		}
+		return true, nil
+	}
+}
+
+func newChecker() checker {
+	return checker{
+		continueCheck: true,
+	}
+}
+
+type checker struct {
+	continueCheck bool
+	err           error
+}
+
+func (c checker) Check(check func() (bool, error)) checker {
+	if c.err != nil || !c.continueCheck {
+		return c
+	}
+	continueCheck, err := check()
+	return checker{
+		continueCheck: continueCheck,
+		err:           err,
+	}
+}
+
+func CheckWithReturnValue[TR any](c checker, check func() (TR, bool, error)) (ret TR, rc checker) {
+	if c.err != nil || !c.continueCheck {
+		rc = c
+		return
+	}
+	tr, continueCheck, err := check()
+	return tr, checker{
+		continueCheck: continueCheck,
+		err:           err,
+	}
 }
