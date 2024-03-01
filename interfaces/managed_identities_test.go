@@ -18,7 +18,7 @@ func TestManagedIdentitiesInterface(t *testing.T) {
 		Expected helper.Issues
 	}{
 		{
-			Name: "not diagnostic_settings variable",
+			Name: "not managed_identities variable",
 			Content: `
 variable "not_managed_identities" {
 	default = "default"
@@ -32,12 +32,12 @@ variable "managed_identities" {
   type = %s
   default     = {}
   nullable    = false
-  }`, interfaces.ManagedIdentityTypeString),
+  }`, interfaces.ManagedIdentitiesTypeString),
 			Expected: helper.Issues{},
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentity)
+	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities)
 
 	for _, tc := range cases {
 		tc := tc
