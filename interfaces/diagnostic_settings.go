@@ -18,7 +18,7 @@ var DiagnosticTypeString = `map(object({
 		marketplace_partner_resource_id          = optional(string, null)
 	}))`
 
-var diagnosticType = stringToTypeConstraintWithDefaults(DiagnosticTypeString)
+var diagnosticType = StringToTypeConstraintWithDefaults(DiagnosticTypeString)
 
 // DiagnosticSettings represents the diagnostic_settings interface.
 var DiagnosticSettings = AvmInterface{

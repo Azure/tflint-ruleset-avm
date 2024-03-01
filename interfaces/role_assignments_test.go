@@ -1,7 +1,6 @@
 package interfaces_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -17,21 +16,8 @@ func TestRoleAssignmentsInterface(t *testing.T) {
 		Expected helper.Issues
 	}{
 		{
-			Name: "not role_assignments variable",
-			Content: `
-variable "not_role_assignments" {
-	default = "default"
-}`,
-			Expected: helper.Issues{},
-		},
-		{
-			Name: "role_assignments variable correct",
-			Content: fmt.Sprintf(`
-variable "role_assignments" {
-  type = %s
-  default     = {}
-  nullable    = false
-  }`, interfaces.RoleAssignmentsTypeString),
+			Name:     "correct",
+			Content:  toTerraformVarType(interfaces.RoleAssignments),
 			Expected: helper.Issues{},
 		},
 	}

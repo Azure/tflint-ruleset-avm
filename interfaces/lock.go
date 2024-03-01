@@ -11,9 +11,9 @@ var LockTypeString = `object({
   name = optional(string, null)
 })`
 
-var lockType = stringToTypeConstraintWithDefaults(LockTypeString)
+var lockType = StringToTypeConstraintWithDefaults(LockTypeString)
 
-// TerraformVarLock represents the definition of the AVM Locks interface.
+// Lock represents the definition of the AVM Locks interface.
 var Lock = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(lockType, cty.NullVal(cty.DynamicPseudoType), true),
 	RuleName:      "lock",
