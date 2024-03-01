@@ -19,8 +19,8 @@ var roleAssignmentsType = stringToTypeConstraintWithDefaults(RoleAssignmentsType
 
 var RoleAssignments = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(roleAssignmentsType, cty.EmptyObjectVal, false),
-	Name:          "role_assignments",
+	RuleName:      "role_assignments",
 	VarTypeString: RoleAssignmentsTypeString,
-	Enabled:       true,
-	Link:          "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#role-assignments",
+	RuleEnabled:   true,
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#role-assignments",
 }

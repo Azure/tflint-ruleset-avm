@@ -49,35 +49,35 @@ var _ tflint.Rule = new(InterfaceVarCheckRule)
 // check for the correct usage of an interface.
 type InterfaceVarCheckRule struct {
 	tflint.DefaultRule
-	avmInterface interfaces.AvmInterface // This is the interface we are checking for.
+	interfaces.AvmInterface // This is the interface we are checking for.
 }
 
 // NewVarCheckRule returns a new rule with the given variable.
 func NewVarCheckRuleFromAvmInterface(ifce interfaces.AvmInterface) *InterfaceVarCheckRule {
 	return &InterfaceVarCheckRule{
-		avmInterface: ifce,
+		AvmInterface: ifce,
 	}
 }
 
 // NewAVMInterfaceRule returns a new rule with the given interface.
 // The data is taken from the embedded interfaces.AVMInterface.
 func (vcr *InterfaceVarCheckRule) Name() string {
-	return vcr.avmInterface.Name
+	return vcr.RuleName
 }
 
 func (vcr *InterfaceVarCheckRule) Link() string {
-	return vcr.avmInterface.Link
+	return vcr.RuleLink
 }
 
 // Enabled returns whether the rule is enabled.
 // This is sourced from the embedded interfaces.AVMInterface.
 func (vcr *InterfaceVarCheckRule) Enabled() bool {
-	return vcr.avmInterface.Enabled
+	return vcr.RuleEnabled
 }
 
 // Severity returns the severity of the rule.
 func (vcr *InterfaceVarCheckRule) Severity() tflint.Severity {
-	return vcr.avmInterface.Severity
+	return vcr.RuleSeverity
 }
 
 // Check checks whether the module satisfies the interface.
@@ -103,7 +103,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 
 	// Iterate over the variables and check for the name we are interested in.
 	for _, v := range body.Blocks {
-		if v.Labels[0] != vcr.avmInterface.Name {
+		if v.Labels[0] != vcr.RuleName {
 			continue
 		}
 
@@ -125,9 +125,9 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		if diags.HasErrors() {
 			return diags
 		}
-		if eq := check.EqualTypeConstraints(gotType, vcr.avmInterface.TypeConstraintWithDefs); !eq {
+		if eq := check.EqualTypeConstraints(gotType, vcr.TypeConstraintWithDefs); !eq {
 			if err := r.EmitIssue(vcr,
-				fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", vcr.avmInterface.VarTypeString),
+				fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", vcr.VarTypeString),
 				typeAttr.Range,
 			); err != nil {
 				return err
@@ -150,7 +150,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		// Check if the default value is correct.
 		defaultVal, _ := defaultAttr.Expr.Value(nil)
 
-		if !check.EqualCtyValue(defaultVal, vcr.avmInterface.Default) {
+		if !check.EqualCtyValue(defaultVal, vcr.Default) {
 			if err := r.EmitIssue(
 				vcr,
 				fmt.Sprintf("default value is not correct, see: %s", vcr.Link()),
@@ -176,9 +176,9 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		}
 
 		// Check nullable attribute.
-		if ok := check.Nullable(nullableVal, vcr.avmInterface.Nullable); !ok {
+		if ok := check.Nullable(nullableVal, vcr.Nullable); !ok {
 			msg := "nullable should not be set."
-			if !vcr.avmInterface.Nullable {
+			if !vcr.Nullable {
 				msg = "nullable should be set to false"
 			}
 			rg := v.DefRange

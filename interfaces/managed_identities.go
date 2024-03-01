@@ -13,8 +13,8 @@ var ManagedIdentitiesTypeString = `object({
 // Lock represents the lock interface.
 var ManagedIdentities = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(stringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),
-	Name:          "managed_identities",
+	RuleName:      "managed_identities",
 	VarTypeString: ManagedIdentitiesTypeString,
-	Enabled:       true,
-	Link:          "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#managed-identities",
+	RuleEnabled:   true,
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#managed-identities",
 }
