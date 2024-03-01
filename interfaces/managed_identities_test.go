@@ -1,7 +1,6 @@
 package interfaces_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -18,21 +17,8 @@ func TestManagedIdentitiesInterface(t *testing.T) {
 		Expected helper.Issues
 	}{
 		{
-			Name: "not managed_identities variable",
-			Content: `
-variable "not_managed_identities" {
-	default = "default"
-}`,
-			Expected: helper.Issues{},
-		},
-		{
-			Name: "managed_identities variable correct",
-			Content: fmt.Sprintf(`
-variable "managed_identities" {
-  type = %s
-  default     = {}
-  nullable    = false
-  }`, interfaces.ManagedIdentitiesTypeString),
+			Name:     "correct",
+			Content:  toTerraformVarType(interfaces.ManagedIdentities),
 			Expected: helper.Issues{},
 		},
 	}
