@@ -109,11 +109,9 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 
 		typeAttr, c := CheckWithReturnValue(newChecker(), getTypeAttr(vcr, r, b))
 		defaultAttr, c := CheckWithReturnValue(c, getDefaultAttr(vcr, r, b))
-		c = c.Check(checkVarType(vcr, r, typeAttr)).
+		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
-			Check(checkNullableValue(vcr, r, b))
-
-		if c.err != nil {
+			Check(checkNullableValue(vcr, r, b)); c.err != nil {
 			return c.err
 		}
 		// TODO: Check validation rules.
