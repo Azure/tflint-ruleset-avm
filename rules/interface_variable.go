@@ -117,6 +117,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 			return c.err
 		}
 		// TODO: Check validation rules.
+		return nil
 	}
 	return nil
 }
