@@ -50,14 +50,12 @@ var _ tflint.Rule = new(InterfaceVarCheckRule)
 type InterfaceVarCheckRule struct {
 	tflint.DefaultRule
 	avmInterface interfaces.AvmInterface // This is the interface we are checking for.
-	vc           varcheck.VarCheck       // This is the VarCheck object containing the strong types that we will use to check the variable. It is created from the AvmInterface.
 }
 
 // NewVarCheckRule returns a new rule with the given variable.
 func NewVarCheckRuleFromAvmInterface(ifce interfaces.AvmInterface) *InterfaceVarCheckRule {
 	return &InterfaceVarCheckRule{
 		avmInterface: ifce,
-		vc:           ifce.VarType,
 	}
 }
 
@@ -127,7 +125,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		if diags.HasErrors() {
 			return diags
 		}
-		if eq := check.EqualTypeConstraints(gotType, vcr.vc.TypeConstraintWithDefs); !eq {
+		if eq := check.EqualTypeConstraints(gotType, vcr.avmInterface.TypeConstraintWithDefs); !eq {
 			if err := r.EmitIssue(vcr,
 				fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", vcr.avmInterface.VarTypeString),
 				typeAttr.Range,
@@ -152,7 +150,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		// Check if the default value is correct.
 		defaultVal, _ := defaultAttr.Expr.Value(nil)
 
-		if !check.EqualCtyValue(defaultVal, vcr.vc.Default) {
+		if !check.EqualCtyValue(defaultVal, vcr.avmInterface.Default) {
 			if err := r.EmitIssue(
 				vcr,
 				fmt.Sprintf("default value is not correct, see: %s", vcr.Link()),
@@ -178,9 +176,9 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		}
 
 		// Check nullable attribute.
-		if ok := check.Nullable(nullableVal, vcr.vc.Nullable); !ok {
+		if ok := check.Nullable(nullableVal, vcr.avmInterface.Nullable); !ok {
 			msg := "nullable should not be set."
-			if !vcr.vc.Nullable {
+			if !vcr.avmInterface.Nullable {
 				msg = "nullable should be set to false"
 			}
 			rg := v.DefRange
