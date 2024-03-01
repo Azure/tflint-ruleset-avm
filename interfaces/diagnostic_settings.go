@@ -22,8 +22,8 @@ var diagnosticType = stringToTypeConstraintWithDefaults(DiagnosticTypeString)
 
 // DiagnosticSettings represents the diagnostic_settings interface.
 var DiagnosticSettings = AvmInterface{
+	VarCheck:      varcheck.NewVarCheck(diagnosticType, cty.EmptyObjectVal, false),
 	Name:          "diagnostic_settings",
-	VarType:       varcheck.NewVarCheck(diagnosticType, cty.EmptyObjectVal, false),
 	VarTypeString: DiagnosticTypeString,
 	Enabled:       true,
 	Link:          "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#diagnostic-settings",

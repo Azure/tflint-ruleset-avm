@@ -15,8 +15,8 @@ var lockType = stringToTypeConstraintWithDefaults(LockTypeString)
 
 // TerraformVarLock represents the definition of the AVM Locks interface.
 var Lock = AvmInterface{
+	VarCheck:      varcheck.NewVarCheck(lockType, cty.NullVal(cty.DynamicPseudoType), true),
 	Name:          "lock",
-	VarType:       varcheck.NewVarCheck(lockType, cty.NullVal(cty.DynamicPseudoType), true),
 	VarTypeString: LockTypeString,
 	Enabled:       true,
 	Link:          "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#resource-locks",

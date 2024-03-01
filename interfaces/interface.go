@@ -7,8 +7,8 @@ import (
 
 // AvmInterface represents the definition of an AVM interface.
 type AvmInterface struct {
+	varcheck.VarCheck
 	Name          string // Name of the interface, also the name of the variable to check.
-	VarType       varcheck.VarCheck
 	VarTypeString string
 	Enabled       bool            // Whether the rule is enabled by default.
 	Link          string          // Link to the interface specification.
