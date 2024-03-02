@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-type AttrStringValueRule struct {
+type StringRule struct {
 	tflint.DefaultRule
 
 	resourceType   string
@@ -15,29 +15,29 @@ type AttrStringValueRule struct {
 	expectedValues []string
 }
 
-var _ tflint.Rule = (*AttrStringValueRule)(nil)
+var _ tflint.Rule = (*StringRule)(nil)
 
-func NewAttrStringValueRule(resourceType string, attributeName string, expectedValues []string) *AttrStringValueRule {
-	return &AttrStringValueRule{
+func NewAttrStringValueRule(resourceType string, attributeName string, expectedValues []string) *StringRule {
+	return &StringRule{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
 		expectedValues: expectedValues,
 	}
 }
 
-func (r *AttrStringValueRule) Name() string {
+func (r *StringRule) Name() string {
 	return fmt.Sprintf("%s.%s must be: %s", r.resourceType, r.attributeName, r.expectedValues)
 }
 
-func (r *AttrStringValueRule) Enabled() bool {
+func (r *StringRule) Enabled() bool {
 	return true
 }
 
-func (r *AttrStringValueRule) Severity() tflint.Severity {
+func (r *StringRule) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (r *AttrStringValueRule) Check(runner tflint.Runner) error {
+func (r *StringRule) Check(runner tflint.Runner) error {
 	resources, err := runner.GetResourceContent(r.resourceType, &hclext.BodySchema{
 		Attributes: []hclext.AttributeSchema{
 			{Name: r.attributeName},
