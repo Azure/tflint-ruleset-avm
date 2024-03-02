@@ -7,17 +7,19 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
+// StringRule checks whether a string attribute value is one of the expected values.
 type StringRule struct {
-	tflint.DefaultRule
+	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
-	resourceType   string
-	attributeName  string
-	expectedValues []string
+	resourceType   string   // e.g. "azurerm_storage_account"
+	attributeName  string   // e.g. "account_replication_type"
+	expectedValues []string // e.g. []string{"ZRS"}
 }
 
 var _ tflint.Rule = (*StringRule)(nil)
 
-func NewAttrStringValueRule(resourceType string, attributeName string, expectedValues []string) *StringRule {
+// NewStringRule returns a new rule with the given resource type, attribute name, and expected values.
+func NewStringRule(resourceType string, attributeName string, expectedValues []string) *StringRule {
 	return &StringRule{
 		resourceType:   resourceType,
 		attributeName:  attributeName,

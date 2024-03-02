@@ -17,21 +17,21 @@ func TestAttrStringValueRule(t *testing.T) {
 	}{
 		{
 			name: "incorrect",
-			rule: attrvalue.NewAttrStringValueRule("foo", "bar", []string{"baz", "bat"}),
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
 			content: `
 	resource "foo" "example" {
 		bar = "fiz"
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewAttrStringValueRule("foo", "bar", []string{"baz"}),
+					Rule:    attrvalue.NewStringRule("foo", "bar", []string{"baz"}),
 					Message: "\"fiz\" is an invalid attribute value of `bar` - expecting (one of) [baz bat]",
 				},
 			},
 		},
 		{
 			name: "correct",
-			rule: attrvalue.NewAttrStringValueRule("foo", "bar", []string{"baz", "bat"}),
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
 			content: `
 	resource "foo" "example" {
 		bar = "baz"
@@ -40,7 +40,7 @@ func TestAttrStringValueRule(t *testing.T) {
 		},
 		{
 			name: "correct second value",
-			rule: attrvalue.NewAttrStringValueRule("foo", "bar", []string{"baz", "bat"}),
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
 			content: `
 	resource "foo" "example" {
 		bar = "bat"
@@ -49,7 +49,7 @@ func TestAttrStringValueRule(t *testing.T) {
 		},
 		{
 			name: "not applicable",
-			rule: attrvalue.NewAttrStringValueRule("foo", "bar", []string{"baz", "bat"}),
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
 			content: `
 	resource "zzz" "example" {
 		bar = "fiz"
