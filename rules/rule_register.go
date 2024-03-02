@@ -1,24 +1,29 @@
 package rules
 
 import (
+	"slices"
+
+	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
 var Rules = func() []tflint.Rule {
-	return []tflint.Rule{
-		Wrap(basic.NewTerraformHeredocUsageRule()),
-		Wrap(basic.NewTerraformModuleProviderDeclarationRule()),
-		Wrap(basic.NewTerraformOutputSeparateRule()),
-		Wrap(basic.NewTerraformRequiredProvidersDeclarationRule()),
-		Wrap(basic.NewTerraformRequiredVersionDeclarationRule()),
-		Wrap(basic.NewTerraformSensitiveVariableNoDefaultRule()),
-		Wrap(basic.NewTerraformVariableNullableFalseRule()),
-		Wrap(basic.NewTerraformVariableSeparateRule()),
-		Wrap(azurerm.NewAzurermResourceTagRule()),
-		NewTerraformDotTfRule(),
-	}
+	return slices.Concat[[]tflint.Rule](
+		[]tflint.Rule{
+			Wrap(basic.NewTerraformHeredocUsageRule()),
+			Wrap(basic.NewTerraformModuleProviderDeclarationRule()),
+			Wrap(basic.NewTerraformOutputSeparateRule()),
+			Wrap(basic.NewTerraformRequiredProvidersDeclarationRule()),
+			Wrap(basic.NewTerraformRequiredVersionDeclarationRule()),
+			Wrap(basic.NewTerraformSensitiveVariableNoDefaultRule()),
+			Wrap(basic.NewTerraformVariableNullableFalseRule()),
+			Wrap(basic.NewTerraformVariableSeparateRule()),
+			Wrap(azurerm.NewAzurermResourceTagRule()),
+			NewTerraformDotTfRule()},
+		waf.Rules,
+	)
 }()
 
 type wrappedRule struct {
