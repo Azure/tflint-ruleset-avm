@@ -194,7 +194,7 @@ variable "simple" {
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
-					Message: "default not declared",
+					Message: "`simple` default not declared",
 					Range: hcl.Range{
 						Filename: "variables.tf",
 						Start:    hcl.Pos{Line: 2, Column: 1},

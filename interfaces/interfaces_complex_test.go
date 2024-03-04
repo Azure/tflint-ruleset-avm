@@ -95,8 +95,9 @@ variable "complex" {
 			delegated_managed_identity_resource_id = optional(string, null)
 		})), {})
 		lock = optional(object({
-			kind = string
-			name = optional(string, "foo")
+			kind = string` + "\n" +
+				//          name = optional(string, null)
+				`			name = optional(string, "foo")
 		}), null)
 		tags               = optional(map(string), null)
 		subnet_resource_id = string

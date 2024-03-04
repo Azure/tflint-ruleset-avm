@@ -14,7 +14,7 @@ import (
 )
 
 // variableBodySchema is the schema for the variable block that we want to extract from the config.
-var variableBodySchema = hclext.BodySchema{
+var variableBodySchema = &hclext.BodySchema{
 	Blocks: []hclext.BlockSchema{
 		{
 			Type:       "variable",
@@ -52,7 +52,7 @@ type InterfaceVarCheckRule struct {
 	interfaces.AvmInterface // This is the interface we are checking for.
 }
 
-// NewVarCheckRule returns a new rule with the given variable.
+// NewVarCheckRuleFromAvmInterface returns a new rule with the given variable.
 func NewVarCheckRuleFromAvmInterface(ifce interfaces.AvmInterface) *InterfaceVarCheckRule {
 	return &InterfaceVarCheckRule{
 		AvmInterface: ifce,
@@ -94,7 +94,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 
 	// Define the schema that we want to pull out of the module content.
 	body, err := r.GetModuleContent(
-		&variableBodySchema,
+		variableBodySchema,
 		&tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone})
 	if err != nil {
 		return err
@@ -106,8 +106,8 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		typeAttr, c := CheckWithReturnValue(newChecker(), getTypeAttr(vcr, r, b))
-		defaultAttr, c := CheckWithReturnValue(c, getDefaultAttr(vcr, r, b))
+		typeAttr, c := CheckWithReturnValue(newChecker(), getAttr(vcr, r, b, "type"))
+		defaultAttr, c := CheckWithReturnValue(c, getAttr(vcr, r, b, "default"))
 		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
 			Check(checkNullableValue(vcr, r, b)); c.err != nil {
@@ -121,35 +121,17 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 
 // getTypeAttr returns a function that will return the type attribute from a given hcl block.
 // It is designed to be used with the CheckWithReturnValue function.
-func getTypeAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block) func() (*hclext.Attribute, bool, error) {
+func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string) func() (*hclext.Attribute, bool, error) {
 	return func() (*hclext.Attribute, bool, error) {
-		// Check if the variable has a type attribute.
-		typeAttr, exists := b.Body.Attributes["type"]
+		attr, exists := b.Body.Attributes[attrName]
 		if !exists {
-			return typeAttr, false, r.EmitIssue(
+			return attr, false, r.EmitIssue(
 				rule,
-				fmt.Sprintf("`%s` variable type not declared", b.Labels[0]),
+				fmt.Sprintf("`%s` %s not declared", b.Labels[0], attrName),
 				b.DefRange,
 			)
 		}
-		return typeAttr, true, nil
-	}
-}
-
-// getDefaultAttr returns a function that will return the default attribute from a given hcl block.
-// It is designed to be used with the CheckWithReturnValue function.
-func getDefaultAttr(vcr tflint.Rule, r tflint.Runner, b *hclext.Block) func() (*hclext.Attribute, bool, error) {
-	return func() (*hclext.Attribute, bool, error) {
-		// Check if the variable has a default attribute.
-		defaultAttr, exists := b.Body.Attributes["default"]
-		if !exists {
-			return defaultAttr, false, r.EmitIssue(
-				vcr,
-				"default not declared",
-				b.DefRange,
-			)
-		}
-		return defaultAttr, true, nil
+		return attr, true, nil
 	}
 }
 
@@ -159,25 +141,26 @@ func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.B
 	return func() (bool, error) {
 		nullableAttr, nullableExists := b.Body.Attributes["nullable"]
 		nullableVal := cty.NullVal(cty.Bool)
+		var diags hcl.Diagnostics
 		if nullableExists {
-			var diags hcl.Diagnostics
-			if nullableVal, diags = nullableAttr.Expr.Value(nil); diags.HasErrors() {
-				return false, diags
-			}
+			nullableVal, diags = nullableAttr.Expr.Value(nil)
+		}
+		if diags.HasErrors() {
+			return false, diags
 		}
 		// Check nullable attribute.
-		if ok := check.Nullable(nullableVal, vcr.Nullable); !ok {
-			msg := "nullable should not be set."
-			if !vcr.Nullable {
-				msg = "nullable should be set to false"
-			}
-			rg := b.DefRange
-			if nullableAttr != nil {
-				rg = nullableAttr.Range
-			}
-			return false, r.EmitIssue(vcr, msg, rg)
+		if ok := check.Nullable(nullableVal, vcr.Nullable); ok {
+			return true, nil
 		}
-		return true, nil
+		msg := "nullable should not be set."
+		if !vcr.Nullable {
+			msg = "nullable should be set to false"
+		}
+		rg := b.DefRange
+		if nullableAttr != nil {
+			rg = nullableAttr.Range
+		}
+		return false, r.EmitIssue(vcr, msg, rg)
 	}
 }
 
