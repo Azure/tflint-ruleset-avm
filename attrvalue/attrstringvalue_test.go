@@ -56,6 +56,34 @@ func TestAttrStringValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{},
 		},
+		{
+			name: "traversal",
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
+			content: `
+	variable "test" {
+		type = string
+		default = "baz"
+	}
+	resource "foo" "example" {
+		bar = var.test
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "traversal with optional func",
+			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
+			content: `
+	variable "test" {
+		type = object({
+			value = optional(string, "baz")
+		})
+		default = {}
+	}
+	resource "foo" "example" {
+		bar = var.test.value
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"
