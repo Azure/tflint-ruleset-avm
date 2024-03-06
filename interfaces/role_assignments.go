@@ -15,7 +15,7 @@ var RoleAssignmentsTypeString = `map(object({
       delegated_managed_identity_resource_id = optional(string, null)
     }))`
 
-var roleAssignmentsType = stringToTypeConstraintWithDefaults(RoleAssignmentsTypeString)
+var roleAssignmentsType = StringToTypeConstraintWithDefaults(RoleAssignmentsTypeString)
 
 var RoleAssignments = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(roleAssignmentsType, cty.EmptyObjectVal, false),

@@ -12,7 +12,7 @@ var ManagedIdentitiesTypeString = `object({
 
 // Lock represents the lock interface.
 var ManagedIdentities = AvmInterface{
-	VarCheck:      varcheck.NewVarCheck(stringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),
+	VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),
 	RuleName:      "managed_identities",
 	VarTypeString: ManagedIdentitiesTypeString,
 	RuleEnabled:   true,

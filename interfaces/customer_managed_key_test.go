@@ -8,7 +8,8 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
-func TestRoleAssignmentsInterface(t *testing.T) {
+// TestDiagnosticSettingsInterface tests the diagnostic settings interface.
+func TestCustomerManagedKeyInterface(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Content  string
@@ -17,12 +18,12 @@ func TestRoleAssignmentsInterface(t *testing.T) {
 	}{
 		{
 			Name:     "correct",
-			Content:  toTerraformVarType(interfaces.RoleAssignments),
+			Content:  toTerraformVarType(interfaces.CustomerManagedKey),
 			Expected: helper.Issues{},
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments)
+	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey)
 
 	for _, tc := range cases {
 		tc := tc

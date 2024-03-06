@@ -23,6 +23,7 @@ var Rules = func() []tflint.Rule {
 		NewVarCheckRuleFromAvmInterface(interfaces.DiagnosticSettings),
 		NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities),
 		NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments),
+		NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
 	}
 }()
 
