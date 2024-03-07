@@ -9,4 +9,11 @@ import "github.com/terraform-linters/tflint-plugin-sdk/tflint"
 // Make sure to add any new rules to this list.
 var Rules = []tflint.Rule{
 	AzurermStorageAccountAccountReplicationType(),
+	AzurermKubernetesClusterZones(),
+	AzurermPublicIpSku(),
+	AzurermPublicIpZones(),
+	AzurermApplicationGatewayZones(),
+	AzurermVirtualNetworkGatewaySku(),
+	AzurermServicePlanZoneBalancingEnabled(),
+	AzurermLbSku(),
 }

@@ -14,15 +14,15 @@ import (
 type ListNumberRule struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
-	resourceType   string    // e.g. "azurerm_storage_account"
-	attributeName  string    // e.g. "account_replication_type"
-	expectedValues [][]int32 // e.g. [][int32{1, 2, 3}]
+	resourceType   string  // e.g. "azurerm_storage_account"
+	attributeName  string  // e.g. "account_replication_type"
+	expectedValues [][]int // e.g. [][int{1, 2, 3}]
 }
 
 var _ tflint.Rule = (*ListNumberRule)(nil)
 
 // NewListNumberRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewListNumberRule(resourceType string, attributeName string, expectedValues [][]int32) *ListNumberRule {
+func NewListNumberRule(resourceType string, attributeName string, expectedValues [][]int) *ListNumberRule {
 	return &ListNumberRule{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
@@ -58,7 +58,7 @@ func (r *ListNumberRule) Check(runner tflint.Runner) error {
 			continue
 		}
 		wantTy := cty.List(cty.Number)
-		err := runner.EvaluateExpr(attribute.Expr, func(val *[]int32) error {
+		err := runner.EvaluateExpr(attribute.Expr, func(val *[]int) error {
 			slices.Sort(*val)
 			for _, exp := range r.expectedValues {
 				slices.Sort(exp)

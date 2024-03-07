@@ -17,7 +17,7 @@ func TestListNumberValueRule(t *testing.T) {
 	}{
 		{
 			name: "incorrect",
-			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int32{{1, 2, 3}}),
+			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int{{1, 2, 3}}),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -28,14 +28,14 @@ func TestListNumberValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewListNumberRule("foo", "bar", [][]int32{{1, 2, 3}}),
+					Rule:    attrvalue.NewListNumberRule("foo", "bar", [][]int{{1, 2, 3}}),
 					Message: "\"&[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
 				},
 			},
 		},
 		{
 			name: "correct",
-			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int32{{1, 2, 3}}),
+			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int{{1, 2, 3}}),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -48,7 +48,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "correct but wrong order",
-			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int32{{1, 2, 3}}),
+			rule: attrvalue.NewListNumberRule("foo", "bar", [][]int{{1, 2, 3}}),
 			content: `
 	variable "test" {
 		type    = list(number)
