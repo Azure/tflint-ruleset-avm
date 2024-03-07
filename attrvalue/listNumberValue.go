@@ -10,6 +10,7 @@ import (
 )
 
 // ListNumberRule checks whether a list of numbers attribute value is one of the expected values.
+// It is not concerned with the order of the numbers in the list.
 type ListNumberRule struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 

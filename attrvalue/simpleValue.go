@@ -87,25 +87,3 @@ func (r *SimpleRule) Check(runner tflint.Runner) error {
 	}
 	return nil
 }
-
-func toStrongTypePtr(val any) any {
-	switch t := val.(type) {
-	case *string:
-		return t
-	case *int:
-		return t
-	case *float64:
-		return t
-	case *bool:
-		return t
-	case string:
-		return &t
-	case int:
-		return &t
-	case float64:
-		return &t
-	case bool:
-		return &t
-	}
-	return nil
-}
