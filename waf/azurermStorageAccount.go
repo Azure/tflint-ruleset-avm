@@ -1,12 +1,19 @@
 package waf
 
-import "github.com/Azure/tflint-ruleset-avm/attrvalue"
+import (
+	"reflect"
+
+	"github.com/Azure/tflint-ruleset-avm/attrvalue"
+	"github.com/zclconf/go-cty/cty"
+)
 
 // AzurermStorageAccountAccountReplicationType checks whether the account_replication_type is set to ZRS.
-var AzurermStorageAccountAccountReplicationType = func() *attrvalue.StringRule {
-	return attrvalue.NewStringRule(
+var AzurermStorageAccountAccountReplicationType = func() *attrvalue.SimpleRule {
+	return attrvalue.NewSimpleRule(
 		"azurerm_storage_account",
 		"account_replication_type",
-		[]string{"ZRS"},
+		cty.String,
+		reflect.TypeOf(""),
+		[]any{"ZRS"},
 	)
 }

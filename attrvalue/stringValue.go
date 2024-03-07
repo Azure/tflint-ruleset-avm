@@ -2,6 +2,7 @@ package attrvalue
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -55,13 +56,7 @@ func (r *StringRule) Check(runner tflint.Runner) error {
 			continue
 		}
 		err := runner.EvaluateExpr(attribute.Expr, func(val string) error {
-			found := false
-			for _, item := range r.expectedValues {
-				if item == val {
-					found = true
-				}
-			}
-			if !found {
+			if !slices.Contains(r.expectedValues, val) {
 				runner.EmitIssue(
 					r,
 					fmt.Sprintf("\"%s\" is an invalid attribute value of `%s` - expecting (one of) %s", val, r.attributeName, r.expectedValues),
@@ -74,6 +69,5 @@ func (r *StringRule) Check(runner tflint.Runner) error {
 			return err
 		}
 	}
-
 	return nil
 }

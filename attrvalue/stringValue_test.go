@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-func TestAttrStringValueRule(t *testing.T) {
+func TestStringValueRule(t *testing.T) {
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -70,20 +70,35 @@ func TestAttrStringValueRule(t *testing.T) {
 			expected: helper.Issues{},
 		},
 		{
-			name: "traversal with optional func",
+			name: "incorrect value type",
 			rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
 			content: `
 	variable "test" {
-		type = object({
-			value = optional(string, "baz")
-		})
-		default = {}
+		type = number
+		default = null
 	}
 	resource "foo" "example" {
-		bar = var.test.value
+		bar = var.test
 	}`,
 			expected: helper.Issues{},
 		},
+		// This will need to be implemented in an integration test due to the use of the optional function
+		// not being supported in helper.TestRunner
+		// 	{
+		// 		name: "traversal with optional func",
+		// 		rule: attrvalue.NewStringRule("foo", "bar", []string{"baz", "bat"}),
+		// 		content: `
+		// variable "test" {
+		// 	type = object({
+		// 		value = optional(string, "baz")
+		// 	})
+		// 	default = {}
+		// }
+		// resource "foo" "example" {
+		// 	bar = var.test.value
+		// }`,
+		// 		expected: helper.Issues{},
+		// 	},
 	}
 
 	filename := "main.tf"
