@@ -13,7 +13,6 @@ var LockTypeString = `object({
 
 var lockType = StringToTypeConstraintWithDefaults(LockTypeString)
 
-// Lock represents the definition of the AVM Locks interface.
 var Lock = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(lockType, cty.NullVal(cty.DynamicPseudoType), true),
 	RuleName:      "lock",

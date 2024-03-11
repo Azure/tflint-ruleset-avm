@@ -16,7 +16,6 @@ var CustomerManagedKeyTypeString = `object({
 
 var customerManagedKeyType = StringToTypeConstraintWithDefaults(CustomerManagedKeyTypeString)
 
-// CustomerManagedKey represents the diagnostic_settings interface.
 var CustomerManagedKey = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(customerManagedKeyType, cty.NullVal(cty.DynamicPseudoType), true),
 	RuleName:      "customer_managed_key",
