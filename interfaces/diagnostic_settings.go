@@ -20,7 +20,6 @@ var DiagnosticTypeString = `map(object({
 
 var diagnosticType = StringToTypeConstraintWithDefaults(DiagnosticTypeString)
 
-// DiagnosticSettings represents the diagnostic_settings interface.
 var DiagnosticSettings = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(diagnosticType, cty.EmptyObjectVal, false),
 	RuleName:      "diagnostic_settings",

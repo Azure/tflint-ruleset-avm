@@ -7,6 +7,12 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
+var privateEndpointsWithoutSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpoints)
+var privateEndpointsWithSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
+var PrivateEndpointsRule = NewEitherTypeCheckRule("private_endpoints", true, tflint.ERROR,
+	privateEndpointsWithoutSubresourceNameRule,
+	privateEndpointsWithSubresourceNameRule, privateEndpointsWithoutSubresourceNameRule)
+
 var Rules = func() []tflint.Rule {
 	return []tflint.Rule{
 		Wrap(basic.NewTerraformHeredocUsageRule()),
@@ -24,6 +30,7 @@ var Rules = func() []tflint.Rule {
 		NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities),
 		NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments),
 		NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
+		PrivateEndpointsRule,
 	}
 }()
 

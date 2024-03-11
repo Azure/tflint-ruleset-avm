@@ -10,7 +10,6 @@ var ManagedIdentitiesTypeString = `object({
 		name = optional(string, null)
 	})`
 
-// Lock represents the lock interface.
 var ManagedIdentities = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),
 	RuleName:      "managed_identities",

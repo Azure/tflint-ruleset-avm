@@ -13,8 +13,6 @@ func toTerraformVarType(i interfaces.AvmInterface) string {
 	varBlock := rootBody.AppendNewBlock("variable", []string{i.RuleName})
 	varBody := varBlock.Body()
 
-	// I couldn't get the hclwrite to work with the type constraint so I'm just adding it as a string
-	// using SetSAttributeRaw and hclWrite.Token.
 	varBody.SetAttributeRaw("type", hclwrite.Tokens{
 		&hclwrite.Token{
 			Type:         hclsyntax.TokenStringLit,
@@ -23,8 +21,6 @@ func toTerraformVarType(i interfaces.AvmInterface) string {
 		},
 	})
 	varBody.SetAttributeValue("default", i.Default)
-	// If the interface is not nullable, set the nullable attribute to false.
-	// the default is true so we only need to set it if it's false.
 	if !i.Nullable {
 		varBody.SetAttributeValue("nullable", cty.False)
 	}
