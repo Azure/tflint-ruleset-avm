@@ -9,9 +9,9 @@ import (
 
 var privateEndpointsWithoutSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpoints)
 var privateEndpointsWithSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
-var PrivateEndpointsRule = NewEitherTypeCheckRule("private_endpoints", true, tflint.ERROR,
+var PrivateEndpointsRule = NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
 	privateEndpointsWithoutSubresourceNameRule,
-	privateEndpointsWithSubresourceNameRule, privateEndpointsWithoutSubresourceNameRule)
+	privateEndpointsWithSubresourceNameRule)
 
 var Rules = func() []tflint.Rule {
 	return []tflint.Rule{
