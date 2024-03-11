@@ -4,35 +4,24 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-// Check interface compliance with the tflint.Rule.
 var _ tflint.Rule = new(EitherCheckRule)
 
 type EitherCheckRule struct {
 	tflint.DefaultRule
-	rules       []tflint.Rule
-	primaryRule tflint.Rule
-	name        string
-	enabled     bool
-	severity    tflint.Severity
+	primaryRule   tflint.Rule
+	secondaryRule tflint.Rule
+	name          string
+	enabled       bool
+	severity      tflint.Severity
 }
 
-func NewEitherTypeCheckRule(name string, enabled bool, severity tflint.Severity, primaryRule tflint.Rule, rules ...tflint.Rule) *EitherCheckRule {
-	found := false
-	for _, r := range rules {
-		if primaryRule == r {
-			found = true
-			break
-		}
-	}
-	if !found {
-		panic("primaryRule must be one of rules.")
-	}
+func NewEitherCheckRule(name string, enabled bool, severity tflint.Severity, primaryRule tflint.Rule, secondary tflint.Rule) *EitherCheckRule {
 	return &EitherCheckRule{
-		name:        name,
-		enabled:     enabled,
-		severity:    severity,
-		primaryRule: primaryRule,
-		rules:       rules,
+		name:          name,
+		enabled:       enabled,
+		severity:      severity,
+		primaryRule:   primaryRule,
+		secondaryRule: secondary,
 	}
 }
 
@@ -51,7 +40,7 @@ func (e *EitherCheckRule) Severity() tflint.Severity {
 func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 	runners := map[tflint.Rule]*subRunner{}
 
-	for _, r := range e.rules {
+	for _, r := range []tflint.Rule{e.primaryRule, e.secondaryRule} {
 		sr := &subRunner{
 			Runner: runner,
 		}
