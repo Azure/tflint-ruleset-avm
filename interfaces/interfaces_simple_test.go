@@ -2,6 +2,7 @@ package interfaces_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -28,6 +29,16 @@ var SimpleVar = interfaces.AvmInterface{
 	RuleEnabled:   true,
 	RuleLink:      "https://simple",
 	RuleSeverity:  tflint.ERROR,
+}
+
+func TestIncorrectInterfaceTypeStringShouldPanic(t *testing.T) {
+	defer func() {
+		err := recover()
+		assert.NotNil(t, err)
+	}()
+	incorrectTypeString := `strin`
+	interfaces.StringToTypeConstraintWithDefaults(incorrectTypeString)
+	t.Fatal("incorrect type should panic")
 }
 
 func TestSimpleInterface(t *testing.T) {

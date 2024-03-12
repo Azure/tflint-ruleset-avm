@@ -106,7 +106,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		typeAttr, c := CheckWithReturnValue(newChecker(), getAttr(vcr, r, b, "type"))
+		typeAttr, c := CheckWithReturnValue(NewChecker(), getAttr(vcr, r, b, "type"))
 		defaultAttr, c := CheckWithReturnValue(c, getAttr(vcr, r, b, "default"))
 		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
@@ -136,7 +136,7 @@ func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string
 }
 
 // checkNullableValue checks if the nullable attribute is correct.
-// It is designed to be supplied to the checker.Check() function.
+// It is designed to be supplied to the Checker.Check() function.
 func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block) func() (bool, error) {
 	return func() (bool, error) {
 		nullableAttr, nullableExists := b.Body.Attributes["nullable"]
@@ -165,7 +165,7 @@ func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.B
 }
 
 // checkVarType checks if the type of the variable is correct.
-// It is designed to be supplied to the checker.Check() function.
+// It is designed to be supplied to the Checker.Check() function.
 func checkVarType(vcr *InterfaceVarCheckRule, r tflint.Runner, typeAttr *hclext.Attribute) func() (bool, error) {
 	return func() (bool, error) {
 		// Check if the type interface is correct.
@@ -184,7 +184,7 @@ func checkVarType(vcr *InterfaceVarCheckRule, r tflint.Runner, typeAttr *hclext.
 }
 
 // checkDefaultValue checks if the default value of a variable is correct.
-// It is designed to be supplied to the checker.Check() function.
+// It is designed to be supplied to the Checker.Check() function.
 func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block, defaultAttr *hclext.Attribute) func() (bool, error) {
 	return func() (bool, error) {
 		// Check if the default value is correct.
@@ -200,15 +200,15 @@ func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Bl
 	}
 }
 
-// newChecker is the constructor for the checker type.
-func newChecker() checker {
-	return checker{
+// NewChecker is the constructor for the Checker type.
+func NewChecker() Checker {
+	return Checker{
 		continueCheck: true,
 	}
 }
 
-// checker is a struct that is used to chain checks together.
-type checker struct {
+// Checker is a struct that is used to chain checks together.
+type Checker struct {
 	continueCheck bool
 	err           error
 }
@@ -217,13 +217,13 @@ type checker struct {
 // The bool is a continueCheck value that is used to determine if the check should continue.
 // The error is the error that is returned from the check.
 //
-// This function returns a new checker, so it can be chained with other checks in a fluent style.
-func (c checker) Check(check func() (bool, error)) checker {
+// This function returns a new Checker, so it can be chained with other checks in a fluent style.
+func (c Checker) Check(check func() (bool, error)) Checker {
 	if c.err != nil || !c.continueCheck {
 		return c
 	}
 	continueCheck, err := check()
-	return checker{
+	return Checker{
 		continueCheck: continueCheck,
 		err:           err,
 	}
@@ -231,14 +231,14 @@ func (c checker) Check(check func() (bool, error)) checker {
 
 // CheckWithReturnValue is a generic function that runs a check func() that, as well as
 // returning a bool & error, also returns a value.
-// The main function will then return the value and a new checker with the continueCheck and err.
-func CheckWithReturnValue[TR any](c checker, check func() (TR, bool, error)) (ret TR, rc checker) {
+// The main function will then return the value and a new Checker with the continueCheck and err.
+func CheckWithReturnValue[TR any](c Checker, check func() (TR, bool, error)) (ret TR, rc Checker) {
 	if c.err != nil || !c.continueCheck {
 		rc = c
 		return
 	}
 	tr, continueCheck, err := check()
-	return tr, checker{
+	return tr, Checker{
 		continueCheck: continueCheck,
 		err:           err,
 	}
