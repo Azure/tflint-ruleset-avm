@@ -61,7 +61,7 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 			continue
 		}
 		var dt T
-		val := toStrongTypePtr(dt)
+		val := toPtr(dt)
 		ctyType, err := toCtyType(dt)
 		if err != nil {
 			return err
@@ -72,7 +72,7 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 			return err
 		}
 		for _, expected := range r.expectedValues {
-			exp := toStrongTypePtr(expected)
+			exp := toPtr(expected)
 			if reflect.DeepEqual(val, exp) {
 				return nil
 			}

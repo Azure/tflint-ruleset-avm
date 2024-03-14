@@ -6,30 +6,11 @@ import (
 	"reflect"
 )
 
-func toStrongTypePtr(val any) any {
-	switch t := val.(type) {
-	case *string:
-		return t
-	case *int:
-		return t
-	case *float64:
-		return t
-	case *bool:
-		return t
-	case string:
-		return &t
-	case int:
-		return &t
-	case float64:
-		return &t
-	case bool:
-		return &t
-	case *[]int32:
-		return t
-	case []int32:
-		return &t
+func toPtr[T any](val T) any {
+	if reflect.TypeOf(val).Kind() == reflect.Pointer {
+		return val
 	}
-	return nil
+	return &val
 }
 
 func toCtyType(val any) (cty.Type, error) {
