@@ -1,48 +1,48 @@
 package attrvalue
 
 import (
+	"cmp"
 	"fmt"
-	"slices"
-
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
+	"slices"
 )
 
-// ListNumberRule checks whether a list of numbers attribute value is one of the expected values.
+// ListRule checks whether a list of numbers attribute value is one of the expected values.
 // It is not concerned with the order of the numbers in the list.
-type ListNumberRule struct {
+type ListRule[T cmp.Ordered] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
-	resourceType   string  // e.g. "azurerm_storage_account"
-	attributeName  string  // e.g. "account_replication_type"
-	expectedValues [][]int // e.g. [][int{1, 2, 3}]
+	resourceType   string // e.g. "azurerm_storage_account"
+	attributeName  string // e.g. "account_replication_type"
+	expectedValues [][]T  // e.g. [][int{1, 2, 3}]
 }
 
-var _ tflint.Rule = (*ListNumberRule)(nil)
+var _ tflint.Rule = (*ListRule[int])(nil)
 
-// NewListNumberRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewListNumberRule(resourceType string, attributeName string, expectedValues [][]int) *ListNumberRule {
-	return &ListNumberRule{
+// NewListRule returns a new rule with the given resource type, attribute name, and expected values.
+func NewListRule[T cmp.Ordered](resourceType string, attributeName string, expectedValues [][]T) *ListRule[T] {
+	return &ListRule[T]{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
 		expectedValues: expectedValues,
 	}
 }
 
-func (r *ListNumberRule) Name() string {
+func (r *ListRule[T]) Name() string {
 	return fmt.Sprintf("%s.%s must be: %v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
-func (r *ListNumberRule) Enabled() bool {
+func (r *ListRule[T]) Enabled() bool {
 	return true
 }
 
-func (r *ListNumberRule) Severity() tflint.Severity {
+func (r *ListRule[T]) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (r *ListNumberRule) Check(runner tflint.Runner) error {
+func (r *ListRule[T]) Check(runner tflint.Runner) error {
 	resources, err := runner.GetResourceContent(r.resourceType, &hclext.BodySchema{
 		Attributes: []hclext.AttributeSchema{
 			{Name: r.attributeName},
@@ -58,7 +58,7 @@ func (r *ListNumberRule) Check(runner tflint.Runner) error {
 			continue
 		}
 		wantTy := cty.List(cty.Number)
-		err := runner.EvaluateExpr(attribute.Expr, func(val *[]int) error {
+		if err := runner.EvaluateExpr(attribute.Expr, func(val *[]T) error {
 			slices.Sort(*val)
 			for _, exp := range r.expectedValues {
 				slices.Sort(exp)
@@ -66,16 +66,14 @@ func (r *ListNumberRule) Check(runner tflint.Runner) error {
 					return nil
 				}
 			}
-			runner.EmitIssue(
+			return runner.EmitIssue(
 				r,
 				fmt.Sprintf("\"%v\" is an invalid attribute value of `%s` - expecting (one of) %v", val, r.attributeName, r.expectedValues),
 				attribute.Expr.Range(),
 			)
-			return nil
 		}, &tflint.EvaluateExprOption{
 			WantType: &wantTy,
-		})
-		if err != nil {
+		}); err != nil {
 			return err
 		}
 	}

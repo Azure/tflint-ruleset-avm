@@ -2,8 +2,8 @@ package waf
 
 import "github.com/Azure/tflint-ruleset-avm/attrvalue"
 
-var AzurermApplicationGatewayZones = func() *attrvalue.ListNumberRule {
-	return attrvalue.NewListNumberRule(
+func AzurermApplicationGatewayZones() *attrvalue.ListRule[int] {
+	return attrvalue.NewListRule(
 		"azurerm_application_gateway",
 		"zones",
 		[][]int{{1, 2, 3}},

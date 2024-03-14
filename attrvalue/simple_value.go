@@ -6,7 +6,6 @@ import (
 
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // SimpleRule checks whether a string attribute value is one of the expected values.
@@ -15,42 +14,38 @@ import (
 // To provide the reflect.Type of a value, use `reflect.TypeOf()` and provide a parameter,
 // e.g. `""` for string, `0` for number, or `true` for bool.
 // To provide the cty.Type, use `cty.String`, `cty.Number`, or `cty.Bool` for string, number, and bool, respectively.
-type SimpleRule struct {
+type SimpleRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
 	resourceType   string // e.g. "azurerm_storage_account"
 	attributeName  string // e.g. "account_replication_type"
-	expectedValues []any  // e.g. []string{"ZRS"}
-	ctyType        cty.Type
-	reflectType    reflect.Type
+	expectedValues []T    // e.g. []string{"ZRS"}
 }
 
-var _ tflint.Rule = (*SimpleRule)(nil)
+var _ tflint.Rule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule(resourceType string, attributeName string, ty cty.Type, rty reflect.Type, expectedValues []any) *SimpleRule {
-	return &SimpleRule{
+func NewSimpleRule[T any](resourceType string, attributeName string, expectedValues []T) *SimpleRule[T] {
+	return &SimpleRule[T]{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
 		expectedValues: expectedValues,
-		ctyType:        ty,
-		reflectType:    rty,
 	}
 }
 
-func (r *SimpleRule) Name() string {
-	return fmt.Sprintf("%s.%s must be: %s", r.resourceType, r.attributeName, r.expectedValues)
+func (r *SimpleRule[T]) Name() string {
+	return fmt.Sprintf("%s.%s must be: %+v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
-func (r *SimpleRule) Enabled() bool {
+func (r *SimpleRule[T]) Enabled() bool {
 	return true
 }
 
-func (r *SimpleRule) Severity() tflint.Severity {
+func (r *SimpleRule[T]) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (r *SimpleRule) Check(runner tflint.Runner) error {
+func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 	resources, err := runner.GetResourceContent(r.resourceType, &hclext.BodySchema{
 		Attributes: []hclext.AttributeSchema{
 			{Name: r.attributeName},
@@ -65,11 +60,15 @@ func (r *SimpleRule) Check(runner tflint.Runner) error {
 		if !exists {
 			continue
 		}
-		val := toStrongTypePtr(reflect.New(r.reflectType).Interface())
-		err := runner.EvaluateExpr(attribute.Expr, val, &tflint.EvaluateExprOption{
-			WantType: &r.ctyType,
-		})
+		var dt T
+		val := toStrongTypePtr(dt)
+		ctyType, err := toCtyType(dt)
 		if err != nil {
+			return err
+		}
+		if err = runner.EvaluateExpr(attribute.Expr, val, &tflint.EvaluateExprOption{
+			WantType: &ctyType,
+		}); err != nil {
 			return err
 		}
 		for _, expected := range r.expectedValues {
@@ -79,7 +78,7 @@ func (r *SimpleRule) Check(runner tflint.Runner) error {
 			}
 		}
 		v := reflect.Indirect(reflect.ValueOf(val))
-		runner.EmitIssue(
+		return runner.EmitIssue(
 			r,
 			fmt.Sprintf("%v is an invalid attribute value of `%s` - expecting (one of) %v", v, r.attributeName, r.expectedValues),
 			attribute.Range,
