@@ -47,6 +47,19 @@ func TestListNumberValueRule(t *testing.T) {
 			expected: helper.Issues{},
 		},
 		{
+			name: "correct with string list",
+			rule: attrvalue.NewListRule("foo", "bar", [][]string{{"1", "2", "3"}}),
+			content: `
+	variable "test" {
+		type    = list(string)
+		default = ["1", "2", "3"]
+	}
+	resource "foo" "example" {
+		bar = var.test
+	}`,
+			expected: helper.Issues{},
+		},
+		{
 			name: "correct but wrong order",
 			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
 			content: `

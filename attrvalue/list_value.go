@@ -6,7 +6,6 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
-	"slices"
 )
 
 // ListRule checks whether a list of numbers attribute value is one of the expected values.
@@ -57,12 +56,17 @@ func (r *ListRule[T]) Check(runner tflint.Runner) error {
 		if !exists {
 			continue
 		}
-		wantTy := cty.List(cty.Number)
-		if err := runner.EvaluateExpr(attribute.Expr, func(val *[]T) error {
-			slices.Sort(*val)
+		var et T
+		wantElementType, err := toCtyType(et)
+		if err != nil {
+			return err
+		}
+		wantTy := cty.List(wantElementType)
+		if err = runner.EvaluateExpr(attribute.Expr, func(val *[]T) error {
+			vals := newSet(*val)
 			for _, exp := range r.expectedValues {
-				slices.Sort(exp)
-				if slices.Equal(*val, exp) {
+				expected := newSet(exp)
+				if expected.equals(vals) {
 					return nil
 				}
 			}
