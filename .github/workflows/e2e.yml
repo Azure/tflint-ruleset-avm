@@ -41,7 +41,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         mkdir -p ~/.tflint.d/plugins
-        go build -o ~/.tflint.d/plugins/tflint-ruleset-aws.exe
+        go build -o ~/.tflint.d/plugins/tflint-ruleset-avm.exe
       shell: bash
 
     - name: Run E2E tests
