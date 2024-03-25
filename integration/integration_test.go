@@ -1,3 +1,7 @@
+// Package integration provides integration tests for tflint.
+// Make sure to install tflint & the plugin.
+//
+// To install the plugin use `make install`.
 package integration
 
 import (
@@ -28,53 +32,11 @@ func TestIntegration(t *testing.T) {
 			Command: exec.Command("tflint", "--format", "json", "--force"),
 			Dir:     "optional-defaults-incorrect",
 		},
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint-ruleset-aws/issues/41
-		// 	Name:    "rule config",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "rule-config",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint/issues/1028
-		// 	Name:    "deep checking rule config",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "deep-checking-rule-config",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint/issues/1029
-		// 	Name:    "heredoc",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "heredoc",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint/issues/1054
-		// 	Name:    "disabled-rules",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "disabled-rules",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint-ruleset-aws/issues/48
-		// 	Name:    "cty-based-eval",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "cty-based-eval",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint/issues/1102
-		// 	Name:    "map-attribute",
-		// 	Command: exec.Command("tflint", "--format", "json", "--force"),
-		// 	Dir:     "map-attribute",
-		// },
-		// {
-		// 	// Regression: https://github.com/terraform-linters/tflint/issues/1103
-		// 	Name:    "rule config with --enable-rule",
-		// 	Command: exec.Command("tflint", "--enable-rule", "aws_s3_bucket_name", "--format", "json", "--force"),
-		// 	Dir:     "rule-config",
-		// },
-		// {
-		// 	Name:    "rule config with --only",
-		// 	Command: exec.Command("tflint", "--only", "aws_s3_bucket_name", "--format", "json", "--force"),
-		// 	Dir:     "rule-config",
-		// },
+		{
+			Name:    "simplevaluerule-null-value",
+			Command: exec.Command("tflint", "--format", "json", "--force"),
+			Dir:     "simplevaluerule-null-value",
+		},
 	}
 
 	dir, _ := os.Getwd()

@@ -139,6 +139,19 @@ resource "foo" "example" {
 				},
 			},
 		},
+		{
+			name: "null value",
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}),
+			content: `
+	variable "test" {
+		type    = bool
+		default = null
+	}
+	resource "foo" "example" {
+		bar = var.test
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"

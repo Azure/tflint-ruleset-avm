@@ -16,4 +16,5 @@ var Rules = []tflint.Rule{
 	AzurermVirtualNetworkGatewaySku(),
 	AzurermServicePlanZoneBalancingEnabled(),
 	AzurermLbSku(),
+	AzurermVirtualMachineZoneNull(),
 }
