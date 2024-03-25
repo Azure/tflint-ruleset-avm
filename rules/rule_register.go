@@ -1,8 +1,9 @@
 package rules
 
 import (
-	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"slices"
+
+	"github.com/Azure/tflint-ruleset-avm/interfaces"
 
 	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
@@ -28,7 +29,7 @@ var Rules = func() []tflint.Rule {
 			Wrap(basic.NewTerraformVariableNullableFalseRule()),
 			Wrap(basic.NewTerraformVariableSeparateRule()),
 			Wrap(azurerm.NewAzurermResourceTagRule()),
-			NewTerraformDotTfRule()
+			NewTerraformDotTfRule(),
 			NewVarCheckRuleFromAvmInterface(interfaces.Lock),
 			NewVarCheckRuleFromAvmInterface(interfaces.DiagnosticSettings),
 			NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities),
@@ -36,7 +37,6 @@ var Rules = func() []tflint.Rule {
 			NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
 			PrivateEndpointsRule},
 		waf.Rules,
-
 	)
 }()
 
