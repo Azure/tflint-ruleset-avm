@@ -8,3 +8,10 @@ func AzurermVirtualMachineZoneNull() *attrvalue.NullRule {
 		"zone",
 	)
 }
+
+func AzurermVirtualMachineZonesNull() *attrvalue.NullRule {
+	return attrvalue.NewNullRule(
+		"azurerm_virtual_machine",
+		"zones",
+	)
+}

@@ -9,7 +9,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// NullRule checks whether an attribute value is null.
+// NullRule checks whether an attribute value is null or part of a variable with no default value.
 type NullRule struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 

@@ -7,6 +7,7 @@ import "github.com/terraform-linters/tflint-plugin-sdk/tflint"
 
 // Rules is the list of rules for Well Architected Alignment.
 // Make sure to add any new rules to this list.
+// Please sort the list to be kind to your fellow maintainers.
 var Rules = []tflint.Rule{
 	AzurermStorageAccountAccountReplicationType(),
 	AzurermKubernetesClusterZones(),
@@ -17,4 +18,5 @@ var Rules = []tflint.Rule{
 	AzurermServicePlanZoneBalancingEnabled(),
 	AzurermLbSku(),
 	AzurermVirtualMachineZoneNull(),
+	AzurermVirtualMachineZonesNull(),
 }
