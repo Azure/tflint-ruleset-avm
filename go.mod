@@ -9,7 +9,7 @@ require (
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/stretchr/testify v1.9.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.19.0
-	github.com/zclconf/go-cty v1.14.2
+	github.com/zclconf/go-cty v1.14.3
 )
 
 require (
