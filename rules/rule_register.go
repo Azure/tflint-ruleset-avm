@@ -10,7 +10,7 @@ import (
 )
 
 var Rules = func() []tflint.Rule {
-	return slices.Concat[[]tflint.Rule](
+	return slices.Concat(
 		[]tflint.Rule{
 			Wrap(basic.NewTerraformHeredocUsageRule()),
 			Wrap(basic.NewTerraformModuleProviderDeclarationRule()),
