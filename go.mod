@@ -6,6 +6,7 @@ require (
 	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.0
 	github.com/Azure/tflint-ruleset-basic-ext v0.6.0
 	github.com/hashicorp/hcl/v2 v2.20.0
+	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/stretchr/testify v1.9.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.19.0
 	github.com/zclconf/go-cty v1.14.3

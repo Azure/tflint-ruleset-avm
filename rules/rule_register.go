@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"slices"
 
 	"github.com/Azure/tflint-ruleset-avm/waf"
@@ -8,6 +9,12 @@ import (
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
+
+var privateEndpointsWithoutSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpoints)
+var privateEndpointsWithSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
+var PrivateEndpointsRule = NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
+	privateEndpointsWithoutSubresourceNameRule,
+	privateEndpointsWithSubresourceNameRule)
 
 var Rules = func() []tflint.Rule {
 	return slices.Concat(
@@ -21,8 +28,15 @@ var Rules = func() []tflint.Rule {
 			Wrap(basic.NewTerraformVariableNullableFalseRule()),
 			Wrap(basic.NewTerraformVariableSeparateRule()),
 			Wrap(azurerm.NewAzurermResourceTagRule()),
-			NewTerraformDotTfRule()},
+			NewTerraformDotTfRule()
+			NewVarCheckRuleFromAvmInterface(interfaces.Lock),
+			NewVarCheckRuleFromAvmInterface(interfaces.DiagnosticSettings),
+			NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities),
+			NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments),
+			NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
+			PrivateEndpointsRule},
 		waf.Rules,
+
 	)
 }()
 
