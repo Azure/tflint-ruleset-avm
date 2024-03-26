@@ -9,14 +9,15 @@ import "github.com/terraform-linters/tflint-plugin-sdk/tflint"
 // Make sure to add any new rules to this list.
 // Please sort the list to be kind to your fellow maintainers.
 var Rules = []tflint.Rule{
-	AzurermStorageAccountAccountReplicationType(),
+	AzurermApplicationGatewaySku(),
+	AzurermApplicationGatewayZones(),
 	AzurermKubernetesClusterZones(),
+	AzurermLbSku(),
 	AzurermPublicIpSku(),
 	AzurermPublicIpZones(),
-	AzurermApplicationGatewayZones(),
-	AzurermVirtualNetworkGatewaySku(),
 	AzurermServicePlanZoneBalancingEnabled(),
-	AzurermLbSku(),
+	AzurermStorageAccountAccountReplicationType(),
 	AzurermVirtualMachineZoneNull(),
 	AzurermVirtualMachineZonesNull(),
+	AzurermVirtualNetworkGatewaySku(),
 }
