@@ -10,39 +10,41 @@ import (
 
 // SimpleRule checks whether a string attribute value is one of the expected values.
 // It can be used to check string, number, and bool attributes.
-type SimpleRule[T any] struct {
+type NestedBlockRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
-	resourceType   string // e.g. "azurerm_storage_account"
-	attributeName  string // e.g. "account_replication_type"
-	expectedValues []T    // e.g. []string{"ZRS"}
+	resourceType    string // e.g. "azurerm_application_gateway"
+	nestedBlockType string // e.g. "sku"
+	attributeName   string // e.g. "name
+	expectedValues  []T    // e.g. []string{"Standard_V2"}
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType string, attributeName string, expectedValues []T) *SimpleRule[T] {
-	return &SimpleRule[T]{
-		resourceType:   resourceType,
-		attributeName:  attributeName,
-		expectedValues: expectedValues,
+func NewNestedBlockRule[T any](resourceType string, nestedBlockType string, attributeName string, expectedValues []T) *NestedBlockRule[T] {
+	return &NestedBlockRule[T]{
+		resourceType:    resourceType,
+		nestedBlockType: nestedBlockType,
+		attributeName:   attributeName,
+		expectedValues:  expectedValues,
 	}
 }
 
-func (r *SimpleRule[T]) Name() string {
+func (r *NestedBlockRule[T]) Name() string {
 	return fmt.Sprintf("%s.%s must be: %+v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
-func (r *SimpleRule[T]) Enabled() bool {
+func (r *NestedBlockRule[T]) Enabled() bool {
 	return true
 }
 
-func (r *SimpleRule[T]) Severity() tflint.Severity {
+func (r *NestedBlockRule[T]) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
-	attrs, err := getSimpleAttrs(runner, r.resourceType, r.attributeName)
+func (r *NestedBlockRule[T]) Check(runner tflint.Runner) error {
+	attrs, err := getNestedBlockAttrs(runner, r.resourceType, r.nestedBlockType, r.attributeName)
 	if err != nil {
 		return err
 	}

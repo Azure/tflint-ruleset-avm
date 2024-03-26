@@ -3,10 +3,7 @@ package attrvalue
 import (
 	"fmt"
 
-	"github.com/hashicorp/hcl/v2"
-	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // NullRule checks whether an attribute value is null or part of a variable with no default value.
@@ -40,70 +37,23 @@ func (r *NullRule) Severity() tflint.Severity {
 }
 
 func (r *NullRule) Check(runner tflint.Runner) error {
-	variables, err := runner.GetModuleContent(&hclext.BodySchema{
-		Blocks: []hclext.BlockSchema{
-			{
-				Type:       "variable",
-				LabelNames: []string{"name"},
-				Body: &hclext.BodySchema{
-					Attributes: []hclext.AttributeSchema{
-						{
-							Name:     "type",
-							Required: false,
-						},
-						{
-							Name:     "default",
-							Required: false,
-						},
-					},
-				},
-			},
-		},
-	},
-		&tflint.GetModuleContentOption{
-			ExpandMode: tflint.ExpandModeNone,
-		})
+	// We cannot use runner.EvaluateExpr here because it needs a concrete type to evaluate the expression into.
+	// This rule will work on any value type, so we need to use (hcl.Expression).Value instead.
+	// To do this we need the evaluation context to include the variables, so we need to evaluate the variables first.
+	evalContext, err := getDefaultVariableEvalContext(runner)
 	if err != nil {
 		return err
 	}
 
-	variablesMap := make(map[string]cty.Value, len(variables.Blocks))
-	for _, v := range variables.Blocks {
-		if len(v.Labels) != 1 {
-			return fmt.Errorf("variables should have exactly one label: %s", v.DefRange)
-		}
-		vName := v.Labels[0]
-		defAttr, ok := v.Body.Attributes["default"]
-		if !ok {
-			variablesMap[vName] = cty.NullVal(cty.DynamicPseudoType)
-			continue
-		}
-		defVal, diags := defAttr.Expr.Value(nil)
-		if diags.HasErrors() {
-			return fmt.Errorf("could not evaluate variable %s default value: %s", vName, diags)
-		}
-		variablesMap[vName] = defVal
-	}
-
-	resources, err := runner.GetResourceContent(r.resourceType, &hclext.BodySchema{
-		Attributes: []hclext.AttributeSchema{
-			{Name: r.attributeName},
-		},
-	}, nil)
+	// Get the resources and extract the attribute values.
+	attrs, err := getSimpleAttrs(runner, r.resourceType, r.attributeName)
 	if err != nil {
 		return err
 	}
 
-	for _, resource := range resources.Blocks {
-		attribute, exists := resource.Body.Attributes[r.attributeName]
-		if !exists {
-			continue
-		}
-		attrVal, diags := attribute.Expr.Value(&hcl.EvalContext{
-			Variables: map[string]cty.Value{
-				"var": cty.ObjectVal(variablesMap),
-			},
-		})
+	// Check the attribute values.
+	for _, attr := range attrs {
+		attrVal, diags := attr.Expr.Value(evalContext)
 		if diags.HasErrors() {
 			return fmt.Errorf("could not evaluate attribute %s value: %s", r.attributeName, diags)
 		}
@@ -111,7 +61,7 @@ func (r *NullRule) Check(runner tflint.Runner) error {
 			runner.EmitIssue(
 				r,
 				fmt.Sprintf("invalid attribute value of `%s` - expecting null", r.attributeName),
-				attribute.Range,
+				attr.Range,
 			)
 		}
 	}
