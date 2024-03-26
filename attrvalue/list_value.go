@@ -3,6 +3,8 @@ package attrvalue
 import (
 	"cmp"
 	"fmt"
+
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
@@ -63,10 +65,13 @@ func (r *ListRule[T]) Check(runner tflint.Runner) error {
 		}
 		wantTy := cty.List(wantElementType)
 		if err = runner.EvaluateExpr(attribute.Expr, func(val *[]T) error {
-			vals := newSet(*val)
+			vals := mapset.NewThreadUnsafeSetWithSize[T](len(*val))
+			//vals := newSet(*val)
+			vals.Append(*val...)
 			for _, exp := range r.expectedValues {
-				expected := newSet(exp)
-				if expected.equals(vals) {
+				expected := mapset.NewThreadUnsafeSetWithSize[T](len(exp))
+				expected.Append(exp...)
+				if vals.Equal(expected) {
 					return nil
 				}
 			}
