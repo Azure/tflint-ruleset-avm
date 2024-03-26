@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
@@ -13,19 +14,30 @@ import (
 type SimpleRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 
-	resourceType   string // e.g. "azurerm_storage_account"
-	attributeName  string // e.g. "account_replication_type"
-	expectedValues []T    // e.g. []string{"ZRS"}
+	resourceType    string  // e.g. "azurerm_storage_account"
+	nestedBlockType *string // e.g. "sku"
+	attributeName   string  // e.g. "account_replication_type"
+	expectedValues  []T     // e.g. []string{"ZRS"}
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType string, attributeName string, expectedValues []T) *SimpleRule[T] {
+func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
 		expectedValues: expectedValues,
+	}
+}
+
+// NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
+func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T) *SimpleRule[T] {
+	return &SimpleRule[T]{
+		resourceType:    resourceType,
+		attributeName:   attributeName,
+		nestedBlockType: &nestedBlockType,
+		expectedValues:  expectedValues,
 	}
 }
 
@@ -42,7 +54,13 @@ func (r *SimpleRule[T]) Severity() tflint.Severity {
 }
 
 func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
-	attrs, err := getSimpleAttrs(runner, r.resourceType, r.attributeName)
+	var attrs []*hclext.Attribute
+	var err error
+	if r.nestedBlockType == nil {
+		attrs, err = getSimpleAttrs(runner, r.resourceType, r.attributeName)
+	} else {
+		attrs, err = getNestedBlockAttrs(runner, r.resourceType, *r.nestedBlockType, r.attributeName)
+	}
 	if err != nil {
 		return err
 	}
