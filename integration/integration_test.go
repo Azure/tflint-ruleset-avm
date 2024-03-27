@@ -37,6 +37,16 @@ func TestIntegration(t *testing.T) {
 			Command: exec.Command("tflint", "--format", "json", "--force"),
 			Dir:     "simplevaluerule-null-value",
 		},
+		{
+			Name:    "unknownrule-null",
+			Command: exec.Command("tflint", "--format", "json", "--force"),
+			Dir:     "unknownrule-null",
+		},
+		{
+			Name:    "unknownrule-null-incorrect",
+			Command: exec.Command("tflint", "--format", "json", "--force"),
+			Dir:     "unknownrule-null-incorrect",
+		},
 	}
 
 	dir, _ := os.Getwd()

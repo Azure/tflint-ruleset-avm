@@ -2,8 +2,9 @@ package attrvalue
 
 import (
 	"fmt"
-	"github.com/zclconf/go-cty/cty"
 	"reflect"
+
+	"github.com/zclconf/go-cty/cty"
 )
 
 func toPtr[T any](val T) any {

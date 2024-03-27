@@ -17,7 +17,7 @@ var Rules = []tflint.Rule{
 	AzurermPublicIpZones(),
 	AzurermServicePlanZoneBalancingEnabled(),
 	AzurermStorageAccountAccountReplicationType(),
-	AzurermVirtualMachineZoneNull(),
-	AzurermVirtualMachineZonesNull(),
+	AzurermVirtualMachineZoneUnknown(),
+	AzurermVirtualMachineZonesUnknown(),
 	AzurermVirtualNetworkGatewaySku(),
 }

@@ -59,9 +59,9 @@ func (r *ListRule[T]) Check(runner tflint.Runner) error {
 			continue
 		}
 		err = runner.EvaluateExpr(attribute.Expr, func(val []T) error {
-			actual := mapset.NewSet(val...)
+			actual := mapset.NewThreadUnsafeSet(val...)
 			if linq.From(r.expectedValues).AnyWith(func(expected interface{}) bool {
-				return actual.Equal(mapset.NewSet(expected.([]T)...))
+				return actual.Equal(mapset.NewThreadUnsafeSet(expected.([]T)...))
 			}) {
 				return nil
 			}
