@@ -29,7 +29,7 @@ func TestListNumberValueRule(t *testing.T) {
 			expected: helper.Issues{
 				{
 					Rule:    attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
-					Message: "\"&[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
+					Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
 				},
 			},
 		},
@@ -60,12 +60,43 @@ func TestListNumberValueRule(t *testing.T) {
 			expected: helper.Issues{},
 		},
 		{
-			name: "correct but wrong order",
+			name: "correct but different order",
 			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
 			content: `
 	variable "test" {
 		type    = list(number)
 		default = [2, 3, 1]
+	}
+	resource "foo" "example" {
+		bar = var.test
+	}`,
+			expected: helper.Issues{},
+		},
+		//TODO:
+		//	{
+		//		name: "variable without default",
+		//		rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+		//		content: `
+		//variable "test" {
+		//	type    = list(number)
+		//}
+		//resource "foo" "example" {
+		//	bar = var.test
+		//}`,
+		//		expected: helper.Issues{
+		//			{
+		//				Rule:    attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+		//				Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
+		//			},
+		//		},
+		//	},
+		{
+			name: "variable with convertable element type",
+			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+			content: `
+	variable "test" {
+		type    = list(string)
+		default = ["1", "2", "3"]
 	}
 	resource "foo" "example" {
 		bar = var.test

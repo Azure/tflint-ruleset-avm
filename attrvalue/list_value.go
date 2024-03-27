@@ -4,10 +4,10 @@ import (
 	"cmp"
 	"fmt"
 
+	"github.com/ahmetb/go-linq/v3"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // ListRule checks whether a list of numbers attribute value is one of the expected values.
@@ -58,31 +58,20 @@ func (r *ListRule[T]) Check(runner tflint.Runner) error {
 		if !exists {
 			continue
 		}
-		var et T
-		wantElementType, err := toCtyType(et)
-		if err != nil {
-			return err
-		}
-		wantTy := cty.List(wantElementType)
-		if err = runner.EvaluateExpr(attribute.Expr, func(val *[]T) error {
-			vals := mapset.NewThreadUnsafeSetWithSize[T](len(*val))
-			//vals := newSet(*val)
-			vals.Append(*val...)
-			for _, exp := range r.expectedValues {
-				expected := mapset.NewThreadUnsafeSetWithSize[T](len(exp))
-				expected.Append(exp...)
-				if vals.Equal(expected) {
-					return nil
-				}
+		err = runner.EvaluateExpr(attribute.Expr, func(val []T) error {
+			actual := mapset.NewSet(val...)
+			if linq.From(r.expectedValues).AnyWith(func(expected interface{}) bool {
+				return actual.Equal(mapset.NewSet(expected.([]T)...))
+			}) {
+				return nil
 			}
 			return runner.EmitIssue(
 				r,
 				fmt.Sprintf("\"%v\" is an invalid attribute value of `%s` - expecting (one of) %v", val, r.attributeName, r.expectedValues),
 				attribute.Expr.Range(),
 			)
-		}, &tflint.EvaluateExprOption{
-			WantType: &wantTy,
-		}); err != nil {
+		}, nil)
+		if err != nil {
 			return err
 		}
 	}
