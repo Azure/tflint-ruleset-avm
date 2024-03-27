@@ -28,6 +28,19 @@ func TestNullRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{},
 		},
+		//	//TODO:fix this
+		//	{
+		//		name: "correct assign with local",
+		//		rule: attrvalue.NewNullRule("foo", "bar"),
+		//		content: `
+		//locals {
+		//  bar = null
+		//}
+		//resource "foo" "example" {
+		//	bar = local.bar
+		//}`,
+		//		expected: helper.Issues{},
+		//	},
 		{
 			name: "undefined",
 			rule: attrvalue.NewNullRule("foo", "bar"),

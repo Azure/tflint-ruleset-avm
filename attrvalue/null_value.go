@@ -57,12 +57,15 @@ func (r *NullRule) Check(runner tflint.Runner) error {
 		if diags.HasErrors() {
 			return fmt.Errorf("could not evaluate attribute %s value: %s", r.attributeName, diags)
 		}
-		if !attrVal.IsNull() {
-			runner.EmitIssue(
-				r,
-				fmt.Sprintf("invalid attribute value of `%s` - expecting null", r.attributeName),
-				attr.Range,
-			)
+		if attrVal.IsNull() {
+			continue
+		}
+		if err = runner.EmitIssue(
+			r,
+			fmt.Sprintf("invalid attribute value of `%s` - expecting null", r.attributeName),
+			attr.Range,
+		); err != nil {
+			return err
 		}
 	}
 	return nil
