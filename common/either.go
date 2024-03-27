@@ -1,7 +1,6 @@
 package common
 
 import (
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
@@ -39,10 +38,10 @@ func (e *EitherCheckRule) Severity() tflint.Severity {
 }
 
 func (e *EitherCheckRule) Check(runner tflint.Runner) error {
-	runners := map[tflint.Rule]*rules.subRunner{}
+	runners := map[tflint.Rule]*subRunner{}
 
 	for _, r := range []tflint.Rule{e.primaryRule, e.secondaryRule} {
-		sr := &rules.subRunner{
+		sr := &subRunner{
 			Runner: runner,
 		}
 		runners[r] = sr

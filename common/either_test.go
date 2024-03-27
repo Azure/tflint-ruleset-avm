@@ -1,117 +1,95 @@
 package common_test
 
 import (
-	"fmt"
-	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
+	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
-	"github.com/zclconf/go-cty/cty"
+	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"testing"
 )
 
+var _ tflint.Rule = &mockRule{}
+
+type mockRule struct {
+	tflint.DefaultRule
+	success bool
+}
+
+func (m *mockRule) Check(r tflint.Runner) error {
+	if !m.success {
+		_ = r.EmitIssue(m, "mock issue", hcl.Range{})
+	}
+	return nil
+}
+
+func (m *mockRule) Name() string {
+	return "mock"
+}
+
+func (m *mockRule) Enabled() bool {
+	return true
+}
+
+func (m *mockRule) Severity() tflint.Severity {
+	return tflint.ERROR
+}
+
+func (m *mockRule) Link() string {
+	return ""
+}
+
 func TestEitherPrivateEndpoints(t *testing.T) {
 	cases := []struct {
-		Name     string
-		Content  string
-		JSON     bool
-		Expected helper.Issues
+		name          string
+		rule1         tflint.Rule
+		rule2         tflint.Rule
+		expectedIssue bool
 	}{
 		{
-			Name:     "correct",
-			Content:  toTerraformVarType(interfaces.PrivateEndpoints),
-			Expected: helper.Issues{},
+			name:          "correct",
+			rule1:         &mockRule{success: true},
+			rule2:         &mockRule{success: true},
+			expectedIssue: false,
 		},
 		{
-			Name:     "also_correct",
-			Content:  toTerraformVarType(interfaces.PrivateEndpointsWithSubresourceName),
-			Expected: helper.Issues{},
+			name:          "correct2",
+			rule1:         &mockRule{success: true},
+			rule2:         &mockRule{success: false},
+			expectedIssue: false,
 		},
 		{
-			Name: "incorrect private_endpoints",
-			Content: `
-variable "private_endpoints" {
-    type = map(object({
-      name               = optional(string, null)
-      role_assignments   = optional(map(object({})), {})
-      lock               = optional(object({}), {})
-      tags               = optional(map(any), null)
-      subnet_resource_id = string
-      subresource_name                        = string
-    }))
-    default     = {}
-    nullable    = false
-}`,
-			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.PrivateEndpointsRule,
-					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.PrivateEndpointTypeString),
-					Range:   hcl.Range{Filename: "variables.tf", Start: hcl.Pos{Line: 3, Column: 5}, End: hcl.Pos{Line: 10, Column: 8}},
-				},
-			},
+			name:          "correct3",
+			rule1:         &mockRule{success: false},
+			rule2:         &mockRule{success: true},
+			expectedIssue: false,
 		},
 		{
-			Name: "also incorrect private_endpoints with subresource_name",
-			Content: `
-variable "private_endpoints" {
-    type = map(object({
-      name               = optional(string, null)
-      role_assignments   = optional(map(object({})), {})
-      lock               = optional(object({}), {})
-      tags               = optional(map(any), null)
-      subnet_resource_id = string
-    }))
-    default     = {}
-    nullable    = false
-}`,
-			Expected: helper.Issues{
-				&helper.Issue{
-					Rule:    rules.PrivateEndpointsRule,
-					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.PrivateEndpointTypeString),
-					Range:   hcl.Range{Filename: "variables.tf", Start: hcl.Pos{Line: 3, Column: 5}, End: hcl.Pos{Line: 9, Column: 8}},
-				},
-			},
+			name:          "incorrect",
+			rule1:         &mockRule{success: false},
+			rule2:         &mockRule{success: false},
+			expectedIssue: true,
 		},
 	}
 
 	for _, tc := range cases {
 		tc := tc
-		t.Run(tc.Name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			filename := "variables.tf"
-			if tc.JSON {
-				filename += ".json"
+
+			runner := helper.TestRunner(t, map[string]string{filename: ""})
+
+			sut := common.NewEitherCheckRule("either", true, tflint.ERROR, tc.rule1, tc.rule2)
+			err := sut.Check(runner)
+			require.NoError(t, err)
+
+			if tc.expectedIssue {
+				assert.NotEmpty(t, runner.Issues)
+			} else {
+				assert.Empty(t, runner.Issues)
 			}
-
-			runner := helper.TestRunner(t, map[string]string{filename: tc.Content})
-
-			if err := rules.PrivateEndpointsRule.Check(runner); err != nil {
-				t.Fatalf("Unexpected error occurred: %s", err)
-			}
-
-			helper.AssertIssues(t, tc.Expected, runner.Issues)
 		})
 	}
-}
-
-func toTerraformVarType(i interfaces.AvmInterface) string {
-	f := hclwrite.NewEmptyFile()
-	rootBody := f.Body()
-	varBlock := rootBody.AppendNewBlock("variable", []string{i.RuleName})
-	varBody := varBlock.Body()
-
-	varBody.SetAttributeRaw("type", hclwrite.Tokens{
-		&hclwrite.Token{
-			Type:         hclsyntax.TokenStringLit,
-			Bytes:        []byte(i.VarTypeString),
-			SpacesBefore: 1,
-		},
-	})
-	varBody.SetAttributeValue("default", i.Default)
-	if !i.Nullable {
-		varBody.SetAttributeValue("nullable", cty.False)
-	}
-	return string(f.Bytes())
 }
