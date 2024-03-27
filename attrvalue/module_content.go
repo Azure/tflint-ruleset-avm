@@ -39,6 +39,9 @@ func getSimpleAttrs(ctx *terraform.Evaluator, module *terraform.Module, resource
 	}
 	attrs := make([]*hclext.Attribute, 0, len(resources.Blocks))
 	for _, resource := range resources.Blocks {
+		if resource.Labels[0] != resourceType {
+			continue
+		}
 		if attribute := getAttrFromBlock(resource, attributeName); attribute != nil {
 			attrs = append(attrs, attribute)
 		}
@@ -76,7 +79,7 @@ func getNestedBlockAttrs(ctx *terraform.Evaluator, module *terraform.Module, res
 	}
 	attrs := make([]*hclext.Attribute, 0, len(content.Blocks))
 	for _, resource := range content.Blocks {
-		if len(resource.Labels) != 2 && resource.Labels[0] != resourceType {
+		if resource.Labels[0] != resourceType {
 			continue
 		}
 		for _, block := range resource.Body.Blocks {
@@ -112,9 +115,20 @@ func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Eva
 			Fs: afero.NewOsFs(),
 		}
 	}
-	loader, _ := terraform.NewLoader(appFs, wd)
-	config, _ := loader.LoadConfig(".", terraform.CallLocalModule)
-	vvals, _ := terraform.VariableValues(config)
+	loader, err := terraform.NewLoader(appFs, wd)
+	if err != nil {
+		return nil, nil, hcl.Diagnostics{{
+			Summary: err.Error(),
+		}}
+	}
+	config, diags := loader.LoadConfig(".", terraform.CallLocalModule)
+	if diags.HasErrors() {
+		return nil, nil, diags
+	}
+	vvals, diags := terraform.VariableValues(config)
+	if diags.HasErrors() {
+		return nil, nil, diags
+	}
 	ctx := &terraform.Evaluator{
 		Meta: &terraform.ContextMeta{
 			Env:                "",

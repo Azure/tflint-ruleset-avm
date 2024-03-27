@@ -167,6 +167,19 @@ resource "foo" "example" {
 	}`,
 			expected: helper.Issues{},
 		},
+		{
+			name: "correct attribute incorrect resource",
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}),
+			content: `
+	variable "test" {
+    type		= bool
+		default = false
+	}
+	resource "fit" "example" {
+		bar = var.test
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"

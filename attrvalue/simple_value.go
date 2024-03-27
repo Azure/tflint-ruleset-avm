@@ -69,12 +69,12 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 	if diags.HasErrors() {
 		return fmt.Errorf("could not get partial content: %s", diags)
 	}
+	var dt T
+	ctyType, err := toCtyType(dt)
+	if err != nil {
+		return err
+	}
 	for _, attr := range attrs {
-		var dt T
-		ctyType, err := toCtyType(dt)
-		if err != nil {
-			return err
-		}
 		val, diags := ctx.EvaluateExpr(attr.Expr, ctyType)
 		if diags.HasErrors() {
 			return fmt.Errorf("could not evaluate expression: %s", diags)
@@ -89,6 +89,9 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 				return err
 			}
 			found = ctyExp.Equals(val).True()
+			if found {
+				break
+			}
 		}
 		if !found {
 			goVal := new(T)

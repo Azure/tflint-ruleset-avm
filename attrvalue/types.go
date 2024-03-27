@@ -45,6 +45,10 @@ func toCtyType(val any) (cty.Type, error) {
 		return cty.List(cty.Number), nil
 	case *[]float64:
 		return cty.List(cty.Number), nil
+	case []string:
+		return cty.List(cty.String), nil
+	case *[]string:
+		return cty.List(cty.String), nil
 	}
 	return cty.NilType, fmt.Errorf("unsupported type %s", reflect.TypeOf(val).String())
 }

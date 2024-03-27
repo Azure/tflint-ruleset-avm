@@ -51,6 +51,21 @@ func TestNestedBlockValueRule(t *testing.T) {
 			},
 		},
 		{
+			name: "incorrect resource with correct block",
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			content: `
+	variable "test" {
+		type    = string
+		default = "baz"
+	}
+	resource "fuz" "example" {
+		fiz {
+			bar = var.test
+		}
+	}`,
+			expected: helper.Issues{},
+		},
+		{
 			name: "no nested block of that type",
 			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
 			content: `
