@@ -2,10 +2,9 @@ package attrvalue
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
-	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/gocty"
 )
 
 // SimpleRule checks whether a string attribute value is one of the expected values.
@@ -16,7 +15,7 @@ type SimpleRule[T any] struct {
 	resourceType    string  // e.g. "azurerm_storage_account"
 	nestedBlockType *string // e.g. "sku"
 	attributeName   string  // e.g. "account_replication_type"
-	expectedValues  []any   // e.g. []string{"ZRS"}
+	expectedValues  []T     // e.g. []string{"ZRS"}
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
@@ -35,7 +34,7 @@ func (r *SimpleRule[T]) GetNestedBlockType() *string {
 }
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []any) *SimpleRule[T] {
+func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		resourceType:   resourceType,
 		attributeName:  attributeName,
@@ -44,8 +43,8 @@ func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []a
 }
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []cty.Value) *SimpleRule[T] {
-	return &SimpleRule{
+func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T) *SimpleRule[T] {
+	return &SimpleRule[T]{
 		resourceType:    resourceType,
 		attributeName:   attributeName,
 		nestedBlockType: &nestedBlockType,
@@ -71,6 +70,7 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 		return fmt.Errorf("could not get partial content: %s", diags)
 	}
 	for _, attr := range attrs {
+		var dt T
 		ctyType, err := toCtyType(dt)
 		if err != nil {
 			return err
@@ -82,21 +82,20 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 		if val.IsNull() {
 			continue
 		}
-		goVal := toPtr(dt)
 		found := false
-		for _, expected := range r.expectedValues {
-
-			exp := toPtr(expected)
-			if reflect.DeepEqual(val, exp) {
-				found = true
-				break
+		for _, exp := range r.expectedValues {
+			ctyExp, err := gocty.ToCtyValue(exp, ctyType)
+			if err != nil {
+				return err
 			}
+			found = ctyExp.Equals(val).True()
 		}
 		if !found {
-			v := reflect.Indirect(reflect.ValueOf(val))
+			goVal := new(T)
+			_ = gocty.FromCtyValue(val, goVal)
 			return runner.EmitIssue(
 				r,
-				fmt.Sprintf("%v is an invalid attribute value of `%s` - expecting (one of) %v", v, r.attributeName, r.expectedValues),
+				fmt.Sprintf("%v is an invalid attribute value of `%s` - expecting (one of) %v", *goVal, r.attributeName, r.expectedValues),
 				attr.Range,
 			)
 		}

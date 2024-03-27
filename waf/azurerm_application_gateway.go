@@ -12,7 +12,7 @@ func AzurermApplicationGatewayZones() *attrvalue.ListRule[int] {
 }
 
 func AzurermApplicationGatewaySku() *attrvalue.SimpleRule[string] {
-	return attrvalue.NewSimpleNestedBlockRule(
+	return attrvalue.NewSimpleNestedBlockRule[string](
 		"azurerm_application_gateway",
 		"sku",
 		"name",

@@ -109,7 +109,7 @@ func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Eva
 		file.Write(mainTf.Bytes)
 	} else {
 		appFs = afero.Afero{
-			Fs: afero.NewBasePathFs(afero.NewOsFs(), wd),
+			Fs: afero.NewOsFs(),
 		}
 	}
 	loader, _ := terraform.NewLoader(appFs, wd)
