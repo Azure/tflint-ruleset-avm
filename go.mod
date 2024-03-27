@@ -10,7 +10,9 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/hcl/v2 v2.20.1
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
+	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
+	github.com/terraform-linters/tflint v0.50.3
 	github.com/terraform-linters/tflint-plugin-sdk v0.19.0
 	github.com/zclconf/go-cty v1.14.4
 )
@@ -40,8 +42,6 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/spf13/afero v1.11.0 // indirect
-	github.com/terraform-linters/tflint v0.50.3 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.3 // indirect
@@ -51,7 +51,7 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
