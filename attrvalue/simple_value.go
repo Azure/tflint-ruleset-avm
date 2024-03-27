@@ -81,12 +81,14 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 				err.Error()) {
 				continue
 			}
+			return err
 		}
 		found := false
 		for _, expected := range r.expectedValues {
 			exp := toPtr(expected)
 			if reflect.DeepEqual(val, exp) {
 				found = true
+				break
 			}
 		}
 		if !found {

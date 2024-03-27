@@ -11,12 +11,6 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-var privateEndpointsWithoutSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpoints)
-var privateEndpointsWithSubresourceNameRule = NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
-var PrivateEndpointsRule = NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
-	privateEndpointsWithoutSubresourceNameRule,
-	privateEndpointsWithSubresourceNameRule)
-
 var Rules = func() []tflint.Rule {
 	return slices.Concat(
 		[]tflint.Rule{
@@ -30,13 +24,9 @@ var Rules = func() []tflint.Rule {
 			Wrap(basic.NewTerraformVariableSeparateRule()),
 			Wrap(azurerm.NewAzurermResourceTagRule()),
 			NewTerraformDotTfRule(),
-			NewVarCheckRuleFromAvmInterface(interfaces.Lock),
-			NewVarCheckRuleFromAvmInterface(interfaces.DiagnosticSettings),
-			NewVarCheckRuleFromAvmInterface(interfaces.ManagedIdentities),
-			NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments),
-			NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
-			PrivateEndpointsRule},
+		},
 		waf.Rules,
+		interfaces.Rules,
 	)
 }()
 

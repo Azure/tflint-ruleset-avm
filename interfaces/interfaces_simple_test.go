@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -71,7 +70,7 @@ variable "simple" {
 }`, interfaces.LockTypeString),
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: "nullable should not be set.",
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -94,7 +93,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", simpleVarTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -117,7 +116,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", simpleVarTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -139,7 +138,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", simpleVarTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -161,7 +160,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", simpleVarTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -183,7 +182,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", simpleVarTypeString),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -204,7 +203,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: "`simple` default not declared",
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -228,7 +227,7 @@ variable "simple" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(SimpleVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),
 					Message: fmt.Sprintf("default value is not correct, see: %s", SimpleVar.RuleLink),
 					Range: hcl.Range{
 						Filename: "variables.tf",
@@ -240,7 +239,7 @@ variable "simple" {
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(SimpleVar)
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar)
 
 	for _, tc := range cases {
 		tc := tc

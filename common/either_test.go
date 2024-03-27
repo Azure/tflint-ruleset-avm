@@ -1,4 +1,4 @@
-package rules_test
+package common_test
 
 import (
 	"fmt"

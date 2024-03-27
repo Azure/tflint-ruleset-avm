@@ -2,7 +2,6 @@ package interfaces_test
 
 import (
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"testing"
 )
@@ -21,7 +20,7 @@ func TestPrivateEndpointsWithSubresourceName(t *testing.T) {
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(interfaces.PrivateEndpointsWithSubresourceName)
 
 	for _, tc := range cases {
 		tc := tc

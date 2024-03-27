@@ -6,6 +6,7 @@ func AzurermApplicationGatewayZones() *attrvalue.ListRule[int] {
 	return attrvalue.NewListRule(
 		"azurerm_application_gateway",
 		"zones",
+		//TODO: What if there's no three zones in the given region?
 		[][]int{{1, 2, 3}},
 	)
 }
