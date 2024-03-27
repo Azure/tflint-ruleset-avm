@@ -152,6 +152,21 @@ resource "foo" "example" {
 	}`,
 			expected: helper.Issues{},
 		},
+		{
+			name: "optional value",
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}),
+			content: `
+	variable "test" {
+		type    = object({
+			optional = optional(bool)
+		})
+		default = {}
+	}
+	resource "foo" "example" {
+		bar = var.test.optional
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"

@@ -7,13 +7,6 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func toPtr[T any](val T) any {
-	if reflect.TypeOf(val).Kind() == reflect.Pointer {
-		return val
-	}
-	return &val
-}
-
 func toCtyType(val any) (cty.Type, error) {
 	switch val.(type) {
 	case *string:
