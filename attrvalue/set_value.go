@@ -30,7 +30,10 @@ func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expect
 }
 
 func (r *SetRule[T]) Name() string {
-	return fmt.Sprintf("%s.%s must be: %v", r.resourceType, r.attributeName, r.expectedValues)
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s_must_be_%+v", r.resourceType, *r.nestedBlockType, r.attributeName, r.expectedValues)
+	}
+	return fmt.Sprintf("%s.%s_must_be_%v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
 func (r *SetRule[T]) Check(runner tflint.Runner) error {

@@ -41,7 +41,10 @@ func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName
 }
 
 func (r *UnknownValueRule) Name() string {
-	return fmt.Sprintf("%s.%s must be null", r.resourceType, r.attributeName)
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s_must_be_unknown", r.resourceType, *r.nestedBlockType, r.attributeName)
+	}
+	return fmt.Sprintf("%s.%s_must_be_unknown", r.resourceType, r.attributeName)
 }
 
 func (r *UnknownValueRule) Check(runner tflint.Runner) error {

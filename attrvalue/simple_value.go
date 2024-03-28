@@ -42,7 +42,10 @@ func (r *SimpleRule[T]) Link() string {
 }
 
 func (r *SimpleRule[T]) Name() string {
-	return fmt.Sprintf("%s.%s must be: %+v", r.resourceType, r.attributeName, r.expectedValues)
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s_must_be_%+v", r.resourceType, *r.nestedBlockType, r.attributeName, r.expectedValues)
+	}
+	return fmt.Sprintf("%s.%s_must_be_%+v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
 func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
