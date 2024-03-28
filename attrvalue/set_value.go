@@ -45,6 +45,9 @@ func (r *SetRule[T]) Check(runner tflint.Runner) error {
 		return err
 	}
 	return r.checkAttributes(runner, ctyTypeS, func(attr *hclext.Attribute, val cty.Value) error {
+		if val.IsNull() || !val.IsKnown() {
+			return nil
+		}
 		actual := val.AsValueSet()
 		found := false
 		for _, exp := range r.expectedValues {

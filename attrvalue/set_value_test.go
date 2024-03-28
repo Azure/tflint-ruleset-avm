@@ -84,12 +84,7 @@ func TestListNumberValueRule(t *testing.T) {
 		resource "foo" "example" {
 			bar = var.test
 		}`,
-			expected: helper.Issues{
-				{
-					Rule:    attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
-					Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
-				},
-			},
+			expected: helper.Issues{},
 		},
 		{
 			name: "variable with convertable element type",

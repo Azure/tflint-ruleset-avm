@@ -52,7 +52,7 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 		return err
 	}
 	return r.checkAttributes(runner, cty.DynamicPseudoType, func(attr *hclext.Attribute, val cty.Value) error {
-		if val.IsNull() {
+		if val.IsNull() || !val.IsKnown() {
 			return nil
 		}
 		found := false
