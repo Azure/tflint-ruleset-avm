@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -116,7 +115,7 @@ variable "complex" {
 }`,
 			Expected: helper.Issues{
 				&helper.Issue{
-					Rule:    rules.NewVarCheckRuleFromAvmInterface(ComplexVar),
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(ComplexVar),
 					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", complexVarTypeString),
 					Range:   hcl.Range{Filename: "variables.tf", Start: hcl.Pos{Line: 5, Column: 2}, End: hcl.Pos{Line: 33, Column: 5}},
 				},
@@ -124,7 +123,7 @@ variable "complex" {
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(ComplexVar)
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(ComplexVar)
 
 	for _, tc := range cases {
 		tc := tc

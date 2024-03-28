@@ -1,0 +1,25 @@
+{
+  "errors": [],
+  "issues": [
+    {
+      "callers": [],
+      "message": "invalid is an invalid attribute value of `sku` - expecting (one of) [Standard]",
+      "range": {
+        "end": {
+          "column": 29,
+          "line": 9
+        },
+        "filename": "template.tf",
+        "start": {
+          "column": 3,
+          "line": 9
+        }
+      },
+      "rule": {
+        "link": "https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/load-balancer/#lb-1---use-standard-load-balancer-sku",
+        "name": "azurerm_lb.sku must be: [Standard]",
+        "severity": "error"
+      }
+    }
+  ]
+}

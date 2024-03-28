@@ -6,9 +6,9 @@ import (
 )
 
 var ManagedIdentitiesTypeString = `object({
-		kind = string
-		name = optional(string, null)
-	})`
+	system_assigned            = optional(bool, false)
+	user_assigned_resource_ids = optional(set(string), [])
+})`
 
 var ManagedIdentities = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),

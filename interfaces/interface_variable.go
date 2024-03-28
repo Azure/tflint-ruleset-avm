@@ -1,9 +1,8 @@
-package rules
+package interfaces
 
 import (
 	"fmt"
 
-	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/check"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
@@ -49,11 +48,11 @@ var _ tflint.Rule = new(InterfaceVarCheckRule)
 // check for the correct usage of an interface.
 type InterfaceVarCheckRule struct {
 	tflint.DefaultRule
-	interfaces.AvmInterface // This is the interface we are checking for.
+	AvmInterface // This is the interface we are checking for.
 }
 
 // NewVarCheckRuleFromAvmInterface returns a new rule with the given variable.
-func NewVarCheckRuleFromAvmInterface(ifce interfaces.AvmInterface) *InterfaceVarCheckRule {
+func NewVarCheckRuleFromAvmInterface(ifce AvmInterface) *InterfaceVarCheckRule {
 	return &InterfaceVarCheckRule{
 		AvmInterface: ifce,
 	}

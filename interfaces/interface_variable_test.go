@@ -1,23 +1,23 @@
-package rules_test
+package interfaces_test
 
 import (
 	"fmt"
+	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"testing"
 
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCheck(t *testing.T) {
 	called := false
 	cases := []struct {
-		c                            func() rules.Checker
+		c                            func() interfaces.Checker
 		secondCallbackShouldBeCalled bool
 		description                  string
 	}{
 		{
-			c: func() rules.Checker {
-				return rules.NewChecker().Check(func() (bool, error) {
+			c: func() interfaces.Checker {
+				return interfaces.NewChecker().Check(func() (bool, error) {
 					return true, nil
 				}).Check(func() (bool, error) {
 					called = true
@@ -28,8 +28,8 @@ func TestCheck(t *testing.T) {
 			description:                  "happy_path_second_callback_should_be_called",
 		},
 		{
-			c: func() rules.Checker {
-				return rules.NewChecker().Check(func() (bool, error) {
+			c: func() interfaces.Checker {
+				return interfaces.NewChecker().Check(func() (bool, error) {
 					return false, nil
 				}).Check(func() (bool, error) {
 					called = true
@@ -40,8 +40,8 @@ func TestCheck(t *testing.T) {
 			description:                  "false_path_second_callback_should_not_be_called",
 		},
 		{
-			c: func() rules.Checker {
-				return rules.NewChecker().Check(func() (bool, error) {
+			c: func() interfaces.Checker {
+				return interfaces.NewChecker().Check(func() (bool, error) {
 					return true, fmt.Errorf("error")
 				}).Check(func() (bool, error) {
 					called = true
@@ -65,17 +65,17 @@ func TestCheck(t *testing.T) {
 func TestCheckWithReturnValue(t *testing.T) {
 	called := false
 	cases := []struct {
-		c                      func() rules.Checker
+		c                      func() interfaces.Checker
 		callbackShouldBeCalled bool
 		description            string
 	}{
 		{
-			c: func() rules.Checker {
-				checker := rules.NewChecker()
-				_, checker = rules.CheckWithReturnValue(checker, func() (int, bool, error) {
+			c: func() interfaces.Checker {
+				checker := interfaces.NewChecker()
+				_, checker = interfaces.CheckWithReturnValue(checker, func() (int, bool, error) {
 					return 0, true, nil
 				})
-				rules.CheckWithReturnValue(checker, func() (string, bool, error) {
+				interfaces.CheckWithReturnValue(checker, func() (string, bool, error) {
 					called = true
 					return "", true, nil
 				})
@@ -85,12 +85,12 @@ func TestCheckWithReturnValue(t *testing.T) {
 			description:            "happy_path_second_callback_should_be_called",
 		},
 		{
-			c: func() rules.Checker {
-				checker := rules.NewChecker()
-				_, checker = rules.CheckWithReturnValue(checker, func() (int, bool, error) {
+			c: func() interfaces.Checker {
+				checker := interfaces.NewChecker()
+				_, checker = interfaces.CheckWithReturnValue(checker, func() (int, bool, error) {
 					return 0, false, nil
 				})
-				rules.CheckWithReturnValue(checker, func() (string, bool, error) {
+				interfaces.CheckWithReturnValue(checker, func() (string, bool, error) {
 					called = true
 					return "", true, nil
 				})
@@ -100,12 +100,12 @@ func TestCheckWithReturnValue(t *testing.T) {
 			description:            "false_path_second_callback_should_not_be_called",
 		},
 		{
-			c: func() rules.Checker {
-				checker := rules.NewChecker()
-				_, checker = rules.CheckWithReturnValue(checker, func() (int, bool, error) {
+			c: func() interfaces.Checker {
+				checker := interfaces.NewChecker()
+				_, checker = interfaces.CheckWithReturnValue(checker, func() (int, bool, error) {
 					return 0, true, fmt.Errorf("error")
 				})
-				rules.CheckWithReturnValue(checker, func() (string, bool, error) {
+				interfaces.CheckWithReturnValue(checker, func() (string, bool, error) {
 					called = true
 					return "", true, nil
 				})

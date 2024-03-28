@@ -7,8 +7,8 @@ import (
 )
 
 var LockTypeString = `object({
-  kind = string
-  name = optional(string, null)
+	kind = string
+	name = optional(string, null)
 })`
 
 var lockType = StringToTypeConstraintWithDefaults(LockTypeString)

@@ -1,4 +1,4 @@
-package rules
+package common
 
 import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"

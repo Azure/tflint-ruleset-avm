@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
@@ -22,7 +21,7 @@ func TestRoleAssignmentsInterface(t *testing.T) {
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments)
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(interfaces.RoleAssignments)
 
 	for _, tc := range cases {
 		tc := tc

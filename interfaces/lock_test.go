@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
-	"github.com/Azure/tflint-ruleset-avm/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
@@ -23,7 +22,7 @@ func TestTerraformLockInterface(t *testing.T) {
 		},
 	}
 
-	rule := rules.NewVarCheckRuleFromAvmInterface(interfaces.Lock)
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(interfaces.Lock)
 
 	for _, tc := range cases {
 		tc := tc
