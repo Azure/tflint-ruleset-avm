@@ -61,7 +61,7 @@ stages:
           - task: GoTool@0
             displayName: "Install Go"
             inputs:
-              version: 1.21.3
+              version: 1.22.0
           - script: |
               set -e
               mkdir build
