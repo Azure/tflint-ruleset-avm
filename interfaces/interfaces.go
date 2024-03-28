@@ -6,11 +6,12 @@ import (
 )
 
 var Rules = []tflint.Rule{
-	NewVarCheckRuleFromAvmInterface(Lock),
+	NewVarCheckRuleFromAvmInterface(CustomerManagedKey),
 	NewVarCheckRuleFromAvmInterface(DiagnosticSettings),
+	NewVarCheckRuleFromAvmInterface(Lock),
 	NewVarCheckRuleFromAvmInterface(ManagedIdentities),
 	NewVarCheckRuleFromAvmInterface(RoleAssignments),
-	NewVarCheckRuleFromAvmInterface(CustomerManagedKey),
+	NewVarCheckRuleFromAvmInterface(Tags),
 	func() tflint.Rule {
 		return common.NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
 			NewVarCheckRuleFromAvmInterface(PrivateEndpoints),
