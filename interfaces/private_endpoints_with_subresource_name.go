@@ -15,14 +15,14 @@ var PrivateEndpointWithSubresourceNameTypeString = `map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
-  }))), {})
-  lock = optional(object({
+  })), {})
+  lock               = optional(object({
     kind = string
     name = optional(string, null)
-  })), {})
+  }), null)
   tags               = optional(map(string), null)
-  subresource_name   = string
   subnet_resource_id = string
+  subresource_name   = string
   private_dns_zone_group_name             = optional(string, "default")
   private_dns_zone_resource_ids           = optional(set(string), [])
   application_security_group_associations = optional(map(string), {})
