@@ -2,6 +2,7 @@ package attrvalue
 
 import (
 	"fmt"
+
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -22,16 +23,20 @@ func (r *UnknownValueRule) GetNestedBlockType() *string {
 }
 
 // NewSimpleRule returns a new rule with the given resource type, and attribute name
-func NewUnknownValueRule(resourceType string, attributeName string) *UnknownValueRule {
+func NewUnknownValueRule(resourceType, attributeName, link string) *UnknownValueRule {
 	return &UnknownValueRule{
-		baseValue: newBaseValue(resourceType, nil, attributeName),
+		baseValue: newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 	}
 }
 
+func (r *UnknownValueRule) Link() string {
+	return r.link
+}
+
 // NewUnknownValueNestedBlockRule returns a new rule with the given resource type, nested block type, and attribute name
-func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName string) *UnknownValueRule {
+func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName, link string) *UnknownValueRule {
 	return &UnknownValueRule{
-		baseValue: newBaseValue(resourceType, &nestedBlockType, attributeName),
+		baseValue: newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
 	}
 }
 

@@ -1,10 +1,11 @@
 package attrvalue_test
 
 import (
-	"github.com/prashantv/gostub"
-	"github.com/spf13/afero"
 	"os"
 	"testing"
+
+	"github.com/prashantv/gostub"
+	"github.com/spf13/afero"
 
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -20,7 +21,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}{
 		{
 			name: "correct string",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -35,7 +36,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "incorrect string",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -48,14 +49,14 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 					Message: "baz is an invalid attribute value of `bar` - expecting (one of) [biz bat]",
 				},
 			},
 		},
 		{
 			name: "incorrect resource with correct block",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -70,7 +71,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "no nested block of that type",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -85,7 +86,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "multiple blocks correct",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -103,7 +104,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "multiple blocks partially correct",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -123,7 +124,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}),
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
 					Message: "incorrect is an invalid attribute value of `bar` - expecting (one of) [biz bat]",
 				},
 			},

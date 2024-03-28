@@ -1,8 +1,9 @@
 package attrvalue_test
 
 import (
-	"github.com/prashantv/gostub"
 	"testing"
+
+	"github.com/prashantv/gostub"
 
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -18,7 +19,7 @@ func TestUnknownValueRule(t *testing.T) {
 	}{
 		{
 			name: "unknown string value",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 	variable "test" {
 		type    = string
@@ -31,7 +32,7 @@ func TestUnknownValueRule(t *testing.T) {
 		},
 		{
 			name: "null value with local",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 		locals {
 		 bar = null
@@ -42,14 +43,14 @@ func TestUnknownValueRule(t *testing.T) {
 		}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewUnknownValueRule("foo", "bar"),
+					Rule:    attrvalue.NewUnknownValueRule("foo", "bar", ""),
 					Message: "invalid attribute value of `bar` - expecting unknown",
 				},
 			},
 		},
 		{
 			name: "default value",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 		variable "test" {
 			type    = string
@@ -60,14 +61,14 @@ func TestUnknownValueRule(t *testing.T) {
 		}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewUnknownValueRule("foo", "bar"),
+					Rule:    attrvalue.NewUnknownValueRule("foo", "bar", ""),
 					Message: "invalid attribute value of `bar` - expecting unknown",
 				},
 			},
 		},
 		{
 			name: "unknown number value",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 		variable "test" {
 			type    = number
@@ -79,7 +80,7 @@ func TestUnknownValueRule(t *testing.T) {
 		},
 		{
 			name: "not null (number)",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 		variable "test" {
 			type    = number
@@ -90,14 +91,14 @@ func TestUnknownValueRule(t *testing.T) {
 		}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewUnknownValueRule("foo", "bar"),
+					Rule:    attrvalue.NewUnknownValueRule("foo", "bar", ""),
 					Message: "invalid attribute value of `bar` - expecting unknown",
 				},
 			},
 		},
 		{
 			name: "attribute not found",
-			rule: attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule: attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content: `
 		variable "test" {
 			type    = bool
@@ -109,7 +110,7 @@ func TestUnknownValueRule(t *testing.T) {
 		},
 		{
 			name:     "empty config",
-			rule:     attrvalue.NewUnknownValueRule("foo", "bar"),
+			rule:     attrvalue.NewUnknownValueRule("foo", "bar", ""),
 			content:  ``,
 			expected: helper.Issues{},
 		},

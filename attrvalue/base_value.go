@@ -14,17 +14,30 @@ type baseValue struct {
 	resourceType    string // e.g. "azurerm_storage_account"
 	nestedBlockType *string
 	attributeName   string // e.g. "account_replication_type"
+	enabled         bool
+	link            string
+	severity        tflint.Severity
 }
 
 func (b baseValue) GetNestedBlockType() *string {
 	return b.nestedBlockType
 }
 
-func newBaseValue(resourceType string, nestedBlockType *string, attributeName string) baseValue {
+func newBaseValue(
+	resourceType string,
+	nestedBlockType *string,
+	attributeName string,
+	enabled bool,
+	link string,
+	severity tflint.Severity,
+) baseValue {
 	return baseValue{
 		resourceType:    resourceType,
 		nestedBlockType: nestedBlockType,
 		attributeName:   attributeName,
+		enabled:         enabled,
+		link:            link,
+		severity:        severity,
 	}
 }
 
@@ -37,11 +50,11 @@ func (b baseValue) GetAttributeName() string {
 }
 
 func (b baseValue) Enabled() bool {
-	return true
+	return b.enabled
 }
 
 func (b baseValue) Severity() tflint.Severity {
-	return tflint.ERROR
+	return b.severity
 }
 
 func (b baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.Attribute, cty.Value) error) error {

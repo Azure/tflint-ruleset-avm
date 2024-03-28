@@ -21,10 +21,10 @@ type SetRule[T cmp.Ordered] struct {
 var _ tflint.Rule = (*SetRule[int])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
-// NewListRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewListRule[T cmp.Ordered](resourceType string, attributeName string, expectedValues [][]T) *SetRule[T] {
+// NewSetRule returns a new rule with the given resource type, attribute name, and expected values.
+func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expectedValues [][]T, link string) *SetRule[T] {
 	return &SetRule[T]{
-		baseValue:      newBaseValue(resourceType, nil, attributeName),
+		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 	}
 }

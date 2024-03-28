@@ -3,11 +3,11 @@ package waf
 import "github.com/Azure/tflint-ruleset-avm/attrvalue"
 
 func AzurermApplicationGatewayZones() *attrvalue.SetRule[int] {
-	return attrvalue.NewListRule(
+	return attrvalue.NewSetRule(
 		"azurerm_application_gateway",
 		"zones",
-		//TODO: What if there's no three zones in the given region?
 		[][]int{{1, 2, 3}},
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/application-gateway/#agw-1---set-a-minimum-instance-count-of-2",
 	)
 }
 
@@ -17,5 +17,6 @@ func AzurermApplicationGatewaySku() *attrvalue.SimpleRule[string] {
 		"sku",
 		"name",
 		[]string{"Standard_v2", "WAF_v2"},
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/application-gateway/#agw-4---use-application-gw-v2-instead-of-v1",
 	)
 }

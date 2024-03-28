@@ -1,8 +1,9 @@
 package attrvalue_test
 
 import (
-	"github.com/prashantv/gostub"
 	"testing"
+
+	"github.com/prashantv/gostub"
 
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -18,7 +19,7 @@ func TestListNumberValueRule(t *testing.T) {
 	}{
 		{
 			name: "incorrect",
-			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -29,14 +30,14 @@ func TestListNumberValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+					Rule:    attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
 					Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
 				},
 			},
 		},
 		{
 			name: "correct",
-			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -49,7 +50,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "correct with string list",
-			rule: attrvalue.NewListRule("foo", "bar", [][]string{{"1", "2", "3"}}),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]string{{"1", "2", "3"}}, ""),
 			content: `
 	variable "test" {
 		type    = list(string)
@@ -62,7 +63,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "correct but different order",
-			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -73,27 +74,26 @@ func TestListNumberValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{},
 		},
-		//TODO:
-		//	{
-		//		name: "variable without default",
-		//		rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
-		//		content: `
-		//variable "test" {
-		//	type    = list(number)
-		//}
-		//resource "foo" "example" {
-		//	bar = var.test
-		//}`,
-		//		expected: helper.Issues{
-		//			{
-		//				Rule:    attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
-		//				Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
-		//			},
-		//		},
-		//	},
+		{
+			name: "variable without default",
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			content: `
+		variable "test" {
+			type    = list(number)
+		}
+		resource "foo" "example" {
+			bar = var.test
+		}`,
+			expected: helper.Issues{
+				{
+					Rule:    attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+					Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
+				},
+			},
+		},
 		{
 			name: "variable with convertable element type",
-			rule: attrvalue.NewListRule("foo", "bar", [][]int{{1, 2, 3}}),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
 			content: `
 	variable "test" {
 		type    = list(string)

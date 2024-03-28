@@ -2,6 +2,7 @@ package attrvalue
 
 import (
 	"fmt"
+
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/zclconf/go-cty/cty"
 
@@ -21,19 +22,23 @@ var _ tflint.Rule = (*SimpleRule[any])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T) *SimpleRule[T] {
+func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T, link string) *SimpleRule[T] {
 	return &SimpleRule[T]{
-		baseValue:      newBaseValue(resourceType, nil, attributeName),
+		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 	}
 }
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T) *SimpleRule[T] {
+func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string) *SimpleRule[T] {
 	return &SimpleRule[T]{
-		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName),
+		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, "", tflint.ERROR),
 		expectedValues: expectedValues,
 	}
+}
+
+func (r *SimpleRule[T]) Link() string {
+	return r.link
 }
 
 func (r *SimpleRule[T]) Name() string {
