@@ -2,7 +2,7 @@ package waf
 
 import "github.com/Azure/tflint-ruleset-avm/attrvalue"
 
-func AzurermKubernetesClusterZones() *attrvalue.ListRule[int] {
+func AzurermKubernetesClusterZones() *attrvalue.SetRule[int] {
 	return attrvalue.NewListRule(
 		"azurerm_kubernetes_cluster",
 		"zones",

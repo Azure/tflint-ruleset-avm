@@ -133,6 +133,15 @@ func TestNestedBlockValueRule(t *testing.T) {
 		t.Run(tC.name, func(t *testing.T) {
 			t.Parallel()
 			runner := helper.TestRunner(t, map[string]string{filename: tC.content})
+			//stub := gostub.Stub(&attrvalue.AppFs, func() afero.Afero {
+			//	fs := afero.Afero{Fs: afero.NewMemMapFs()}
+			//	fileName := "main.tf"
+			//	mainTf, _ := runner.GetFile(fileName)
+			//	file, _ := fs.Create(fileName)
+			//	file.Write(mainTf.Bytes)
+			//	return fs
+			//}())
+			//defer stub.Reset()
 			if err := tC.rule.Check(runner); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}

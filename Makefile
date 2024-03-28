@@ -1,7 +1,7 @@
 default: build
 
 test:
-	go test $$(go list ./... | grep -v integration)
+	go test --count=1 $$(go list ./... | grep -v integration)
 
 build:
 	go build

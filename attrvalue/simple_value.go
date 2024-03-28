@@ -2,6 +2,8 @@ package attrvalue
 
 import (
 	"fmt"
+	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
+	"github.com/zclconf/go-cty/cty"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty/gocty"
@@ -11,33 +13,17 @@ import (
 // It can be used to check string, number, and bool attributes.
 type SimpleRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
-
-	resourceType    string  // e.g. "azurerm_storage_account"
-	nestedBlockType *string // e.g. "sku"
-	attributeName   string  // e.g. "account_replication_type"
-	expectedValues  []T     // e.g. []string{"ZRS"}
+	baseValue
+	expectedValues []T // e.g. []string{"ZRS"}
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
-func (r *SimpleRule[T]) GetResourceType() string {
-	return r.resourceType
-}
-
-func (r *SimpleRule[T]) GetAttributeName() string {
-	return r.attributeName
-}
-
-func (r *SimpleRule[T]) GetNestedBlockType() *string {
-	return r.nestedBlockType
-}
-
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
 func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T) *SimpleRule[T] {
 	return &SimpleRule[T]{
-		resourceType:   resourceType,
-		attributeName:  attributeName,
+		baseValue:      newBaseValue(resourceType, nil, attributeName),
 		expectedValues: expectedValues,
 	}
 }
@@ -45,10 +31,8 @@ func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
 func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T) *SimpleRule[T] {
 	return &SimpleRule[T]{
-		resourceType:    resourceType,
-		attributeName:   attributeName,
-		nestedBlockType: &nestedBlockType,
-		expectedValues:  expectedValues,
+		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName),
+		expectedValues: expectedValues,
 	}
 }
 
@@ -56,31 +40,15 @@ func (r *SimpleRule[T]) Name() string {
 	return fmt.Sprintf("%s.%s must be: %+v", r.resourceType, r.attributeName, r.expectedValues)
 }
 
-func (r *SimpleRule[T]) Enabled() bool {
-	return true
-}
-
-func (r *SimpleRule[T]) Severity() tflint.Severity {
-	return tflint.ERROR
-}
-
 func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
-	ctx, attrs, diags := fetchAttrsAndContext(r, runner)
-	if diags.HasErrors() {
-		return fmt.Errorf("could not get partial content: %s", diags)
-	}
 	var dt T
 	ctyType, err := toCtyType(dt)
 	if err != nil {
 		return err
 	}
-	for _, attr := range attrs {
-		val, diags := ctx.EvaluateExpr(attr.Expr, ctyType)
-		if diags.HasErrors() {
-			return fmt.Errorf("could not evaluate expression: %s", diags)
-		}
+	return r.checkAttributes(runner, cty.DynamicPseudoType, func(attr *hclext.Attribute, val cty.Value) error {
 		if val.IsNull() {
-			continue
+			return nil
 		}
 		found := false
 		for _, exp := range r.expectedValues {
@@ -102,6 +70,6 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 				attr.Range,
 			)
 		}
-	}
-	return nil
+		return nil
+	})
 }

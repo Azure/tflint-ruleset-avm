@@ -100,9 +100,13 @@ func getAttrFromBlock(block *hclext.Block, attributeName string) *hclext.Attribu
 	return attribute
 }
 
+//var AppFs = afero.Afero{
+//	Fs: afero.NewOsFs(),
+//}
+
 func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Evaluator, []*hclext.Attribute, hcl.Diagnostics) {
-	var appFs afero.Afero
 	// If we are using the tflint test runner then we need to create a new memory file system
+	var appFs afero.Afero
 	wd, _ := runner.GetOriginalwd()
 	if _, ok := runner.(*helper.Runner); ok {
 		appFs = afero.Afero{Fs: afero.NewMemMapFs()}

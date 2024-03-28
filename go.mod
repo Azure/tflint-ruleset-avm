@@ -5,8 +5,6 @@ go 1.22.0
 require (
 	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.0
 	github.com/Azure/tflint-ruleset-basic-ext v0.6.0
-	github.com/ahmetb/go-linq/v3 v3.2.0
-	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/hcl/v2 v2.20.1
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
@@ -19,6 +17,7 @@ require (
 
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/ahmetb/go-linq/v3 v3.2.0 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
@@ -42,6 +41,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prashantv/gostub v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.3 // indirect
