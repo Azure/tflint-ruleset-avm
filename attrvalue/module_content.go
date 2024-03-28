@@ -4,11 +4,14 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/spf13/afero"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
-	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/terraform-linters/tflint/terraform"
 	"github.com/terraform-linters/tflint/terraform/addrs"
 )
+
+var AppFs = afero.Afero{
+	Fs: afero.NewOsFs(),
+}
 
 type AttrValueRule interface {
 	GetResourceType() string
@@ -100,26 +103,10 @@ func getAttrFromBlock(block *hclext.Block, attributeName string) *hclext.Attribu
 	return attribute
 }
 
-//var AppFs = afero.Afero{
-//	Fs: afero.NewOsFs(),
-//}
-
 func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Evaluator, []*hclext.Attribute, hcl.Diagnostics) {
 	// If we are using the tflint test runner then we need to create a new memory file system
-	var appFs afero.Afero
 	wd, _ := runner.GetOriginalwd()
-	if _, ok := runner.(*helper.Runner); ok {
-		appFs = afero.Afero{Fs: afero.NewMemMapFs()}
-		fileName := "main.tf"
-		mainTf, _ := runner.GetFile(fileName)
-		file, _ := appFs.Create(fileName)
-		file.Write(mainTf.Bytes)
-	} else {
-		appFs = afero.Afero{
-			Fs: afero.NewOsFs(),
-		}
-	}
-	loader, err := terraform.NewLoader(appFs, wd)
+	loader, err := terraform.NewLoader(AppFs, wd)
 	if err != nil {
 		return nil, nil, hcl.Diagnostics{{
 			Summary: err.Error(),

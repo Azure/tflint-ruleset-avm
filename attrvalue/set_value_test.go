@@ -1,6 +1,7 @@
 package attrvalue_test
 
 import (
+	"github.com/prashantv/gostub"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
@@ -106,24 +107,16 @@ func TestListNumberValueRule(t *testing.T) {
 	}
 
 	filename := "main.tf"
-	for _, tC := range testCases {
-		tC := tC
-		t.Run(tC.name, func(t *testing.T) {
-			t.Parallel()
-			runner := helper.TestRunner(t, map[string]string{filename: tC.content})
-			//stub := gostub.Stub(&attrvalue.AppFs, func() afero.Afero {
-			//	fs := afero.Afero{Fs: afero.NewMemMapFs()}
-			//	fileName := "main.tf"
-			//	mainTf, _ := runner.GetFile(fileName)
-			//	file, _ := fs.Create(fileName)
-			//	file.Write(mainTf.Bytes)
-			//	return fs
-			//}())
-			//defer stub.Reset()
-			if err := tC.rule.Check(runner); err != nil {
+	for _, c := range testCases {
+		tc := c
+		t.Run(tc.name, func(t *testing.T) {
+			runner := helper.TestRunner(t, map[string]string{filename: tc.content})
+			stub := gostub.Stub(&attrvalue.AppFs, mockFs(tc.content))
+			defer stub.Reset()
+			if err := tc.rule.Check(runner); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			helper.AssertIssuesWithoutRange(t, tC.expected, runner.Issues)
+			helper.AssertIssuesWithoutRange(t, tc.expected, runner.Issues)
 		})
 	}
 }
