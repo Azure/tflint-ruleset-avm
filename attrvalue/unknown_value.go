@@ -42,9 +42,9 @@ func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName
 
 func (r *UnknownValueRule) Name() string {
 	if r.nestedBlockType != nil {
-		return fmt.Sprintf("%s.%s.%s_must_be_unknown", r.resourceType, *r.nestedBlockType, r.attributeName)
+		return fmt.Sprintf("unknown_value_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
 	}
-	return fmt.Sprintf("%s.%s_must_be_unknown", r.resourceType, r.attributeName)
+	return fmt.Sprintf("unknown_value_%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *UnknownValueRule) Check(runner tflint.Runner) error {
