@@ -43,9 +43,9 @@ func (r *SimpleRule[T]) Link() string {
 
 func (r *SimpleRule[T]) Name() string {
 	if r.nestedBlockType != nil {
-		return fmt.Sprintf("%s.%s.%s_must_be_%+v", r.resourceType, *r.nestedBlockType, r.attributeName, r.expectedValues)
+		return fmt.Sprintf("waf_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
 	}
-	return fmt.Sprintf("%s.%s_must_be_%+v", r.resourceType, r.attributeName, r.expectedValues)
+	return fmt.Sprintf("waf_%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
