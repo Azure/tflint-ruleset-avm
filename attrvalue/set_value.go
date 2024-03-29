@@ -52,19 +52,14 @@ func (r *SetRule[T]) Check(runner tflint.Runner) error {
 			return nil
 		}
 		actual := val.AsValueSet()
-		found := false
 		for _, exp := range r.expectedValues {
 			expectedValue, err := gocty.ToCtyValue(exp, cty.Set(ctyType))
 			if err != nil {
 				return err
 			}
 			if cty.SetValFromValueSet(actual).Equals(expectedValue).True() {
-				found = true
-				break
+				return nil
 			}
-		}
-		if found {
-			return nil
 		}
 		goVal := new([]T)
 		_ = gocty.FromCtyValue(val, goVal)

@@ -20,7 +20,7 @@ type AttrValueRule interface {
 }
 
 // getSimpleAttrs returns a slice of attributes with the given attribute name from the resources of the given resource type.
-func getSimpleAttrs(ctx *terraform.Evaluator, module *terraform.Module, resourceType string, attributeName string) ([]*hclext.Attribute, hcl.Diagnostics) {
+func getSimpleAttrs(module *terraform.Module, resourceType string, attributeName string, ctx *terraform.Evaluator) ([]*hclext.Attribute, hcl.Diagnostics) {
 	resources, diags := module.PartialContent(&hclext.BodySchema{
 		Blocks: []hclext.BlockSchema{
 			{
@@ -136,7 +136,7 @@ func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Eva
 		return ctx, attrs, diags
 	}
 
-	attrs, diags := getSimpleAttrs(ctx, config.Module, r.GetResourceType(), r.GetAttributeName())
+	attrs, diags := getSimpleAttrs(config.Module, r.GetResourceType(), r.GetAttributeName(), ctx)
 
 	return ctx, attrs, diags
 }

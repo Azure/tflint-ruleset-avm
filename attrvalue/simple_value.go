@@ -29,7 +29,7 @@ func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T
 	}
 }
 
-// NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
+// NewSimpleNestedBlockRule returns a new rule with the given resource type, attribute name, and expected values.
 func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, "", tflint.ERROR),
@@ -58,26 +58,21 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 		if val.IsNull() || !val.IsKnown() {
 			return nil
 		}
-		found := false
 		for _, exp := range r.expectedValues {
 			ctyExp, err := gocty.ToCtyValue(exp, ctyType)
 			if err != nil {
 				return err
 			}
-			found = ctyExp.Equals(val).True()
-			if found {
-				break
+			if ctyExp.Equals(val).True() {
+				return nil
 			}
 		}
-		if !found {
-			goVal := new(T)
-			_ = gocty.FromCtyValue(val, goVal)
-			return runner.EmitIssue(
-				r,
-				fmt.Sprintf("%v is an invalid attribute value of `%s` - expecting (one of) %v", *goVal, r.attributeName, r.expectedValues),
-				attr.Range,
-			)
-		}
-		return nil
+		goVal := new(T)
+		_ = gocty.FromCtyValue(val, goVal)
+		return runner.EmitIssue(
+			r,
+			fmt.Sprintf("%v is an invalid attribute value of `%s` - expecting (one of) %v", *goVal, r.attributeName, r.expectedValues),
+			attr.Range,
+		)
 	})
 }
