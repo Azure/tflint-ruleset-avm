@@ -31,9 +31,9 @@ func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expect
 
 func (r *SetRule[T]) Name() string {
 	if r.nestedBlockType != nil {
-		return fmt.Sprintf("waf_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+		return fmt.Sprintf("set_value_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
 	}
-	return fmt.Sprintf("waf_%s.%s", r.resourceType, r.attributeName)
+	return fmt.Sprintf("set_value_%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *SetRule[T]) Check(runner tflint.Runner) error {
