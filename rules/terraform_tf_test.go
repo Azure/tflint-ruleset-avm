@@ -48,6 +48,15 @@ func TestTerraformTf(t *testing.T) {
 			expectedMessage: "must contain `terraform` block only",
 		},
 		{
+			desc: "TerraformDotTfFileContainsBlockOtherThanTerraformBlockShouldEmitError2",
+			files: map[string]string{
+				"terraform.tf": `terraform {}
+								 locals {}`,
+			},
+			expectIssue:     true,
+			expectedMessage: "must contain `terraform` block only",
+		},
+		{
 			desc: "TerraformDotTfFileContainsTerraformBlockOnly",
 			files: map[string]string{
 				"terraform.tf": `terraform {}`,

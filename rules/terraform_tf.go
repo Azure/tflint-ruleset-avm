@@ -50,17 +50,13 @@ func (t *TerraformDotTfRule) Check(r tflint.Runner) error {
 	}
 	terraformBlockFound := false
 	for _, b := range body.Blocks {
-		if b.Type == "terraform" {
-			terraformBlockFound = true
-		} else {
+		if b.Type != "terraform" {
 			return r.EmitIssue(t, "`terraform.tf` file must contain `terraform` block only", body.Range())
 		}
+		terraformBlockFound = true
 	}
 	if !terraformBlockFound {
-		err := r.EmitIssue(t, "`terraform.tf` file must contain `terraform` block only", body.Range())
-		if err != nil {
-			return err
-		}
+		return r.EmitIssue(t, "`terraform.tf` file must contain `terraform` block only", body.Range())
 	}
 	return nil
 }

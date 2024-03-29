@@ -68,8 +68,7 @@ func (b baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.
 			return fmt.Errorf("could not evaluate expression: %s", diags)
 		}
 
-		err := c(attr, val)
-		if err != nil {
+		if err := c(attr, val); err != nil {
 			return err
 		}
 	}

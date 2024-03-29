@@ -45,8 +45,7 @@ func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 			Runner: runner,
 		}
 		runners[r] = sr
-		err := r.Check(sr)
-		if err != nil {
+		if err := r.Check(sr); err != nil {
 			return err
 		}
 		if len(sr.issues) == 0 {
@@ -55,8 +54,7 @@ func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 	}
 	sr := runners[e.primaryRule]
 	for _, issue := range sr.issues {
-		err := runner.EmitIssue(e, issue.message, issue.issueRange)
-		if err != nil {
+		if err := runner.EmitIssue(e, issue.message, issue.issueRange); err != nil {
 			return err
 		}
 	}

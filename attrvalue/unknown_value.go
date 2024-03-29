@@ -22,7 +22,7 @@ func (r *UnknownValueRule) GetNestedBlockType() *string {
 	return r.nestedBlockType
 }
 
-// NewSimpleRule returns a new rule with the given resource type, and attribute name
+// NewUnknownValueRule returns a new rule with the given resource type, and attribute name
 func NewUnknownValueRule(resourceType, attributeName, link string) *UnknownValueRule {
 	return &UnknownValueRule{
 		baseValue: newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
@@ -50,13 +50,11 @@ func (r *UnknownValueRule) Name() string {
 func (r *UnknownValueRule) Check(runner tflint.Runner) error {
 	return r.checkAttributes(runner, cty.DynamicPseudoType, func(attr *hclext.Attribute, val cty.Value) error {
 		if val.IsKnown() {
-			if err := runner.EmitIssue(
+			return runner.EmitIssue(
 				r,
 				fmt.Sprintf("invalid attribute value of `%s` - expecting unknown", r.attributeName),
 				attr.Expr.Range(),
-			); err != nil {
-				return err
-			}
+			)
 		}
 		return nil
 	})
