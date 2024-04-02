@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/matt-FFFFFF/tfvarcheck/check"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
-	"github.com/zclconf/go-cty/cty"
-
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+	"github.com/zclconf/go-cty/cty"
 )
 
 // variableBodySchema is the schema for the variable block that we want to extract from the config.
@@ -188,6 +188,11 @@ func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Bl
 	return func() (bool, error) {
 		// Check if the default value is correct.
 		defaultVal, _ := defaultAttr.Expr.Value(nil)
+
+		// The `{}` for `defaultVal` would be evaluated as an empty object here no matter what type is set, so we have to compare string without element type info.
+		if isEmptyCollection(defaultVal) && isEmptyCollection(vcr.Default) && toString(defaultVal) == toString(vcr.Default) {
+			return true, nil
+		}
 		if !check.EqualCtyValue(defaultVal, vcr.Default) {
 			return true, r.EmitIssue(
 				vcr,
@@ -197,6 +202,14 @@ func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Bl
 		}
 		return true, nil
 	}
+}
+
+func isEmptyCollection(v cty.Value) bool {
+	return (v.Type().IsCollectionType() || v.Type().IsObjectType()) && v.LengthInt() == 0
+}
+
+func toString(v cty.Value) string {
+	return string(hclwrite.NewExpressionLiteral(v).BuildTokens(hclwrite.Tokens{}).Bytes())
 }
 
 // NewChecker is the constructor for the Checker type.

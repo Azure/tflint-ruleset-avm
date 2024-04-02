@@ -10,7 +10,7 @@ var TagsTypeString = `map(string)`
 var tagsType = StringToTypeConstraintWithDefaults(TagsTypeString)
 
 var Tags = AvmInterface{
-	VarCheck:      varcheck.NewVarCheck(tagsType, cty.NullVal(cty.DynamicPseudoType), true),
+	VarCheck:      varcheck.NewVarCheck(tagsType, cty.MapValEmpty(cty.String), false),
 	RuleName:      "tags",
 	VarTypeString: TagsTypeString,
 	RuleEnabled:   true,
