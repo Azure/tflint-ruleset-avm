@@ -105,8 +105,8 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		typeAttr, c := CheckWithReturnValue(NewChecker(), getAttr(vcr, r, b, "type"))
-		defaultAttr, c := CheckWithReturnValue(c, getAttr(vcr, r, b, "default"))
+		typeAttr, c := CheckWithReturnValue(NewChecker(), getAttr(vcr, r, b, "type", true))
+		defaultAttr, c := CheckWithReturnValue(c, getAttr(vcr, r, b, "default", vcr.Default.IsKnown()))
 		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
 			Check(checkNullableValue(vcr, r, b)); c.err != nil {
@@ -118,15 +118,22 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 	return nil
 }
 
-// getTypeAttr returns a function that will return the type attribute from a given hcl block.
+// getAttr returns a function that will return the attribute from a given hcl block.
 // It is designed to be used with the CheckWithReturnValue function.
-func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string) func() (*hclext.Attribute, bool, error) {
+func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string, shouldExist bool) func() (*hclext.Attribute, bool, error) {
 	return func() (*hclext.Attribute, bool, error) {
 		attr, exists := b.Body.Attributes[attrName]
-		if !exists {
+		if shouldExist != exists {
+			var msg string
+			switch shouldExist {
+			case true:
+				msg = "not declared"
+			case false:
+				msg = "should not be declared"
+			}
 			return attr, false, r.EmitIssue(
 				rule,
-				fmt.Sprintf("`%s` %s not declared", b.Labels[0], attrName),
+				fmt.Sprintf("`%s` %s %s", b.Labels[0], attrName, msg),
 				b.DefRange,
 			)
 		}
@@ -187,6 +194,16 @@ func checkVarType(vcr *InterfaceVarCheckRule, r tflint.Runner, typeAttr *hclext.
 func checkDefaultValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block, defaultAttr *hclext.Attribute) func() (bool, error) {
 	return func() (bool, error) {
 		// Check if the default value is correct.
+		if !vcr.Default.IsKnown() {
+			if defaultAttr != nil {
+				return true, r.EmitIssue(
+					vcr,
+					fmt.Sprintf("default value should not be set, see: %s", vcr.Link()),
+					defaultAttr.Range,
+				)
+			}
+			return true, nil
+		}
 		defaultVal, _ := defaultAttr.Expr.Value(nil)
 		if !check.EqualCtyValue(defaultVal, vcr.Default) {
 			return true, r.EmitIssue(
@@ -238,6 +255,18 @@ func CheckWithReturnValue[TR any](c Checker, check func() (TR, bool, error)) (re
 	}
 	tr, continueCheck, err := check()
 	return tr, Checker{
+		continueCheck: continueCheck,
+		err:           err,
+	}
+}
+
+func CheckBool(c Checker, check func() (bool, error)) (rc Checker) {
+	if c.err != nil || !c.continueCheck {
+		rc = c
+		return
+	}
+	continueCheck, err := check()
+	return Checker{
 		continueCheck: continueCheck,
 		err:           err,
 	}
