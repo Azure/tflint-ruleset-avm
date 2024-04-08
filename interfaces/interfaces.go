@@ -8,6 +8,7 @@ import (
 var Rules = []tflint.Rule{
 	NewVarCheckRuleFromAvmInterface(CustomerManagedKey),
 	NewVarCheckRuleFromAvmInterface(DiagnosticSettings),
+	NewVarCheckRuleFromAvmInterface(Location),
 	NewVarCheckRuleFromAvmInterface(Lock),
 	NewVarCheckRuleFromAvmInterface(ManagedIdentities),
 	NewVarCheckRuleFromAvmInterface(RoleAssignments),
