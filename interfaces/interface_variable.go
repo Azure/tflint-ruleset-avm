@@ -259,15 +259,3 @@ func CheckWithReturnValue[TR any](c Checker, check func() (TR, bool, error)) (re
 		err:           err,
 	}
 }
-
-func CheckBool(c Checker, check func() (bool, error)) (rc Checker) {
-	if c.err != nil || !c.continueCheck {
-		rc = c
-		return
-	}
-	continueCheck, err := check()
-	return Checker{
-		continueCheck: continueCheck,
-		err:           err,
-	}
-}
