@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
+	"github.com/Azure/tflint-ruleset-avm/outputs"
 
 	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
@@ -27,6 +28,7 @@ var Rules = func() []tflint.Rule {
 		},
 		waf.Rules,
 		interfaces.Rules,
+		outputs.Rules,
 	)
 }()
 
