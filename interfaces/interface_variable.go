@@ -105,8 +105,13 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		typeAttr, c := CheckWithReturnValue(NewChecker(), getAttr(vcr, r, b, "type", true))
-		defaultAttr, c := CheckWithReturnValue(c, getAttr(vcr, r, b, "default", vcr.Default.IsKnown()))
+		typeAttr, c := CheckWithReturnValue(NewChecker(), getAttr(vcr, r, b, "type"))
+		var defaultAttr *hclext.Attribute
+		if vcr.Default.IsKnown() {
+			defaultAttr, c = CheckWithReturnValue(c, getAttr(vcr, r, b, "default"))
+		} else {
+			c = c.Check(attributeNotExist(vcr, r, b, "default"))
+		}
 		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
 			Check(checkNullableValue(vcr, r, b)); c.err != nil {
@@ -118,22 +123,25 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 	return nil
 }
 
+func attributeNotExist(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block, attrName string) func() (bool, error) {
+	return func() (bool, error) {
+		_, exist := b.Body.Attributes[attrName]
+		if exist {
+			return false, r.EmitIssue(vcr, fmt.Sprintf("`%s` %s should not be declared", b.Labels[0], attrName), b.DefRange)
+		}
+		return true, nil
+	}
+}
+
 // getAttr returns a function that will return the attribute from a given hcl block.
 // It is designed to be used with the CheckWithReturnValue function.
-func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string, shouldExist bool) func() (*hclext.Attribute, bool, error) {
+func getAttr(rule tflint.Rule, r tflint.Runner, b *hclext.Block, attrName string) func() (*hclext.Attribute, bool, error) {
 	return func() (*hclext.Attribute, bool, error) {
 		attr, exists := b.Body.Attributes[attrName]
-		if shouldExist != exists {
-			var msg string
-			switch shouldExist {
-			case true:
-				msg = "not declared"
-			case false:
-				msg = "should not be declared"
-			}
+		if !exists {
 			return attr, false, r.EmitIssue(
 				rule,
-				fmt.Sprintf("`%s` %s %s", b.Labels[0], attrName, msg),
+				fmt.Sprintf("`%s` %s not declared", b.Labels[0], attrName),
 				b.DefRange,
 			)
 		}

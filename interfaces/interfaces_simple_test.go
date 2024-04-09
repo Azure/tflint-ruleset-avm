@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
+	"github.com/stretchr/testify/assert"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
