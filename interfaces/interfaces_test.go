@@ -20,7 +20,9 @@ func toTerraformVarType(i interfaces.AvmInterface) string {
 			SpacesBefore: 1,
 		},
 	})
-	varBody.SetAttributeValue("default", i.Default)
+	if i.Default.IsKnown() {
+		varBody.SetAttributeValue("default", i.Default)
+	}
 	if !i.Nullable {
 		varBody.SetAttributeValue("nullable", cty.False)
 	}

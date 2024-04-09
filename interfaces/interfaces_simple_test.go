@@ -2,12 +2,12 @@ package interfaces_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
+	"github.com/stretchr/testify/assert"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
@@ -30,6 +30,16 @@ var SimpleVar = interfaces.AvmInterface{
 	RuleSeverity:  tflint.ERROR,
 }
 
+// SimpleVar represents a simple variable type with no default value used for testing.
+var SimpleVarNoDefault = interfaces.AvmInterface{
+	VarCheck:      varcheck.NewVarCheck(simpleType, cty.UnknownVal(cty.DynamicPseudoType), false),
+	RuleName:      "simple",
+	VarTypeString: simpleVarTypeString,
+	RuleEnabled:   true,
+	RuleLink:      "https://simple",
+	RuleSeverity:  tflint.ERROR,
+}
+
 func TestIncorrectInterfaceTypeStringShouldPanic(t *testing.T) {
 	defer func() {
 		err := recover()
@@ -38,6 +48,76 @@ func TestIncorrectInterfaceTypeStringShouldPanic(t *testing.T) {
 	incorrectTypeString := `strin`
 	interfaces.StringToTypeConstraintWithDefaults(incorrectTypeString)
 	t.Fatal("incorrect type should panic")
+}
+
+func TestSimpleInterfaceNoDefault(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Content  string
+		JSON     bool
+		Expected helper.Issues
+	}{
+		{
+			Name:     "correct",
+			Content:  toTerraformVarType(SimpleVarNoDefault),
+			Expected: helper.Issues{},
+		},
+
+		{
+			Name: "incorrect - has default value",
+			Content: `
+variable "simple" {
+	type = object({
+		kind = string
+		name = optional(string, null)
+	})
+	default = {}
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVarNoDefault),
+					Message: "`simple` default should not be declared",
+				},
+			},
+		},
+		{
+			Name: "incorrect - is nullable",
+			Content: `
+variable "simple" {
+	type = object({
+		kind = string
+		name = optional(string, null)
+	})
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVarNoDefault),
+					Message: "nullable should be set to false",
+				},
+			},
+		},
+	}
+
+	rule := interfaces.NewVarCheckRuleFromAvmInterface(SimpleVarNoDefault)
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			filename := "variables.tf"
+			if tc.JSON {
+				filename += ".json"
+			}
+
+			runner := helper.TestRunner(t, map[string]string{filename: tc.Content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("Unexpected error occurred: %s", err)
+			}
+
+			helper.AssertIssuesWithoutRange(t, tc.Expected, runner.Issues)
+		})
+	}
 }
 
 func TestSimpleInterface(t *testing.T) {
