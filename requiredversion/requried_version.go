@@ -1,49 +1,20 @@
 package requiredversion
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/hcl/v2"
-	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+	"strings"
 )
 
-// variableBodySchema is the schema for the variable block that we want to extract from the config.
-var requiredVersionBodySchema = &hclext.BodySchema{
-	Blocks: []hclext.BlockSchema{
-		{
-			Type: "terraform",
-			Body: &hclext.BodySchema{
-				Attributes: []hclext.AttributeSchema{
-					{Name: "required_version"},
-				},
-				Blocks: []hclext.BlockSchema{
-					{
-						Type: "required_providers",
-						Body: &hclext.BodySchema{
-							Attributes: []hclext.AttributeSchema{
-								{Name: "azurerm"},
-							},
-						},
-					},
-				},
-			},
-		},
-	},
-}
-
-// Check interface compliance with the tflint.Rule.
 var _ tflint.Rule = new(RequiredVersionRule)
 
-// RequiredVersionRule is the struct that represents a rule that
-// check for the correct usage of an interface.
 type RequiredVersionRule struct {
 	tflint.DefaultRule
-	link     string
 	ruleName string
+	link     string
 }
 
-// NewRequiredVersionRule returns a new rule with the given variable.
 func NewRequiredVersionRule(ruleName, link string) *RequiredVersionRule {
 	return &RequiredVersionRule{
 		ruleName: ruleName,
@@ -51,58 +22,86 @@ func NewRequiredVersionRule(ruleName, link string) *RequiredVersionRule {
 	}
 }
 
-// Name returns the rule name.
-func (or *RequiredVersionRule) Name() string {
-	return or.ruleName
+func (t *RequiredVersionRule) Name() string {
+	return t.ruleName
 }
 
-// Link returns the link to the rule documentation.
-func (or *RequiredVersionRule) Link() string {
-	return or.link
+func (t *RequiredVersionRule) Link() string {
+	return t.link
 }
 
-// Enabled returns whether the rule is enabled.
-func (or *RequiredVersionRule) Enabled() bool {
+func (t *RequiredVersionRule) Enabled() bool {
 	return true
 }
 
-// Severity returns the severity of the rule.
-func (or *RequiredVersionRule) Severity() tflint.Severity {
+func (t *RequiredVersionRule) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-// Check checks whether the module satisfies the interface.
-// It will search for a variable with the same name as the interface.
-// It will check the type, default value and nullable attributes.
-func (vcr *RequiredVersionRule) Check(r tflint.Runner) error {
-	path, err := r.GetModulePath()
+func (t *RequiredVersionRule) Check(r tflint.Runner) error {
+	tFile, err := r.GetFile("terraform.tf")
 	if err != nil {
 		return err
 	}
-	if !path.IsRoot() {
-		// This rule does not evaluate child modules.
+
+	body, ok := tFile.Body.(*hclsyntax.Body)
+	if !ok {
 		return nil
 	}
 
-	// Define the schema that we want to pull out of the module content.
-	body, err := r.GetModuleContent(
-		requiredVersionBodySchema,
-		&tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone})
-	if err != nil {
-		return err
-	}
+	for _, terraformBlock := range body.Blocks {
+		if terraformBlock.Type == "terraform" {
 
-	// Iterate over the outputs and check for the name we are interested in.
-	for _, b := range body.Blocks {
-		if b.Labels[0] == "abc" {
-			return nil
+			if requiredVersion, exists := terraformBlock.Body.Attributes["required_version"]; exists {
+				err := r.EvaluateExpr(requiredVersion.Expr, func(requiredVersionVal string) error {
+					if !strings.Contains(requiredVersionVal, "~>") && !(strings.Contains(requiredVersionVal, ">=") && strings.Contains(requiredVersionVal, ",") && strings.Contains(requiredVersionVal, "<")) {
+						return r.EmitIssue(
+							t,
+							"The `required_version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
+							requiredVersion.NameRange,
+						)
+					}
+
+					comparePos := func(pos1 hcl.Pos, pos2 hcl.Pos) bool {
+						if pos1.Line != pos2.Line {
+							return pos1.Line < pos2.Line
+						}
+						return pos1.Column < pos2.Column
+					}
+
+					for _, attr := range terraformBlock.Body.Attributes {
+						if attr.Name != "required_version" && comparePos(attr.Range().Start, requiredVersion.Range().Start) {
+							return r.EmitIssue(
+								t,
+								"The `required_version` field should be declared at the beginning of `terraform` block",
+								requiredVersion.NameRange,
+							)
+						}
+					}
+
+					for _, block := range terraformBlock.Body.Blocks {
+						if comparePos(block.Range().Start, requiredVersion.Range().Start) {
+							return r.EmitIssue(
+								t,
+								"The `required_version` field should be declared at the beginning of `terraform` block",
+								requiredVersion.NameRange,
+							)
+						}
+					}
+					return nil
+				}, &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType})
+				if err != nil {
+					return err
+				}
+			} else {
+				return r.EmitIssue(
+					t,
+					"The `required_version` field should be declared in the `terraform` block",
+					terraformBlock.DefRange(),
+				)
+			}
 		}
 	}
-	return r.EmitIssue(
-		vcr,
-		fmt.Sprintf("module owners MUST output the `%s` in their modules", "aaa"),
-		hcl.Range{
-			Filename: "outputs.tf",
-		},
-	)
+
+	return nil
 }
