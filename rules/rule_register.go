@@ -5,7 +5,7 @@ import (
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/outputs"
-
+	"github.com/Azure/tflint-ruleset-avm/requiredversion"
 	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
@@ -19,7 +19,6 @@ var Rules = func() []tflint.Rule {
 			Wrap(basic.NewTerraformModuleProviderDeclarationRule()),
 			Wrap(basic.NewTerraformOutputSeparateRule()),
 			Wrap(basic.NewTerraformRequiredProvidersDeclarationRule()),
-			Wrap(basic.NewTerraformRequiredVersionDeclarationRule()),
 			Wrap(basic.NewTerraformSensitiveVariableNoDefaultRule()),
 			Wrap(basic.NewTerraformVariableNullableFalseRule()),
 			Wrap(basic.NewTerraformVariableSeparateRule()),
@@ -29,6 +28,7 @@ var Rules = func() []tflint.Rule {
 		waf.Rules,
 		interfaces.Rules,
 		outputs.Rules,
+		requiredversion.Rules,
 	)
 }()
 
