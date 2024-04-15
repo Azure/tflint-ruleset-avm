@@ -1,9 +1,9 @@
-package requiredversion_test
+package rules_test
 
 import (
+	"github.com/Azure/tflint-ruleset-avm/rules"
 	"testing"
 
-	"github.com/Azure/tflint-ruleset-avm/requiredversion"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
@@ -59,7 +59,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -82,7 +82,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -105,7 +105,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -128,7 +128,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -150,7 +150,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` field should be declared in the `terraform` block",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -173,7 +173,7 @@ func TestRequiredVersion(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    requiredversion.NewRequiredVersionRule("required_version", ""),
+					Rule:    rules.NewRequiredVersionRule(),
 					Message: "The `required_version` field should be declared at the beginning of `terraform` block",
 					Range: hcl.Range{
 						Filename: "terraform.tf",
@@ -187,7 +187,7 @@ func TestRequiredVersion(t *testing.T) {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
-			rule := requiredversion.NewRequiredVersionRule("required_version", "")
+			rule := rules.NewRequiredVersionRule()
 
 			runner := helper.TestRunner(t, tc.files)
 
