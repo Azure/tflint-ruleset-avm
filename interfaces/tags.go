@@ -5,6 +5,9 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+// TagsTypeString is the type constraint string for tags.
+// When updating the type constraint string, make sure to also update the two
+// private endpoint interfaces (the one with subresource and the one without).
 var TagsTypeString = `map(string)`
 
 var tagsType = StringToTypeConstraintWithDefaults(TagsTypeString)
