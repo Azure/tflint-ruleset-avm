@@ -203,16 +203,7 @@ required_providers {
 			files: map[string]string{
 				"terraform.tf": `terraform {
   required_version = "~> 0.12.29"
-  required_providers {
-    azurerm = {
-      version = "~> 3.0.2"
-      source  = "hashicorp/azurerm"
-    }
-    aws = {
-      source = "hashicorp/aws"
-      version = ">= 2.7.0"
-    }
-  }
+  required_providers {}
 }`,
 			},
 			issues: helper.Issues{},
