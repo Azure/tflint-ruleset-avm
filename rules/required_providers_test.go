@@ -21,7 +21,7 @@ func TestRequiredProviders(t *testing.T) {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = ">= 2.7.0"
+      version = ">= 2.7.0, < 3.98.0"
     }
 	azurerm = {
       source  = "hashicorp/azurerm"
@@ -58,7 +58,7 @@ func TestRequiredProviders(t *testing.T) {
     }
     aws = {
       source = "hashicorp/aws"
-      version = ">= 2.7.0"
+      version = ">= 2.7.0, < 3.98.0"
     }
   }
 }`,
@@ -70,7 +70,7 @@ func TestRequiredProviders(t *testing.T) {
 required_providers {
   aws = {
     source  = "hashicorp/aws"
-    version = ">= 2.7.0"
+    version = ">= 2.7.0, < 3.98.0"
   }
   azurerm = {
     source  = "hashicorp/azurerm"
@@ -87,7 +87,7 @@ required_providers {
   required_version = "~> 0.12.29"
   required_providers {
     aws = {
-      version = ">= 2.7.0"
+      version = ">= 2.7.0, < 3.98.0"
       source = "hashicorp/aws"
     }
     azurerm = {
@@ -119,7 +119,7 @@ required_providers {
 					Message: "Parameters of provider `aws` are expected to be sorted as follows:" + `
 aws = {
   source  = "hashicorp/aws"
-  version = ">= 2.7.0"
+  version = ">= 2.7.0, < 3.98.0"
 }`,
 				},
 				{
@@ -176,7 +176,7 @@ e = {
     }
     aws = {
       source = "hashicorp/aws"
-      version = ">= 2.7.0"
+      version = ">= 2.7.0, < 3.98.0"
     }
   }
 }`,
@@ -188,7 +188,7 @@ e = {
 required_providers {
   aws = {
     source  = "hashicorp/aws"
-    version = ">= 2.7.0"
+    version = ">= 2.7.0, < 3.98.0"
   }
   azurerm = {
     source  = "hashicorp/azurerm"
