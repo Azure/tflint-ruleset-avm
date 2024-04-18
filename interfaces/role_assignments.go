@@ -5,6 +5,9 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+// RoleAssignmentsTypeString is the type constraint string for role assignments.
+// When updating the type constraint string, make sure to also update the two
+// private endpoint interfaces (the one with subresource and the one without).
 var RoleAssignmentsTypeString = `map(object({
   role_definition_id_or_name             = string
   principal_id                           = string
@@ -13,6 +16,7 @@ var RoleAssignmentsTypeString = `map(object({
   condition                              = optional(string, null)
   condition_version                      = optional(string, null)
   delegated_managed_identity_resource_id = optional(string, null)
+	principal_type         							   = optional(string, null)
 }))`
 
 var roleAssignmentsType = StringToTypeConstraintWithDefaults(RoleAssignmentsTypeString)
