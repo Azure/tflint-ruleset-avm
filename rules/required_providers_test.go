@@ -221,6 +221,66 @@ required_providers {
 			},
 			issues: helper.Issues{},
 		},
+		{
+			desc: "version = 'xx.xx.xx', not ok",
+			files: map[string]string{
+				"terraform.tf": `terraform {
+  required_version = "~> 0.12.29"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "3.98.0"
+    }
+  }
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewRequiredProvidersRule(),
+					Message: "The `version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
+				},
+			},
+		},
+		{
+			desc: "version = '>= xx.xx.xx', not ok",
+			files: map[string]string{
+				"terraform.tf": `terraform {
+  required_version = "~> 0.12.29"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.98.0"
+    }
+  }
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewRequiredProvidersRule(),
+					Message: "The `version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
+				},
+			},
+		},
+		{
+			desc: "version = '< xx.xx.xx', not ok",
+			files: map[string]string{
+				"terraform.tf": `terraform {
+  required_version = "~> 0.12.29"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "< 3.98.0"
+    }
+  }
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewRequiredProvidersRule(),
+					Message: "The `version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
