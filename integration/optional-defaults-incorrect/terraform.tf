@@ -6,8 +6,8 @@ terraform {
       version = ">= 3.97.0, < 3.99.0"
     }
   }
-  module "other-module" {
-    source  = "Azure/terraform-azurerm-avm-res-keyvault-vault"
-    version = "0.5.3"
-  }
+}
+module "other-module" {
+  source  = "Azure/terraform-azurerm-avm-res-keyvault-vault"
+  version = "0.5.3"
 }
