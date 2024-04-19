@@ -251,6 +251,12 @@ func (t *RequiredProvidersRule) checkRequiredProvidersVersion(r tflint.Runner, p
 					provider.Range(),
 				))
 			}
+		} else {
+			errList = multierror.Append(errList, r.EmitIssue(
+				t,
+				"The provider only supports string type and block type",
+				provider.Range(),
+			))
 		}
 	}
 
