@@ -5,7 +5,6 @@ import (
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/outputs"
-
 	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
@@ -25,6 +24,7 @@ var Rules = func() []tflint.Rule {
 			Wrap(basic.NewTerraformVariableSeparateRule()),
 			Wrap(azurerm.NewAzurermResourceTagRule()),
 			NewTerraformDotTfRule(),
+			NewModulesRule(),
 		},
 		waf.Rules,
 		interfaces.Rules,
