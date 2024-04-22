@@ -24,7 +24,29 @@ func TestModules(t *testing.T) {
 			issues: helper.Issues{},
 		},
 		{
-			desc: "git reference, ok",
+			desc: "no version, ok",
+			files: map[string]string{
+				"terraform.tf": `module "other-module" {
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+}`,
+			},
+			issues: helper.Issues{},
+		},
+		{
+			desc: "no source, not ok",
+			files: map[string]string{
+				"terraform.tf": `module "other-module" {
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewModulesRule(),
+					Message: "The `source` field should be declared in the `module` block",
+				},
+			},
+		},
+		{
+			desc: "git reference, not ok",
 			files: map[string]string{
 				"terraform.tf": `module "other-module" {
   source  = "git::https://Azure/terraform-azurerm-avm-res-keyvault-vault.git"
@@ -39,7 +61,7 @@ func TestModules(t *testing.T) {
 			},
 		},
 		{
-			desc: "github reference, ok",
+			desc: "github reference, not ok",
 			files: map[string]string{
 				"terraform.tf": `module "other-module" {
   source  = "github.com/Azure/terraform-azurerm-avm-res-keyvault-vault"

@@ -66,7 +66,7 @@ func (t *ModulesRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error 
 		return r.EmitIssue(
 			t,
 			"The `source` field should be declared in the `module` block",
-			source.NameRange,
+			block.Range(),
 		)
 	}
 
