@@ -17,11 +17,41 @@ func TestModules(t *testing.T) {
 			desc: "source exists, ok",
 			files: map[string]string{
 				"terraform.tf": `module "other-module" {
-  source  = "Azure/terraform-azurerm-avm-res-keyvault-vault"
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.5.3"
 }`,
 			},
 			issues: helper.Issues{},
+		},
+		{
+			desc: "git reference, ok",
+			files: map[string]string{
+				"terraform.tf": `module "other-module" {
+  source  = "git::https://Azure/terraform-azurerm-avm-res-keyvault-vault.git"
+  version = "0.5.3"
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewModulesRule(),
+					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
+				},
+			},
+		},
+		{
+			desc: "github reference, ok",
+			files: map[string]string{
+				"terraform.tf": `module "other-module" {
+  source  = "github.com/Azure/terraform-azurerm-avm-res-keyvault-vault"
+  version = "0.5.3"
+}`,
+			},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewModulesRule(),
+					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
+				},
+			},
 		},
 	}
 

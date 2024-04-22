@@ -61,29 +61,28 @@ func (t *ModulesRule) Check(r tflint.Runner) error {
 }
 
 func (t *ModulesRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error {
-	var errList error
 	source, exists := block.Body.Attributes["source"]
 	if !exists {
-		errList = multierror.Append(errList, r.EmitIssue(
+		return r.EmitIssue(
 			t,
 			"The `source` field should be declared in the `module` block",
-			block.DefRange(),
-		))
-
-		return errList
+			source.NameRange,
+		)
 	}
 
-	errList = multierror.Append(r.EvaluateExpr(source.Expr, t.isAVMModule(r, source.NameRange), &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType}))
+	if err := r.EvaluateExpr(source.Expr, t.isAVMModule(r, source.NameRange), &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType}); err != nil {
+		return err
+	}
 
-	return errList
+	return nil
 }
 
 func (t *ModulesRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
 	return func(source string) error {
-		if !strings.Contains(source, "terraform-azurerm-") {
+		if !(strings.HasPrefix(source, "Azure/") && strings.HasSuffix(source, "/azurerm")) {
 			return r.EmitIssue(
 				t,
-				"The `source` property constraint should contain `terraform-azurerm-` to only involve AVM Module",
+				"The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
 				issueRange,
 			)
 		}
