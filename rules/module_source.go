@@ -5,9 +5,25 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
+
+var moduleSourceBodySchema = &hclext.BodySchema{
+	Blocks: []hclext.BlockSchema{
+		{
+			Type:       "module",
+			LabelNames: []string{"name"},
+			Body: &hclext.BodySchema{
+				Attributes: []hclext.AttributeSchema{
+					{
+						Name: "source",
+					},
+				},
+			},
+		},
+	},
+}
 
 var _ tflint.Rule = new(ModuleSourceRule)
 
@@ -36,14 +52,19 @@ func (t *ModuleSourceRule) Severity() tflint.Severity {
 }
 
 func (t *ModuleSourceRule) Check(r tflint.Runner) error {
-	tFile, err := r.GetFile("terraform.tf")
+	path, err := r.GetModulePath()
 	if err != nil {
 		return err
 	}
-
-	body, ok := tFile.Body.(*hclsyntax.Body)
-	if !ok {
+	if !path.IsRoot() {
 		return nil
+	}
+
+	body, err := r.GetModuleContent(
+		moduleSourceBodySchema,
+		&tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone})
+	if err != nil {
+		return err
 	}
 
 	var errList error
@@ -60,13 +81,13 @@ func (t *ModuleSourceRule) Check(r tflint.Runner) error {
 	return errList
 }
 
-func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error {
+func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclext.Block) error {
 	source, exists := block.Body.Attributes["source"]
 	if !exists {
 		return r.EmitIssue(
 			t,
 			"The `source` field should be declared in the `module` block",
-			block.Range(),
+			block.DefRange,
 		)
 	}
 
