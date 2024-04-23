@@ -33,6 +33,15 @@ func TestModuleSource(t *testing.T) {
 			issues: helper.Issues{},
 		},
 		{
+			desc: "source with local path, ok",
+			files: map[string]string{
+				"terraform.tf": `module "other-module" {
+  source  = "../.."
+}`,
+			},
+			issues: helper.Issues{},
+		},
+		{
 			desc: "no source, not ok",
 			files: map[string]string{
 				"terraform.tf": `module "other-module" {
@@ -56,7 +65,7 @@ func TestModuleSource(t *testing.T) {
 			issues: helper.Issues{
 				{
 					Rule:    rules.NewModuleSourceRule(),
-					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
+					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` or start with `..` to only involve AVM Module",
 				},
 			},
 		},
@@ -71,7 +80,7 @@ func TestModuleSource(t *testing.T) {
 			issues: helper.Issues{
 				{
 					Rule:    rules.NewModuleSourceRule(),
-					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
+					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` or start with `..` to only involve AVM Module",
 				},
 			},
 		},

@@ -79,10 +79,10 @@ func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) e
 
 func (t *ModuleSourceRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
 	return func(source string) error {
-		if !(strings.HasPrefix(source, "Azure/") && strings.HasSuffix(source, "/azurerm")) {
+		if !(strings.HasPrefix(source, "Azure/") && strings.HasSuffix(source, "/azurerm")) && !strings.HasPrefix(source, "..") {
 			return r.EmitIssue(
 				t,
-				"The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
+				"The `source` property constraint should start with `Azure/` and end with `/azurerm` or start with `..` to only involve AVM Module",
 				issueRange,
 			)
 		}
