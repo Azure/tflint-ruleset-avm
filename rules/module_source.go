@@ -9,33 +9,33 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-var _ tflint.Rule = new(ModulesRule)
+var _ tflint.Rule = new(ModuleSourceRule)
 
-type ModulesRule struct {
+type ModuleSourceRule struct {
 	tflint.DefaultRule
 }
 
-func NewModulesRule() *ModulesRule {
-	return &ModulesRule{}
+func NewModuleSourceRule() *ModuleSourceRule {
+	return &ModuleSourceRule{}
 }
 
-func (t *ModulesRule) Name() string {
-	return "required_providers_tffr1"
+func (t *ModuleSourceRule) Name() string {
+	return "required_module_source_tffr1"
 }
 
-func (t *ModulesRule) Link() string {
+func (t *ModuleSourceRule) Link() string {
 	return "https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr1---category-composition---cross-referencing-modules"
 }
 
-func (t *ModulesRule) Enabled() bool {
+func (t *ModuleSourceRule) Enabled() bool {
 	return true
 }
 
-func (t *ModulesRule) Severity() tflint.Severity {
+func (t *ModuleSourceRule) Severity() tflint.Severity {
 	return tflint.ERROR
 }
 
-func (t *ModulesRule) Check(r tflint.Runner) error {
+func (t *ModuleSourceRule) Check(r tflint.Runner) error {
 	tFile, err := r.GetFile("terraform.tf")
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (t *ModulesRule) Check(r tflint.Runner) error {
 	return errList
 }
 
-func (t *ModulesRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error {
+func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error {
 	source, exists := block.Body.Attributes["source"]
 	if !exists {
 		return r.EmitIssue(
@@ -77,7 +77,7 @@ func (t *ModulesRule) checkBlock(r tflint.Runner, block *hclsyntax.Block) error 
 	return nil
 }
 
-func (t *ModulesRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
+func (t *ModuleSourceRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
 	return func(source string) error {
 		if !(strings.HasPrefix(source, "Azure/") && strings.HasSuffix(source, "/azurerm")) {
 			return r.EmitIssue(
