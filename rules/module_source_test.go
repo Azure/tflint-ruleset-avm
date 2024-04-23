@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
-func TestModules(t *testing.T) {
+func TestModuleSource(t *testing.T) {
 	cases := []struct {
 		desc   string
 		files  map[string]string
@@ -40,7 +40,7 @@ func TestModules(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    rules.NewModulesRule(),
+					Rule:    rules.NewModuleSourceRule(),
 					Message: "The `source` field should be declared in the `module` block",
 				},
 			},
@@ -55,7 +55,7 @@ func TestModules(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    rules.NewModulesRule(),
+					Rule:    rules.NewModuleSourceRule(),
 					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
 				},
 			},
@@ -70,7 +70,7 @@ func TestModules(t *testing.T) {
 			},
 			issues: helper.Issues{
 				{
-					Rule:    rules.NewModulesRule(),
+					Rule:    rules.NewModuleSourceRule(),
 					Message: "The `source` property constraint should start with `Azure/` and end with `/azurerm` to only involve AVM Module",
 				},
 			},
@@ -81,7 +81,7 @@ func TestModules(t *testing.T) {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
-			rule := rules.NewModulesRule()
+			rule := rules.NewModuleSourceRule()
 
 			runner := helper.TestRunner(t, tc.files)
 
