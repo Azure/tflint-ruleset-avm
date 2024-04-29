@@ -1,10 +1,8 @@
 package rules
 
 import (
-	"strings"
-
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
@@ -12,12 +10,12 @@ import (
 var nullComparisonToggleBodySchema = &hclext.BodySchema{
 	Blocks: []hclext.BlockSchema{
 		{
-			Type:       "module",
-			LabelNames: []string{"name"},
+			Type:       "resource",
+			LabelNames: []string{"type", "name"},
 			Body: &hclext.BodySchema{
 				Attributes: []hclext.AttributeSchema{
 					{
-						Name: "source",
+						Name: "count",
 					},
 				},
 			},
@@ -61,7 +59,7 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 	}
 
 	body, err := r.GetModuleContent(
-		moduleSourceBodySchema,
+		nullComparisonToggleBodySchema,
 		&tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone})
 	if err != nil {
 		return err
@@ -69,7 +67,7 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 
 	var errList error
 	for _, block := range body.Blocks {
-		if block.Type != "module" {
+		if block.Type != "resource" {
 			continue
 		}
 
@@ -82,32 +80,14 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 }
 
 func (t *NullComparisonToggleRule) checkBlock(r tflint.Runner, block *hclext.Block) error {
-	source, exists := block.Body.Attributes["source"]
-	if !exists {
-		return r.EmitIssue(
-			t,
-			"The `source` field should be declared in the `module` block",
-			block.DefRange,
-		)
-	}
+	count, exists := block.Body.Attributes["count"]
 
-	if err := r.EvaluateExpr(source.Expr, t.isAVMModule(r, source.NameRange), &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType}); err != nil {
-		return err
+	if exists {
+		conditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr)
+		if ok {
+			//todo
+		}
 	}
 
 	return nil
-}
-
-func (t *NullComparisonToggleRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
-	return func(source string) error {
-		if !(strings.HasPrefix(source, "Azure/") && strings.Contains(source, "avm-")) {
-			return r.EmitIssue(
-				t,
-				"The `source` property constraint should start with `Azure/` and contain `avm-` to only involve AVM Module",
-				issueRange,
-			)
-		}
-
-		return nil
-	}
 }

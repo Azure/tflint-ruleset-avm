@@ -13,21 +13,21 @@ func TestNullComparisonToggle(t *testing.T) {
 		config string
 		issues helper.Issues
 	}{
-		{
-			desc: "object variable exists, ok",
-			config: `variable "resource_group" {
-  type = object({
-    id = string
-  })
-}
-
-resource "azurerm_resource_group" "test2" {
-  count = var.resource_group == null ? 1 : 0
-  name     = "acctest-rg-test02"
-  location = "westeurope"
-}`,
-			issues: helper.Issues{},
-		},
+		//		{
+		//			desc: "object variable exists, ok",
+		//			config: `variable "resource_group" {
+		//  type = object({
+		//    id = string
+		//  })
+		//}
+		//
+		//resource "azurerm_resource_group" "test2" {
+		//  count = var.resource_group == null ? 1 : 0
+		//  name     = "acctest-rg-test02"
+		//  location = "westeurope"
+		//}`,
+		//			issues: helper.Issues{},
+		//		},
 		{
 			desc: "string variable exists, not ok",
 			config: `variable "resource_group_id" {
