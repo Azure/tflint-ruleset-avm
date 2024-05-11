@@ -104,18 +104,14 @@ func (t *NullComparisonToggleRule) checkBlock(r tflint.Runner, block *hclext.Blo
 
 func (t *NullComparisonToggleRule) checkDynamicObject(r tflint.Runner, dynamicObj hcl.Traversal, rangeInfo hcl.Range) error {
 	for _, dynamicVal := range dynamicObj {
-		if v, ok := dynamicVal.(hcl.TraverseRoot); ok {
-			if strings.HasSuffix(v.Name, "local") {
-				break
-			}
-		} else if v, ok := dynamicVal.(hcl.TraverseAttr); ok {
-			if strings.HasSuffix(strings.ToLower(v.Name), "_id") {
-				return r.EmitIssue(
-					t,
-					"The variable should be defined as object type for the resource id",
-					rangeInfo,
-				)
-			}
+		if v, ok := dynamicVal.(hcl.TraverseRoot); ok && strings.HasSuffix(v.Name, "local") {
+			break
+		} else if v, ok := dynamicVal.(hcl.TraverseAttr); ok && strings.HasSuffix(strings.ToLower(v.Name), "_id") {
+			return r.EmitIssue(
+				t,
+				"The variable should be defined as object type for the resource id",
+				rangeInfo,
+			)
 		}
 	}
 
