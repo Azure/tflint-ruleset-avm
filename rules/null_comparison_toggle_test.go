@@ -17,7 +17,7 @@ func TestNullComparisonToggle(t *testing.T) {
 			desc: "object variable exists, ok",
 			config: `variable "resource_group" {
 		type = object({
-		  id = string
+		id = string
 		})
 		}
 		
@@ -31,14 +31,14 @@ func TestNullComparisonToggle(t *testing.T) {
 		{
 			desc: "string variable exists, not ok",
 			config: `variable "resource_group_id" {
-  type = string
-}
-
-resource "azurerm_resource_group" "test2" {
-  count = var.resource_group_id == null ? 1 : 0
-  name     = "acctest-rg-test02"
-  location = "westeurope"
-}`,
+		type = string
+		}
+		
+		resource "azurerm_resource_group" "test2" {
+		count = var.resource_group_id == null ? 1 : 0
+		name     = "acctest-rg-test02"
+		location = "westeurope"
+		}`,
 			issues: helper.Issues{
 				{
 					Rule:    rules.NewNullComparisonToggleRule(),
@@ -49,19 +49,41 @@ resource "azurerm_resource_group" "test2" {
 		{
 			desc: "string local exists, ok",
 			config: `variable "resource_group_id" {
+				 type = string
+				}
+		
+				locals {
+				 resource_group_id = var.resource_group_id
+				}
+		
+				resource "azurerm_resource_group" "test2" {
+				 count = local.resource_group_id == null ? 1 : 0
+				 name     = "acctest-rg-test02"
+				 location = "westeurope"
+				}`,
+			issues: helper.Issues{},
+		},
+		{
+			desc: "string variable and another condition exists, not ok",
+			config: `variable "resource_group_id" {
 		 type = string
 		}
-		
-		locals {
-		 resource_group_id = var.resource_group_id
+
+        variable "resource_group_enabled" {
+		 type = bool
 		}
 		
 		resource "azurerm_resource_group" "test2" {
-		 count = local.resource_group_id == null ? 1 : 0
+		 count = var.resource_group_enabled && (var.resource_group_id != null) ? 1 : 0
 		 name     = "acctest-rg-test02"
 		 location = "westeurope"
 		}`,
-			issues: helper.Issues{},
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewNullComparisonToggleRule(),
+					Message: "The variable should be defined as object type for the resource id",
+				},
+			},
 		},
 	}
 

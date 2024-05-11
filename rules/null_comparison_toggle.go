@@ -74,8 +74,7 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		subErr := t.checkBlock(r, block)
-		if subErr != nil {
+		if subErr := t.checkBlock(r, block); subErr != nil {
 			errList = multierror.Append(errList, subErr)
 		}
 	}
@@ -84,26 +83,38 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 }
 
 func (t *NullComparisonToggleRule) checkBlock(r tflint.Runner, block *hclext.Block) error {
-	if count, exists := block.Body.Attributes["count"]; exists {
-		if countConditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr); ok {
-			for _, dynamicObj := range countConditionalExpr.Variables() {
-				for _, dynamicVal := range dynamicObj {
-					if v, ok := dynamicVal.(hcl.TraverseRoot); ok {
-						if strings.HasSuffix(v.Name, "local") {
-							break
-						}
-					}
+	count, exists := block.Body.Attributes["count"]
+	if !exists {
+		return nil
+	}
 
-					if v, ok := dynamicVal.(hcl.TraverseAttr); ok {
-						if strings.HasSuffix(strings.ToLower(v.Name), "_id") {
-							return r.EmitIssue(
-								t,
-								"The variable should be defined as object type for the resource id",
-								count.Range,
-							)
-						}
-					}
-				}
+	countConditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr)
+	if !ok {
+		return nil
+	}
+
+	for _, dynamicObj := range countConditionalExpr.Variables() {
+		if err := t.checkDynamicObject(r, dynamicObj, count.Range); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *NullComparisonToggleRule) checkDynamicObject(r tflint.Runner, dynamicObj hcl.Traversal, rangeInfo hcl.Range) error {
+	for _, dynamicVal := range dynamicObj {
+		if v, ok := dynamicVal.(hcl.TraverseRoot); ok {
+			if strings.HasSuffix(v.Name, "local") {
+				break
+			}
+		} else if v, ok := dynamicVal.(hcl.TraverseAttr); ok {
+			if strings.HasSuffix(strings.ToLower(v.Name), "_id") {
+				return r.EmitIssue(
+					t,
+					"The variable should be defined as object type for the resource id",
+					rangeInfo,
+				)
 			}
 		}
 	}
