@@ -1,7 +1,10 @@
 package rules
 
 import (
+	"strings"
+
 	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -71,7 +74,8 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		if subErr := t.checkBlock(r, block); subErr != nil {
+		subErr := t.checkBlock(r, block)
+		if subErr != nil {
 			errList = multierror.Append(errList, subErr)
 		}
 	}
@@ -80,12 +84,27 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 }
 
 func (t *NullComparisonToggleRule) checkBlock(r tflint.Runner, block *hclext.Block) error {
-	count, exists := block.Body.Attributes["count"]
+	if count, exists := block.Body.Attributes["count"]; exists {
+		if countConditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr); ok {
+			for _, dynamicObj := range countConditionalExpr.Variables() {
+				for _, dynamicVal := range dynamicObj {
+					if v, ok := dynamicVal.(hcl.TraverseRoot); ok {
+						if strings.HasSuffix(v.Name, "local") {
+							break
+						}
+					}
 
-	if exists {
-		conditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr)
-		if ok {
-			//todo
+					if v, ok := dynamicVal.(hcl.TraverseAttr); ok {
+						if strings.HasSuffix(strings.ToLower(v.Name), "_id") {
+							return r.EmitIssue(
+								t,
+								"The variable should be defined as object type for the resource id",
+								count.Range,
+							)
+						}
+					}
+				}
+			}
 		}
 	}
 

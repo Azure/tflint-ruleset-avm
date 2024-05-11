@@ -13,21 +13,21 @@ func TestNullComparisonToggle(t *testing.T) {
 		config string
 		issues helper.Issues
 	}{
-		//		{
-		//			desc: "object variable exists, ok",
-		//			config: `variable "resource_group" {
-		//  type = object({
-		//    id = string
-		//  })
-		//}
-		//
-		//resource "azurerm_resource_group" "test2" {
-		//  count = var.resource_group == null ? 1 : 0
-		//  name     = "acctest-rg-test02"
-		//  location = "westeurope"
-		//}`,
-		//			issues: helper.Issues{},
-		//		},
+		{
+			desc: "object variable exists, ok",
+			config: `variable "resource_group" {
+		type = object({
+		  id = string
+		})
+		}
+		
+		resource "azurerm_resource_group" "test2" {
+		count = var.resource_group == null ? 1 : 0
+		name     = "acctest-rg-test02"
+		location = "westeurope"
+		}`,
+			issues: helper.Issues{},
+		},
 		{
 			desc: "string variable exists, not ok",
 			config: `variable "resource_group_id" {
@@ -39,6 +39,28 @@ resource "azurerm_resource_group" "test2" {
   name     = "acctest-rg-test02"
   location = "westeurope"
 }`,
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewNullComparisonToggleRule(),
+					Message: "The variable should be defined as object type for the resource id",
+				},
+			},
+		},
+		{
+			desc: "string local exists, ok",
+			config: `variable "resource_group_id" {
+		 type = string
+		}
+		
+		locals {
+		 resource_group_id = var.resource_group_id
+		}
+		
+		resource "azurerm_resource_group" "test2" {
+		 count = local.resource_group_id == null ? 1 : 0
+		 name     = "acctest-rg-test02"
+		 location = "westeurope"
+		}`,
 			issues: helper.Issues{},
 		},
 	}
