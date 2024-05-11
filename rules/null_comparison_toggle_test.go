@@ -64,7 +64,7 @@ func TestNullComparisonToggle(t *testing.T) {
 			issues: helper.Issues{},
 		},
 		{
-			desc: "string variable and another condition exists, not ok",
+			desc: "string variable and another condition exist, not ok",
 			config: `variable "resource_group_id" {
 		 type = string
 		}
@@ -74,7 +74,43 @@ func TestNullComparisonToggle(t *testing.T) {
 		}
 		
 		resource "azurerm_resource_group" "test2" {
-		 count = var.resource_group_enabled && (var.resource_group_id != null) ? 1 : 0
+		 count = var.resource_group_enabled && (var.resource_group_id != null) ? 0 : 1
+		 name     = "acctest-rg-test02"
+		 location = "westeurope"
+		}`,
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewNullComparisonToggleRule(),
+					Message: "The variable should be defined as object type for the resource id",
+				},
+			},
+		},
+		{
+			desc: "string variable with `!=` exists, not ok",
+			config: `variable "resource_group_id" {
+		 type = string
+		}
+		
+		resource "azurerm_resource_group" "test2" {
+		 count = var.resource_group_id != null ? 0 : 1
+		 name     = "acctest-rg-test02"
+		 location = "westeurope"
+		}`,
+			issues: helper.Issues{
+				{
+					Rule:    rules.NewNullComparisonToggleRule(),
+					Message: "The variable should be defined as object type for the resource id",
+				},
+			},
+		},
+		{
+			desc: "string variable exists and the expression starts with null, not ok",
+			config: `variable "resource_group_id" {
+		 type = string
+		}
+		
+		resource "azurerm_resource_group" "test2" {
+		 count = null == var.resource_group_id ? 1 : 0
 		 name     = "acctest-rg-test02"
 		 location = "westeurope"
 		}`,
