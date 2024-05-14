@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -136,24 +135,22 @@ func (t *NullComparisonToggleRule) checkCountBlock(r tflint.Runner, blocks hclex
 
 func (t *NullComparisonToggleRule) checkVariableBlock(r tflint.Runner, block *hclext.Block, targetVariableName string) error {
 	for _, label := range block.Labels {
-		if label == targetVariableName {
-			typeAttr, exists := block.Body.Attributes["type"]
-			if !exists {
+		if label != targetVariableName {
+			continue
+		}
+
+		typeAttr, exists := block.Body.Attributes["type"]
+		if !exists {
+			return nil
+		}
+
+		for _, typeAttrVal := range typeAttr.Expr.Variables() {
+			if v := typeAttrVal.RootName(); v == "string" {
 				return r.EmitIssue(
 					t,
-					fmt.Sprintf("`%s` type not declared", label),
-					typeAttr.Range,
+					"The variable should be defined as object type for the resource id",
+					typeAttrVal.SourceRange(),
 				)
-			}
-
-			for _, dynamicVal := range typeAttr.Expr.Variables() {
-				if v := dynamicVal.RootName(); v == "string" {
-					return r.EmitIssue(
-						t,
-						"The variable should be defined as object type for the resource id",
-						dynamicVal.SourceRange(),
-					)
-				}
 			}
 		}
 	}
