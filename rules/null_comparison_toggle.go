@@ -78,26 +78,13 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 		return err
 	}
 
-	var resourceIdStr string
 	var errList error
 	for _, block := range body.Blocks {
 		if block.Type != "resource" {
 			continue
 		}
 
-		resourceIdString, subErr := t.checkResourceBlock(r, block)
-		if subErr != nil {
-			errList = multierror.Append(errList, subErr)
-		}
-		resourceIdStr = resourceIdString
-	}
-
-	for _, block := range body.Blocks {
-		if block.Type != "variable" {
-			continue
-		}
-
-		if subErr := t.checkVariableBlock(r, block, resourceIdStr); subErr != nil {
+		if subErr := t.checkResourceBlock(r, body.Blocks, block); subErr != nil {
 			errList = multierror.Append(errList, subErr)
 		}
 	}
@@ -105,60 +92,61 @@ func (t *NullComparisonToggleRule) Check(r tflint.Runner) error {
 	return errList
 }
 
-func (t *NullComparisonToggleRule) checkResourceBlock(r tflint.Runner, block *hclext.Block) (string, error) {
+func (t *NullComparisonToggleRule) checkResourceBlock(r tflint.Runner, blocks hclext.Blocks, block *hclext.Block) error {
 	count, exists := block.Body.Attributes["count"]
 	if !exists {
-		return "", nil
+		return nil
 	}
 
 	countConditionalExpr, ok := count.Expr.(*hclsyntax.ConditionalExpr)
 	if !ok {
-		return "", nil
+		return nil
 	}
 
-	var resourceIdStr string
-	var err error
 	for _, dynamicObj := range countConditionalExpr.Variables() {
-		resourceIdStr, err = t.checkCountBlock(r, dynamicObj, count.Range)
-		if err != nil {
-			return resourceIdStr, err
+		if err := t.checkCountBlock(r, blocks, dynamicObj); err != nil {
+			return err
 		}
 	}
 
-	return resourceIdStr, nil
+	return nil
 }
 
-func (t *NullComparisonToggleRule) checkCountBlock(r tflint.Runner, dynamicObj hcl.Traversal, rangeInfo hcl.Range) (string, error) {
+func (t *NullComparisonToggleRule) checkCountBlock(r tflint.Runner, blocks hclext.Blocks, dynamicObj hcl.Traversal) error {
 	for _, dynamicVal := range dynamicObj {
 		if v, ok := dynamicVal.(hcl.TraverseRoot); ok && strings.HasSuffix(v.Name, "local") {
 			break
 		}
 
 		if v, ok := dynamicVal.(hcl.TraverseAttr); ok && strings.HasSuffix(strings.ToLower(v.Name), "_id") {
-			return v.Name, r.EmitIssue(
-				t,
-				"The variable should be defined as object type for the resource id",
-				rangeInfo,
-			)
+			for _, block := range blocks {
+				if block.Type != "variable" {
+					continue
+				}
+
+				if subErr := t.checkVariableBlock(r, block, v.Name); subErr != nil {
+					return subErr
+				}
+			}
 		}
 	}
 
-	return "", nil
+	return nil
 }
 
-func (t *NullComparisonToggleRule) checkVariableBlock(r tflint.Runner, block *hclext.Block, resourceIdStr string) error {
+func (t *NullComparisonToggleRule) checkVariableBlock(r tflint.Runner, block *hclext.Block, targetVariableName string) error {
 	for _, label := range block.Labels {
-		if label == resourceIdStr {
-			attr, exists := block.Body.Attributes["type"]
+		if label == targetVariableName {
+			typeAttr, exists := block.Body.Attributes["type"]
 			if !exists {
 				return r.EmitIssue(
 					t,
 					fmt.Sprintf("`%s` type not declared", label),
-					attr.Range,
+					typeAttr.Range,
 				)
 			}
 
-			for _, dynamicVal := range attr.Expr.Variables() {
+			for _, dynamicVal := range typeAttr.Expr.Variables() {
 				if v := dynamicVal.RootName(); v == "string" {
 					return r.EmitIssue(
 						t,
