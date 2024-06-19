@@ -67,6 +67,22 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "missing block attribute",
+			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			content: `
+	resource "azurerm_cosmosdb_account" "example" {
+		backup {
+			
+		}
+	}`,
+			expected: helper.Issues{
+				{
+					Rule:    waf.AzurermCosmosDbAccountBackupMode(),
+					Message: "The attribute `type` must be specified",
+				},
+			},
+		},
 	}
 
 	filename := "main.tf"

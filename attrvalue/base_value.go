@@ -70,6 +70,13 @@ func (b baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (boo
 			if len(resource.Body.Attributes) == 0 && len(resource.Body.Blocks) == 0 {
 				return false, resource, nil
 			}
+			if len(resource.Body.Blocks) != 0 {
+				for _, block := range resource.Body.Blocks {
+					if len(block.Body.Attributes) == 0 {
+						return false, block, nil
+					}
+				}
+			}
 		}
 	}
 	return true, nil, nil

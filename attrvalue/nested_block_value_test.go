@@ -105,6 +105,26 @@ func TestNestedBlockValueRule(t *testing.T) {
 			},
 		},
 		{
+			name: "no nested block attribute of that type with must exist set",
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+			content: `
+	variable "test" {
+		type    = string
+		default = "baz"
+	}
+	resource "foo" "example" {
+		fiz {
+			bor = var.test
+		}
+	}`,
+			expected: helper.Issues{
+				{
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+					Message: "The attribute `bar` must be specified",
+				},
+			},
+		},
+		{
 			name: "multiple blocks correct",
 			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
