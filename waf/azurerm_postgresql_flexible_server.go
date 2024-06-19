@@ -21,7 +21,7 @@ func AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule() *attrvalue.Simpl
 		"maintenance_window",
 		"day_of_week",
 		[]string{"0","1","2","3","4","5","6"},
-		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/DBforPostgreSQL/flexibleServers/#enable-ha-with-zone-redundancy",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/DBforPostgreSQL/flexibleServers/#enable-custom-maintenance-schedule",
 		true,
 	)
 }
