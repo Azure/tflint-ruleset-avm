@@ -83,6 +83,15 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "missing resource",
+			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			content: `
+	resource "something_else" "example" {
+
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"
