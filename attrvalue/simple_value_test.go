@@ -19,7 +19,7 @@ func TestSimpleValueRule(t *testing.T) {
 	}{
 		{
 			name: "correct string",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -32,7 +32,7 @@ func TestSimpleValueRule(t *testing.T) {
 		},
 		{
 			name: "incorrect string",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -43,14 +43,14 @@ func TestSimpleValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, ""),
+					Rule:    attrvalue.NewSimpleRule("foo", "bar", []string{"bar", "bat"}, "", false),
 					Message: "fiz is an invalid attribute value of `bar` - expecting (one of) [bar bat]",
 				},
 			},
 		},
 		{
 			name: "correct number",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, "", false),
 			content: `
 	variable "test" {
 		type    = number
@@ -63,7 +63,7 @@ func TestSimpleValueRule(t *testing.T) {
 		},
 		{
 			name: "correct number float",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []float64{1.2, 2.1}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []float64{1.2, 2.1}, "", false),
 			content: `
 variable "test" {
 	type    = number
@@ -76,7 +76,7 @@ resource "foo" "example" {
 		},
 		{
 			name: "incorrect number",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, "", false),
 			content: `
 	variable "test" {
 		type    = number
@@ -87,14 +87,14 @@ resource "foo" "example" {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, ""),
+					Rule:    attrvalue.NewSimpleRule("foo", "bar", []int{1, 2}, "", false),
 					Message: "3 is an invalid attribute value of `bar` - expecting (one of) [1 2]",
 				},
 			},
 		},
 		{
 			name: "incorrect number float",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []float64{1.1, 2.2}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []float64{1.1, 2.2}, "", false),
 			content: `
 	variable "test" {
 		type    = number
@@ -105,14 +105,14 @@ resource "foo" "example" {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleRule("foo", "bar", []float64{1.1, 2.2}, ""),
+					Rule:    attrvalue.NewSimpleRule("foo", "bar", []float64{1.1, 2.2}, "", false),
 					Message: "2.1 is an invalid attribute value of `bar` - expecting (one of) [1.1 2.2]",
 				},
 			},
 		},
 		{
 			name: "correct bool",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 			content: `
 	variable "test" {
 		type    = bool
@@ -125,7 +125,7 @@ resource "foo" "example" {
 		},
 		{
 			name: "incorrect bool",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 			content: `
 	variable "test" {
 		type    = bool
@@ -136,14 +136,14 @@ resource "foo" "example" {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+					Rule:    attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 					Message: "false is an invalid attribute value of `bar` - expecting (one of) [true]",
 				},
 			},
 		},
 		{
 			name: "null value",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 			content: `
 	variable "test" {
 		type    = bool
@@ -156,7 +156,7 @@ resource "foo" "example" {
 		},
 		{
 			name: "optional value",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 			content: `
 	variable "test" {
 		type    = object({
@@ -170,8 +170,31 @@ resource "foo" "example" {
 			expected: helper.Issues{},
 		},
 		{
+			name: "missing attribute",
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
+			content: `
+	resource "foo" "example" {
+
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "missing attribute with must exist",
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", true),
+			content: `
+	resource "foo" "example" {
+
+	}`,
+			expected: helper.Issues{
+				{
+					Rule:    attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", true),
+					Message: "The attribute `bar` must be specified",
+				},
+			},
+		},
+		{
 			name: "correct attribute incorrect resource",
-			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, ""),
+			rule: attrvalue.NewSimpleRule("foo", "bar", []bool{true}, "", false),
 			content: `
 	variable "test" {
     type		= bool

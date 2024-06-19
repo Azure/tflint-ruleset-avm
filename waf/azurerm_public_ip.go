@@ -10,6 +10,7 @@ func AzurermPublicIpSku() *attrvalue.SimpleRule[string] {
 		"sku",
 		[]string{"Standard"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/public-ip/#pip-1---use-standard-sku-and-zone-redundant-ips-when-applicable",
+		false,
 	)
 }
 

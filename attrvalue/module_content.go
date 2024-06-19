@@ -19,6 +19,37 @@ type AttrValueRule interface {
 	GetAttributeName() string
 }
 
+// getSimpleResources returns a slice of resources with the given resource type and the attribute if it exists.
+func getSimpleResourcesWithAttribute(module *terraform.Module, resourceType string, attributeName string,  ctx *terraform.Evaluator) ([]*hclext.Block, hcl.Diagnostics) {
+	resources, diags := module.PartialContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{
+				Type:       "resource",
+				LabelNames: []string{"type", "name"},
+				Body: &hclext.BodySchema{
+					Attributes: []hclext.AttributeSchema{
+						{
+							Name:     attributeName,
+							Required: false,
+						},
+					},
+				},
+			},
+		},
+	}, ctx)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+	filteredResources := make([]*hclext.Block, 0, len(resources.Blocks))
+	for _, resource := range resources.Blocks {
+		if resource.Labels[0] != resourceType {
+			continue
+		}
+		filteredResources = append(filteredResources, resource)
+	}
+	return filteredResources, nil
+}
+
 // getSimpleAttrs returns a slice of attributes with the given attribute name from the resources of the given resource type.
 func getSimpleAttrs(module *terraform.Module, resourceType string, attributeName string, ctx *terraform.Evaluator) ([]*hclext.Attribute, hcl.Diagnostics) {
 	resources, diags := module.PartialContent(&hclext.BodySchema{
@@ -50,6 +81,45 @@ func getSimpleAttrs(module *terraform.Module, resourceType string, attributeName
 		}
 	}
 	return attrs, nil
+}
+
+
+// getNestedResourcesWithAttribute returns a slice of resources with the given resource type and the attribute if it exists.
+func getNestedResourcesWithAttribute(ctx *terraform.Evaluator, module *terraform.Module, resourceType, nestedBlockType, attributeName string) ([]*hclext.Block, hcl.Diagnostics) {
+	content, diags := module.PartialContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{
+				Type:       "resource",
+				LabelNames: []string{"type", "name"},
+				Body: &hclext.BodySchema{
+					Blocks: []hclext.BlockSchema{
+						{
+							Type: nestedBlockType,
+							Body: &hclext.BodySchema{
+								Attributes: []hclext.AttributeSchema{
+									{
+										Name:     attributeName,
+										Required: false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, ctx)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+	filteredResources := make([]*hclext.Block, 0, len(content.Blocks))
+	for _, resource := range content.Blocks {
+		if resource.Labels[0] != resourceType {
+			continue
+		}
+		filteredResources = append(filteredResources, resource)
+	}
+	return filteredResources, nil
 }
 
 // getNestedBlockAttrs returns a slice of attributes with the given attribute name from the nested blocks of the given resource type.
@@ -139,4 +209,42 @@ func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Eva
 	attrs, diags := getSimpleAttrs(config.Module, r.GetResourceType(), r.GetAttributeName(), ctx)
 
 	return ctx, attrs, diags
+}
+
+func fetchResourcesAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Evaluator, []*hclext.Block, hcl.Diagnostics) {
+	// If we are using the tflint test runner then we need to create a new memory file system
+	wd, _ := runner.GetOriginalwd()
+	loader, err := terraform.NewLoader(AppFs, wd)
+	if err != nil {
+		return nil, nil, hcl.Diagnostics{{
+			Summary: err.Error(),
+		}}
+	}
+	config, diags := loader.LoadConfig(".", terraform.CallLocalModule)
+	if diags.HasErrors() {
+		return nil, nil, diags
+	}
+	vvals, diags := terraform.VariableValues(config)
+	if diags.HasErrors() {
+		return nil, nil, diags
+	}
+	ctx := &terraform.Evaluator{
+		Meta: &terraform.ContextMeta{
+			Env:                "",
+			OriginalWorkingDir: wd,
+		},
+		Config:         config,
+		VariableValues: vvals,
+		CallStack:      terraform.NewCallStack(),
+		ModulePath:     addrs.RootModuleInstance,
+	}
+
+	if r.GetNestedBlockType() != nil {
+		resources, diags := getNestedResourcesWithAttribute(ctx, config.Module, r.GetResourceType(), *r.GetNestedBlockType(), r.GetAttributeName())
+		return ctx, resources, diags
+	}
+
+	resources, diags := getSimpleResourcesWithAttribute(config.Module, r.GetResourceType(), r.GetAttributeName(), ctx)
+
+	return ctx, resources, diags
 }

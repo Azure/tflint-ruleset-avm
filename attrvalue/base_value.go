@@ -57,6 +57,24 @@ func (b baseValue) Severity() tflint.Severity {
 	return b.severity
 }
 
+func (b baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (bool, *hclext.Block, error) {
+	_, resources, diags := fetchResourcesAndContext(b, r)
+	if diags.HasErrors() {
+		return false, nil, fmt.Errorf("could not get partial content: %s", diags)
+	}
+
+	if len(resources) == 0 {
+		return true, nil, nil
+	} else {
+		for _, resource := range resources {
+			if len(resource.Body.Attributes) == 0 && len(resource.Body.Blocks) == 0 {
+				return false, resource, nil
+			}
+		}
+	}
+	return true, nil, nil
+}
+
 func (b baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.Attribute, cty.Value) error) error {
 	ctx, attrs, diags := fetchAttrsAndContext(b, r)
 	if diags.HasErrors() {

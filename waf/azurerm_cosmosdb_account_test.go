@@ -1,11 +1,9 @@
 package waf_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/prashantv/gostub"
-	"github.com/spf13/afero"
 
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/Azure/tflint-ruleset-avm/waf"
@@ -62,7 +60,12 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 	resource "azurerm_cosmosdb_account" "example" {
 
 	}`,
-			expected: helper.Issues{},
+			expected: helper.Issues{
+				{
+					Rule:    waf.AzurermCosmosDbAccountBackupMode(),
+					Message: "The attribute `type` must be specified",
+				},
+			},
 		},
 	}
 
@@ -79,10 +82,4 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 			helper.AssertIssuesWithoutRange(t, tc.expected, runner.Issues)
 		})
 	}
-}
-
-func mockFs(c string) afero.Afero {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "main.tf", []byte(c), os.ModePerm)
-	return afero.Afero{Fs: fs}
 }

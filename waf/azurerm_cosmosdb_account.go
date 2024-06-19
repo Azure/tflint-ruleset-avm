@@ -11,5 +11,6 @@ func AzurermCosmosDbAccountBackupMode() *attrvalue.SimpleRule[string] {
 		"type",
 		[]string{"Continuous"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/DocumentDB/databaseAccounts/#configure-continuous-backup-mode",
+		true,
 	)
 }
