@@ -21,7 +21,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}{
 		{
 			name: "correct string",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -36,7 +36,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "incorrect string",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -49,14 +49,14 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 					Message: "baz is an invalid attribute value of `bar` - expecting (one of) [biz bat]",
 				},
 			},
 		},
 		{
 			name: "incorrect resource with correct block",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -71,7 +71,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "no nested block of that type",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -85,8 +85,48 @@ func TestNestedBlockValueRule(t *testing.T) {
 			expected: helper.Issues{},
 		},
 		{
+			name: "no nested block of that type with must exist set",
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+			content: `
+	variable "test" {
+		type    = string
+		default = "baz"
+	}
+	resource "foo" "example" {
+		fuz {
+			bar = var.test
+		}
+	}`,
+			expected: helper.Issues{
+				{
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+					Message: "The attribute `bar` must be specified",
+				},
+			},
+		},
+		{
+			name: "no nested block attribute of that type with must exist set",
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+			content: `
+	variable "test" {
+		type    = string
+		default = "baz"
+	}
+	resource "foo" "example" {
+		fiz {
+			bor = var.test
+		}
+	}`,
+			expected: helper.Issues{
+				{
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", true),
+					Message: "The attribute `bar` must be specified",
+				},
+			},
+		},
+		{
 			name: "multiple blocks correct",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -104,7 +144,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 		},
 		{
 			name: "multiple blocks partially correct",
-			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+			rule: attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 			content: `
 	variable "test" {
 		type    = string
@@ -124,7 +164,7 @@ func TestNestedBlockValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, ""),
+					Rule:    attrvalue.NewSimpleNestedBlockRule("foo", "fiz", "bar", []string{"biz", "bat"}, "", false),
 					Message: "incorrect is an invalid attribute value of `bar` - expecting (one of) [biz bat]",
 				},
 			},

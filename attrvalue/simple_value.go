@@ -16,24 +16,27 @@ type SimpleRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 	baseValue
 	expectedValues []T // e.g. []string{"ZRS"}
+	mustExist      bool
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T, link string) *SimpleRule[T] {
+func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T, link string, mustExist bool) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
+		mustExist:      mustExist,
 	}
 }
 
 // NewSimpleNestedBlockRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string) *SimpleRule[T] {
+func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string, mustExist bool) *SimpleRule[T] {
 	return &SimpleRule[T]{
-		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, "", tflint.ERROR),
+		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
+		mustExist:      mustExist,
 	}
 }
 
@@ -54,6 +57,22 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 	if err != nil {
 		return err
 	}
+
+	if r.mustExist {
+		exists, resource, err := r.attributeExistsWhereResourceIsSpecified(runner)
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+			return runner.EmitIssue(
+				r,
+				fmt.Sprintf("The attribute `%s` must be specified", r.attributeName),
+				resource.DefRange,
+			)
+		}
+	}
+
 	return r.checkAttributes(runner, cty.DynamicPseudoType, func(attr *hclext.Attribute, val cty.Value) error {
 		if val.IsNull() || !val.IsKnown() {
 			return nil

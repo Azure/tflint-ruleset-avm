@@ -10,5 +10,6 @@ func AzurermVirtualNetworkGatewaySku() *attrvalue.SimpleRule[string] {
 		"sku",
 		[]string{"ErGw1AZ", "ErGw2AZ", "ErGw3AZ", "VpnGw1AZ", "VpnGw2AZ", "VpnGw3AZ", "VpnGw4AZ", "VpnGw5AZ"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/expressroute-gateway/#ergw-2---use-zone-redundant-gateway-skus",
+		false,
 	)
 }

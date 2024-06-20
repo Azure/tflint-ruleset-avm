@@ -18,5 +18,6 @@ func AzurermApplicationGatewaySku() *attrvalue.SimpleRule[string] {
 		"name",
 		[]string{"Standard_v2", "WAF_v2"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/application-gateway/#agw-4---use-application-gw-v2-instead-of-v1",
+		false,
 	)
 }

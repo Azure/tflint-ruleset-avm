@@ -10,5 +10,6 @@ func AzurermLbSku() *attrvalue.SimpleRule[string] {
 		"sku",
 		[]string{"Standard"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/load-balancer/#lb-1---use-standard-load-balancer-sku",
+		false,
 	)
 }
