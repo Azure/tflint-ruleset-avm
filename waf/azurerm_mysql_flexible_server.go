@@ -20,7 +20,7 @@ func AzurermMySqlFlexibleServerCustomMaintenanceSchedule() *attrvalue.SimpleRule
 		"azurerm_mysql_flexible_server",
 		"maintenance_window",
 		"day_of_week",
-		[]string{"0","1","2","3","4","5","6"},
+		[]string{"0", "1", "2", "3", "4", "5", "6"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/DBforMySQL/flexibleServers/#enable-custom-maintenance-schedule",
 		true,
 	)

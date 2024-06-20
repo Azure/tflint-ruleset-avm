@@ -36,7 +36,7 @@ func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeNam
 	return &SimpleRule[T]{
 		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
-		mustExist: 	mustExist,
+		mustExist:      mustExist,
 	}
 }
 
@@ -58,7 +58,7 @@ func (r *SimpleRule[T]) Check(runner tflint.Runner) error {
 		return err
 	}
 
-	if(r.mustExist) {
+	if r.mustExist {
 		exists, resource, err := r.attributeExistsWhereResourceIsSpecified(runner)
 		if err != nil {
 			return err

@@ -20,23 +20,8 @@ type AttrValueRule interface {
 }
 
 // getSimpleResources returns a slice of resources with the given resource type and the attribute if it exists.
-func getSimpleResourcesWithAttribute(module *terraform.Module, resourceType string, attributeName string,  ctx *terraform.Evaluator) ([]*hclext.Block, hcl.Diagnostics) {
-	resources, diags := module.PartialContent(&hclext.BodySchema{
-		Blocks: []hclext.BlockSchema{
-			{
-				Type:       "resource",
-				LabelNames: []string{"type", "name"},
-				Body: &hclext.BodySchema{
-					Attributes: []hclext.AttributeSchema{
-						{
-							Name:     attributeName,
-							Required: false,
-						},
-					},
-				},
-			},
-		},
-	}, ctx)
+func getSimpleResourcesWithAttributes(module *terraform.Module, resourceType string, attributeName string, ctx *terraform.Evaluator) ([]*hclext.Block, hcl.Diagnostics) {
+	resources, diags := getResourcesOfResourceTypeIncludingSpecifiedAttribute(module, attributeName, ctx)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -52,22 +37,7 @@ func getSimpleResourcesWithAttribute(module *terraform.Module, resourceType stri
 
 // getSimpleAttrs returns a slice of attributes with the given attribute name from the resources of the given resource type.
 func getSimpleAttrs(module *terraform.Module, resourceType string, attributeName string, ctx *terraform.Evaluator) ([]*hclext.Attribute, hcl.Diagnostics) {
-	resources, diags := module.PartialContent(&hclext.BodySchema{
-		Blocks: []hclext.BlockSchema{
-			{
-				Type:       "resource",
-				LabelNames: []string{"type", "name"},
-				Body: &hclext.BodySchema{
-					Attributes: []hclext.AttributeSchema{
-						{
-							Name:     attributeName,
-							Required: false,
-						},
-					},
-				},
-			},
-		},
-	}, ctx)
+	resources, diags := getResourcesOfResourceTypeIncludingSpecifiedAttribute(module, attributeName, ctx)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -83,37 +53,14 @@ func getSimpleAttrs(module *terraform.Module, resourceType string, attributeName
 	return attrs, nil
 }
 
-
 // getNestedResourcesWithAttribute returns a slice of resources with the given resource type and the attribute if it exists.
-func getNestedResourcesWithAttribute(ctx *terraform.Evaluator, module *terraform.Module, resourceType, nestedBlockType, attributeName string) ([]*hclext.Block, hcl.Diagnostics) {
-	content, diags := module.PartialContent(&hclext.BodySchema{
-		Blocks: []hclext.BlockSchema{
-			{
-				Type:       "resource",
-				LabelNames: []string{"type", "name"},
-				Body: &hclext.BodySchema{
-					Blocks: []hclext.BlockSchema{
-						{
-							Type: nestedBlockType,
-							Body: &hclext.BodySchema{
-								Attributes: []hclext.AttributeSchema{
-									{
-										Name:     attributeName,
-										Required: false,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}, ctx)
+func getNestedResourcesWithBlockAttributes(ctx *terraform.Evaluator, module *terraform.Module, resourceType, nestedBlockType, attributeName string) ([]*hclext.Block, hcl.Diagnostics) {
+	resources, diags := getResourcesOfResourceTypeIncludingBlocksWithSpecifiedAttribute(module, nestedBlockType, attributeName, ctx)
 	if diags.HasErrors() {
 		return nil, diags
 	}
-	filteredResources := make([]*hclext.Block, 0, len(content.Blocks))
-	for _, resource := range content.Blocks {
+	filteredResources := make([]*hclext.Block, 0, len(resources.Blocks))
+	for _, resource := range resources.Blocks {
 		if resource.Labels[0] != resourceType {
 			continue
 		}
@@ -124,34 +71,12 @@ func getNestedResourcesWithAttribute(ctx *terraform.Evaluator, module *terraform
 
 // getNestedBlockAttrs returns a slice of attributes with the given attribute name from the nested blocks of the given resource type.
 func getNestedBlockAttrs(ctx *terraform.Evaluator, module *terraform.Module, resourceType, nestedBlockType, attributeName string) ([]*hclext.Attribute, hcl.Diagnostics) {
-	content, diags := module.PartialContent(&hclext.BodySchema{
-		Blocks: []hclext.BlockSchema{
-			{
-				Type:       "resource",
-				LabelNames: []string{"type", "name"},
-				Body: &hclext.BodySchema{
-					Blocks: []hclext.BlockSchema{
-						{
-							Type: nestedBlockType,
-							Body: &hclext.BodySchema{
-								Attributes: []hclext.AttributeSchema{
-									{
-										Name:     attributeName,
-										Required: false,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}, ctx)
+	resources, diags := getResourcesOfResourceTypeIncludingBlocksWithSpecifiedAttribute(module, nestedBlockType, attributeName, ctx)
 	if diags.HasErrors() {
 		return nil, diags
 	}
-	attrs := make([]*hclext.Attribute, 0, len(content.Blocks))
-	for _, resource := range content.Blocks {
+	attrs := make([]*hclext.Attribute, 0, len(resources.Blocks))
+	for _, resource := range resources.Blocks {
 		if resource.Labels[0] != resourceType {
 			continue
 		}
@@ -240,11 +165,60 @@ func fetchResourcesAndContext(r AttrValueRule, runner tflint.Runner) (*terraform
 	}
 
 	if r.GetNestedBlockType() != nil {
-		resources, diags := getNestedResourcesWithAttribute(ctx, config.Module, r.GetResourceType(), *r.GetNestedBlockType(), r.GetAttributeName())
+		resources, diags := getNestedResourcesWithBlockAttributes(ctx, config.Module, r.GetResourceType(), *r.GetNestedBlockType(), r.GetAttributeName())
 		return ctx, resources, diags
 	}
 
-	resources, diags := getSimpleResourcesWithAttribute(config.Module, r.GetResourceType(), r.GetAttributeName(), ctx)
+	resources, diags := getSimpleResourcesWithAttributes(config.Module, r.GetResourceType(), r.GetAttributeName(), ctx)
 
 	return ctx, resources, diags
+}
+
+func getResourcesOfResourceTypeIncludingSpecifiedAttribute(module *terraform.Module, attributeName string, ctx *terraform.Evaluator) (*hclext.BodyContent, hcl.Diagnostics) {
+	resources, diags := module.PartialContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{
+				Type:       "resource",
+				LabelNames: []string{"type", "name"},
+				Body: &hclext.BodySchema{
+					Attributes: []hclext.AttributeSchema{
+						{
+							Name:     attributeName,
+							Required: false,
+						},
+					},
+				},
+			},
+		},
+	}, ctx)
+
+	return resources, diags
+}
+
+func getResourcesOfResourceTypeIncludingBlocksWithSpecifiedAttribute(module *terraform.Module, nestedBlockType string, attributeName string, ctx *terraform.Evaluator) (*hclext.BodyContent, hcl.Diagnostics) {
+	resources, diags := module.PartialContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{
+				Type:       "resource",
+				LabelNames: []string{"type", "name"},
+				Body: &hclext.BodySchema{
+					Blocks: []hclext.BlockSchema{
+						{
+							Type: nestedBlockType,
+							Body: &hclext.BodySchema{
+								Attributes: []hclext.AttributeSchema{
+									{
+										Name:     attributeName,
+										Required: false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, ctx)
+
+	return resources, diags
 }
