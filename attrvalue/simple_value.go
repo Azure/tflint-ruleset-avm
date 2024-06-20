@@ -29,7 +29,7 @@ func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T
 		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 		mustExist:      mustExist,
-		ruleName: 	    ruleName,
+		ruleName:       ruleName,
 	}
 }
 
@@ -39,7 +39,7 @@ func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeNam
 		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 		mustExist:      mustExist,
-		ruleName: 	    ruleName,
+		ruleName:       ruleName,
 	}
 }
 

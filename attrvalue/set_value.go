@@ -16,7 +16,7 @@ type SetRule[T cmp.Ordered] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 	baseValue
 	expectedValues [][]T // e.g. [][int{1, 2, 3}]
-	ruleName	   string
+	ruleName       string
 }
 
 var _ tflint.Rule = (*SetRule[int])(nil)
@@ -27,7 +27,7 @@ func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expect
 	return &SetRule[T]{
 		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
-		ruleName: 	    ruleName,
+		ruleName:       ruleName,
 	}
 }
 

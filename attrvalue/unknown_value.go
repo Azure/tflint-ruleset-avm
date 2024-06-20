@@ -27,7 +27,7 @@ func (r *UnknownValueRule) GetNestedBlockType() *string {
 func NewUnknownValueRule(resourceType, attributeName, link string, ruleName string) *UnknownValueRule {
 	return &UnknownValueRule{
 		baseValue: newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
-		ruleName: ruleName,
+		ruleName:  ruleName,
 	}
 }
 
@@ -39,7 +39,7 @@ func (r *UnknownValueRule) Link() string {
 func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName, link string, ruleName string) *UnknownValueRule {
 	return &UnknownValueRule{
 		baseValue: newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
-		ruleName: ruleName,
+		ruleName:  ruleName,
 	}
 }
 
