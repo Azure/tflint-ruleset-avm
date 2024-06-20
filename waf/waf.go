@@ -3,21 +3,24 @@
 // Then add the rule to the Rules slice.
 package waf
 
-import "github.com/terraform-linters/tflint-plugin-sdk/tflint"
+import (
+	"reflect"
 
-// Rules is the list of rules for Well Architected Alignment.
-// Make sure to add any new rules to this list.
-// Please sort the list to be kind to your fellow maintainers.
-var Rules = []tflint.Rule{
-	AzurermApplicationGatewaySku(),
-	AzurermApplicationGatewayZones(),
-	AzurermKubernetesClusterZones(),
-	AzurermLbSku(),
-	AzurermPublicIpSku(),
-	AzurermPublicIpZones(),
-	AzurermServicePlanZoneBalancingEnabled(),
-	AzurermStorageAccountAccountReplicationType(),
-	AzurermVirtualMachineZoneUnknown(),
-	AzurermVirtualMachineZonesUnknown(),
-	AzurermVirtualNetworkGatewaySku(),
+	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+)
+
+type WafRules struct{}
+
+func GetRules() []tflint.Rule {
+	rules := []tflint.Rule{}
+
+	wafRules := reflect.TypeOf(WafRules{})
+
+	for i := 0; i < wafRules.NumMethod(); i++ {
+		method := wafRules.Method(i)
+		rule := reflect.ValueOf(WafRules{}).MethodByName(method.Name).Call([]reflect.Value{})
+		rules = append(rules, rule[0].Interface().(tflint.Rule))
+	}
+
+	return rules
 }

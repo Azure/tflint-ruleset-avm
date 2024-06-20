@@ -13,6 +13,7 @@ import (
 type UnknownValueRule struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 	baseValue
+	ruleName string
 }
 
 var _ tflint.Rule = (*UnknownValueRule)(nil)
@@ -23,9 +24,10 @@ func (r *UnknownValueRule) GetNestedBlockType() *string {
 }
 
 // NewUnknownValueRule returns a new rule with the given resource type, and attribute name
-func NewUnknownValueRule(resourceType, attributeName, link string) *UnknownValueRule {
+func NewUnknownValueRule(resourceType, attributeName, link string, ruleName string) *UnknownValueRule {
 	return &UnknownValueRule{
 		baseValue: newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
+		ruleName: ruleName,
 	}
 }
 
@@ -34,17 +36,22 @@ func (r *UnknownValueRule) Link() string {
 }
 
 // NewUnknownValueNestedBlockRule returns a new rule with the given resource type, nested block type, and attribute name
-func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName, link string) *UnknownValueRule {
+func NewUnknownValueNestedBlockRule(resourceType, nestedBlockType, attributeName, link string, ruleName string) *UnknownValueRule {
 	return &UnknownValueRule{
 		baseValue: newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
+		ruleName: ruleName,
 	}
 }
 
 func (r *UnknownValueRule) Name() string {
-	if r.nestedBlockType != nil {
-		return fmt.Sprintf("unknown_value_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	if r.ruleName != "" {
+		return r.ruleName
 	}
-	return fmt.Sprintf("unknown_value_%s.%s", r.resourceType, r.attributeName)
+
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	}
+	return fmt.Sprintf("%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *UnknownValueRule) Check(runner tflint.Runner) error {

@@ -16,24 +16,30 @@ type SetRule[T cmp.Ordered] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
 	baseValue
 	expectedValues [][]T // e.g. [][int{1, 2, 3}]
+	ruleName	   string
 }
 
 var _ tflint.Rule = (*SetRule[int])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
 // NewSetRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expectedValues [][]T, link string) *SetRule[T] {
+func NewSetRule[T cmp.Ordered](resourceType string, attributeName string, expectedValues [][]T, link string, ruleName string) *SetRule[T] {
 	return &SetRule[T]{
 		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
+		ruleName: 	    ruleName,
 	}
 }
 
 func (r *SetRule[T]) Name() string {
-	if r.nestedBlockType != nil {
-		return fmt.Sprintf("set_value_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	if r.ruleName != "" {
+		return r.ruleName
 	}
-	return fmt.Sprintf("set_value_%s.%s", r.resourceType, r.attributeName)
+
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	}
+	return fmt.Sprintf("%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *SetRule[T]) Check(runner tflint.Runner) error {

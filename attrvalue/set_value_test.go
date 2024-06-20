@@ -19,7 +19,7 @@ func TestListNumberValueRule(t *testing.T) {
 	}{
 		{
 			name: "incorrect",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -30,14 +30,14 @@ func TestListNumberValueRule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+					Rule:    attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 					Message: "\"[3]\" is an invalid attribute value of `bar` - expecting (one of) [[1 2 3]]",
 				},
 			},
 		},
 		{
 			name: "correct",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -50,7 +50,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "correct with string list",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]string{{"1", "2", "3"}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]string{{"1", "2", "3"}}, "", ""),
 			content: `
 	variable "test" {
 		type    = list(string)
@@ -63,7 +63,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "correct but different order",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 			content: `
 	variable "test" {
 		type    = list(number)
@@ -76,7 +76,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "variable without default",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 			content: `
 		variable "test" {
 			type    = list(number)
@@ -88,7 +88,7 @@ func TestListNumberValueRule(t *testing.T) {
 		},
 		{
 			name: "variable with convertable element type",
-			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, ""),
+			rule: attrvalue.NewSetRule("foo", "bar", [][]int{{1, 2, 3}}, "", ""),
 			content: `
 	variable "test" {
 		type    = list(string)

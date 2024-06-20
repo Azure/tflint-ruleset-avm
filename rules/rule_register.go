@@ -26,7 +26,7 @@ var Rules = func() []tflint.Rule {
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),
 		},
-		waf.Rules,
+		waf.GetRules(),
 		interfaces.Rules,
 		outputs.Rules,
 	)
