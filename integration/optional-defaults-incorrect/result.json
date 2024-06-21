@@ -17,7 +17,7 @@
       },
       "rule": {
         "link": "https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/load-balancer/#lb-1---use-standard-load-balancer-sku",
-        "name": "simple_value_azurerm_lb.sku",
+        "name": "azurerm_lb.sku",
         "severity": "error"
       }
     }

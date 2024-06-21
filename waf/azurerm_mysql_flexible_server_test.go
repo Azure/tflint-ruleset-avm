@@ -12,6 +12,8 @@ import (
 )
 
 func TestAzurermMySqlFlexibleServerZoneRedundancy(t *testing.T) {
+	wafRules := waf.WafRules{}
+
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -20,7 +22,7 @@ func TestAzurermMySqlFlexibleServerZoneRedundancy(t *testing.T) {
 	}{
 		{
 			name: "correct setting",
-			rule: waf.AzurermMySqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermMySqlFlexibleServerZoneRedundancy(),
 			content: `
 	variable "high_availability_mode" {
 		type    = string
@@ -35,7 +37,7 @@ func TestAzurermMySqlFlexibleServerZoneRedundancy(t *testing.T) {
 		},
 		{
 			name: "incorrect setting",
-			rule: waf.AzurermMySqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermMySqlFlexibleServerZoneRedundancy(),
 			content: `
     variable "high_availability_mode" {
 		type    = string
@@ -48,21 +50,21 @@ func TestAzurermMySqlFlexibleServerZoneRedundancy(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermMySqlFlexibleServerZoneRedundancy(),
+					Rule:    wafRules.AzurermMySqlFlexibleServerZoneRedundancy(),
 					Message: "SameZone is an invalid attribute value of `mode` - expecting (one of) [ZoneRedundant]",
 				},
 			},
 		},
 		{
 			name: "missing block",
-			rule: waf.AzurermMySqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermMySqlFlexibleServerZoneRedundancy(),
 			content: `
 	resource "azurerm_mysql_flexible_server" "example" {
 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermMySqlFlexibleServerZoneRedundancy(),
+					Rule:    wafRules.AzurermMySqlFlexibleServerZoneRedundancy(),
 					Message: "The attribute `mode` must be specified",
 				},
 			},
@@ -85,6 +87,8 @@ func TestAzurermMySqlFlexibleServerZoneRedundancy(t *testing.T) {
 }
 
 func TestAzurermMySqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) {
+	wafRules := waf.WafRules{}
+
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -93,7 +97,7 @@ func TestAzurermMySqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) {
 	}{
 		{
 			name: "correct setting",
-			rule: waf.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
 	variable "maintenance_window" {
 		type    = string
@@ -108,7 +112,7 @@ func TestAzurermMySqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) {
 		},
 		{
 			name: "incorrect setting",
-			rule: waf.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
     variable "maintenance_window" {
 		type    = string
@@ -121,21 +125,21 @@ func TestAzurermMySqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
+					Rule:    wafRules.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
 					Message: "20 is an invalid attribute value of `day_of_week` - expecting (one of) [0 1 2 3 4 5 6]",
 				},
 			},
 		},
 		{
 			name: "missing block",
-			rule: waf.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
 	resource "azurerm_mysql_flexible_server" "example" {
 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
+					Rule:    wafRules.AzurermMySqlFlexibleServerCustomMaintenanceSchedule(),
 					Message: "The attribute `day_of_week` must be specified",
 				},
 			},
