@@ -17,7 +17,7 @@
       },
       "rule": {
         "link": "https://azure.github.io/Azure-Proactive-Resiliency-Library/services/compute/virtual-machines/#vm-2---deploy-vms-across-availability-zones",
-        "name": "unknown_value_azurerm_virtual_machine.zone",
+        "name": "azurerm_virtual_machine.zone",
         "severity": "error"
       }
     }

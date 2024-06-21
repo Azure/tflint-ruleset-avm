@@ -17,26 +17,29 @@ type SimpleRule[T any] struct {
 	baseValue
 	expectedValues []T // e.g. []string{"ZRS"}
 	mustExist      bool
+	ruleName       string
 }
 
 var _ tflint.Rule = (*SimpleRule[any])(nil)
 var _ AttrValueRule = (*SimpleRule[any])(nil)
 
 // NewSimpleRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T, link string, mustExist bool) *SimpleRule[T] {
+func NewSimpleRule[T any](resourceType, attributeName string, expectedValues []T, link string, mustExist bool, ruleName string) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		baseValue:      newBaseValue(resourceType, nil, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 		mustExist:      mustExist,
+		ruleName:       ruleName,
 	}
 }
 
 // NewSimpleNestedBlockRule returns a new rule with the given resource type, attribute name, and expected values.
-func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string, mustExist bool) *SimpleRule[T] {
+func NewSimpleNestedBlockRule[T any](resourceType, nestedBlockType, attributeName string, expectedValues []T, link string, mustExist bool, ruleName string) *SimpleRule[T] {
 	return &SimpleRule[T]{
 		baseValue:      newBaseValue(resourceType, &nestedBlockType, attributeName, true, link, tflint.ERROR),
 		expectedValues: expectedValues,
 		mustExist:      mustExist,
+		ruleName:       ruleName,
 	}
 }
 
@@ -45,10 +48,14 @@ func (r *SimpleRule[T]) Link() string {
 }
 
 func (r *SimpleRule[T]) Name() string {
-	if r.nestedBlockType != nil {
-		return fmt.Sprintf("simple_value_%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	if r.ruleName != "" {
+		return r.ruleName
 	}
-	return fmt.Sprintf("simple_value_%s.%s", r.resourceType, r.attributeName)
+
+	if r.nestedBlockType != nil {
+		return fmt.Sprintf("%s.%s.%s", r.resourceType, *r.nestedBlockType, r.attributeName)
+	}
+	return fmt.Sprintf("%s.%s", r.resourceType, r.attributeName)
 }
 
 func (r *SimpleRule[T]) Check(runner tflint.Runner) error {

@@ -12,6 +12,8 @@ import (
 )
 
 func TestAzurermPostgreSqlFlexibleServerZoneRedundancy(t *testing.T) {
+	wafRules := waf.WafRules{}
+
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -20,7 +22,7 @@ func TestAzurermPostgreSqlFlexibleServerZoneRedundancy(t *testing.T) {
 	}{
 		{
 			name: "correct setting",
-			rule: waf.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
 			content: `
 	variable "high_availability_mode" {
 		type    = string
@@ -35,7 +37,7 @@ func TestAzurermPostgreSqlFlexibleServerZoneRedundancy(t *testing.T) {
 		},
 		{
 			name: "incorrect setting",
-			rule: waf.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
 			content: `
     variable "high_availability_mode" {
 		type    = string
@@ -48,21 +50,21 @@ func TestAzurermPostgreSqlFlexibleServerZoneRedundancy(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
+					Rule:    wafRules.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
 					Message: "SameZone is an invalid attribute value of `mode` - expecting (one of) [ZoneRedundant]",
 				},
 			},
 		},
 		{
 			name: "missing block",
-			rule: waf.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
 			content: `
 	resource "azurerm_postgresql_flexible_server" "example" {
 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
+					Rule:    wafRules.AzurermPostgreSqlFlexibleServerZoneRedundancy(),
 					Message: "The attribute `mode` must be specified",
 				},
 			},
@@ -85,6 +87,8 @@ func TestAzurermPostgreSqlFlexibleServerZoneRedundancy(t *testing.T) {
 }
 
 func TestAzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) {
+	wafRules := waf.WafRules{}
+
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -93,7 +97,7 @@ func TestAzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) 
 	}{
 		{
 			name: "correct setting",
-			rule: waf.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
 	variable "maintenance_window" {
 		type    = string
@@ -108,7 +112,7 @@ func TestAzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) 
 		},
 		{
 			name: "incorrect setting",
-			rule: waf.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
     variable "maintenance_window" {
 		type    = string
@@ -121,21 +125,21 @@ func TestAzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(t *testing.T) 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
+					Rule:    wafRules.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
 					Message: "20 is an invalid attribute value of `day_of_week` - expecting (one of) [0 1 2 3 4 5 6]",
 				},
 			},
 		},
 		{
 			name: "missing block",
-			rule: waf.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
+			rule: wafRules.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
 			content: `
 	resource "azurerm_postgresql_flexible_server" "example" {
 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
+					Rule:    wafRules.AzurermPostgreSqlFlexibleServerCustomMaintenanceSchedule(),
 					Message: "The attribute `day_of_week` must be specified",
 				},
 			},

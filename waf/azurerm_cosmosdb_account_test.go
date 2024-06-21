@@ -12,6 +12,8 @@ import (
 )
 
 func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
+	wafRules := waf.WafRules{}
+
 	testCases := []struct {
 		name     string
 		rule     tflint.Rule
@@ -20,7 +22,7 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 	}{
 		{
 			name: "correct setting",
-			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			rule: wafRules.AzurermCosmosDbAccountBackupMode(),
 			content: `
 	variable "backup_type" {
 		type    = string
@@ -35,7 +37,7 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 		},
 		{
 			name: "incorrect setting",
-			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			rule: wafRules.AzurermCosmosDbAccountBackupMode(),
 			content: `
     variable "backup_type" {
 		type    = string
@@ -48,28 +50,28 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermCosmosDbAccountBackupMode(),
+					Rule:    wafRules.AzurermCosmosDbAccountBackupMode(),
 					Message: "Periodic is an invalid attribute value of `type` - expecting (one of) [Continuous]",
 				},
 			},
 		},
 		{
 			name: "missing block",
-			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			rule: wafRules.AzurermCosmosDbAccountBackupMode(),
 			content: `
 	resource "azurerm_cosmosdb_account" "example" {
 
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermCosmosDbAccountBackupMode(),
+					Rule:    wafRules.AzurermCosmosDbAccountBackupMode(),
 					Message: "The attribute `type` must be specified",
 				},
 			},
 		},
 		{
 			name: "missing block attribute",
-			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			rule: wafRules.AzurermCosmosDbAccountBackupMode(),
 			content: `
 	resource "azurerm_cosmosdb_account" "example" {
 		backup {
@@ -78,14 +80,14 @@ func TestAzurermCosmosDbAccountBackupMode(t *testing.T) {
 	}`,
 			expected: helper.Issues{
 				{
-					Rule:    waf.AzurermCosmosDbAccountBackupMode(),
+					Rule:    wafRules.AzurermCosmosDbAccountBackupMode(),
 					Message: "The attribute `type` must be specified",
 				},
 			},
 		},
 		{
 			name: "missing resource",
-			rule: waf.AzurermCosmosDbAccountBackupMode(),
+			rule: wafRules.AzurermCosmosDbAccountBackupMode(),
 			content: `
 	resource "something_else" "example" {
 
