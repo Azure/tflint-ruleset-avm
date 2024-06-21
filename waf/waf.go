@@ -8,7 +8,10 @@ import (
 
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
-
+// WafRules is a helper struct. Methods are created on this type that generate the rules for the WAF package.
+// We then use reflection to automatically generate a slice of the rules to add the the ruleset.
+// This avoids having to manually maintain a list of rules.
+// See `GetRules()` for more detail.
 type WafRules struct{}
 
 func GetRules() []tflint.Rule {
