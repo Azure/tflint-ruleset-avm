@@ -52,8 +52,7 @@ func (or *RequiredOutputRule) Link() string {
 
 // Enabled returns whether the rule is enabled.
 func (or *RequiredOutputRule) Enabled() bool {
-	// Removed as per spec change 20240621 https://github.com/Azure/Azure-Verified-Modules/pull/1028
-	return false
+	return true
 }
 
 // Severity returns the severity of the rule.
