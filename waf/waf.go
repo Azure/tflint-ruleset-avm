@@ -19,14 +19,11 @@ func GetRules() []tflint.Rule {
 	// Create a slice to add the rules to
 	rules := []tflint.Rule{}
 
-	// Get the type of the WafRules struct, so we can iterate it's functions
-	wafRulesType := reflect.TypeOf(WafRules{})
-
-	// Get an instance of the WefRules struct we can use to call functions on
+	// Get an instance of the WefRules struct we can use to iterate and call functions on
 	wafRulesInstance := reflect.ValueOf(WafRules{})
 
 	// Iterate over all the functions of the WafRules struct
-	for i := 0; i < wafRulesType.NumMethod(); i++ {
+	for i := 0; i < wafRulesInstance.NumMethod(); i++ {
 		// Get an instance of the function
 		methodInstance := wafRulesInstance.Method(i)
 
