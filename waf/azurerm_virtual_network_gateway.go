@@ -21,5 +21,6 @@ func (wf WafRules) AzurermVirtualNetworkGatewayVpnActiveActive() *attrvalue.Simp
 		"active_active",
 		[]bool{true},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/virtualNetworkGateways/#plan-for-active-active-mode-with-vpn-gateways",
+		""
 	)
 }
