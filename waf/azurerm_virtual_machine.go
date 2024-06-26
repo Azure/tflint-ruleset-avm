@@ -39,6 +39,7 @@ func (wf WafRules) AzurermWindowsVirtualMachineOSDiskDefaultSSD() *attrvalue.Sim
 		"storage_account_type",
 		[]string{"Premium_LRS", "Premium_ZRS", "PremiumV2_LRS"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Compute/virtualMachines/#mission-critical-workloads-should-consider-using-premium-or-ultra-disks",
+		false,
 		"",
 	)
 }
@@ -51,6 +52,7 @@ func (wf WafRules) AzurermLinuxVirtualMachineOSDiskDefaultSSD() *attrvalue.Simpl
 		"storage_account_type",
 		[]string{"Premium_LRS", "Premium_ZRS", "PremiumV2_LRS"},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Compute/virtualMachines/#mission-critical-workloads-should-consider-using-premium-or-ultra-disks",
+		false,
 		"",
 	)
 }
