@@ -14,3 +14,14 @@ func (wf WafRules) AzurermVirtualNetworkGatewaySku() *attrvalue.SimpleRule[strin
 		"",
 	)
 }
+
+func (wf WafRules) AzurermVirtualNetworkGatewayVpnActiveActive() *attrvalue.SimpleRule[bool] {
+	return attrvalue.NewSimpleRule[bool](
+		"azurerm_virtual_network_gateway",
+		"active_active",
+		[]bool{true},
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/virtualNetworkGateways/#plan-for-active-active-mode-with-vpn-gateways",
+		false,
+		"",
+	)
+}
