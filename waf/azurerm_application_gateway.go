@@ -23,3 +23,12 @@ func (wf WafRules) AzurermApplicationGatewaySku() *attrvalue.SimpleRule[string] 
 		"",
 	)
 }
+
+func (wf WafRules) AzurermApplicationGatewayFirewall() *attrvalue.UnknownValueRule {
+	return attrvalue.NewUnknownValueRule(
+		"azurerm_application_gateway",
+		"firewall_policy_id",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/applicationGateways/#enable-web-application-firewall-policies",
+		"",
+	)
+}
