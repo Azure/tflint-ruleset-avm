@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+
 	goverison "github.com/hashicorp/go-version"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
