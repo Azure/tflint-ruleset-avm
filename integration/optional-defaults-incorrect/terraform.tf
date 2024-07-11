@@ -6,7 +6,7 @@ terraform {
       version = ">= 3.97.0, < 4.0.0"
     }
     modtm = {
-      source  = "modtm/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3.0"
     }
 
