@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+	"strings"
 
 	goverison "github.com/hashicorp/go-version"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
@@ -89,7 +90,7 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 			if err = r.EvaluateExpr(providerAttr.Expr, &provider, &tflint.EvaluateExprOption{WantType: &wantType}); err != nil {
 				return err
 			}
-			if provider.Source != m.ProviderSource {
+			if !strings.EqualFold(provider.Source, m.ProviderSource) {
 				return r.EmitIssue(m, fmt.Sprintf("provider `%s`'s source should be %s, got %s", m.ProviderName, m.ProviderSource, provider.Source), providerAttr.Range)
 			}
 			constraint, err := goverison.NewConstraint(provider.Version)
