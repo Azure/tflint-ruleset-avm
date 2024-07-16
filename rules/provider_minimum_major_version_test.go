@@ -150,6 +150,22 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			}),
 			expected: helper.Issues{},
 		},
+		{
+			desc: "modtm defined with correct version constraint but different case",
+			config: `terraform {
+  required_providers {
+    modtm = {
+      source = "azure/modtm"
+      version = "~> 0.3.0"
+    }
+  }
+}`,
+			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
+				"0.2.999",
+				"1.0.0",
+			}),
+			expected: helper.Issues{},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
