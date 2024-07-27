@@ -14,3 +14,18 @@ func (wf WafRules) AzurermServicePlanZoneBalancingEnabled() *attrvalue.SimpleRul
 		"",
 	)
 }
+
+/*
+func (wf WafRules) AzurermServicePlanSku() *attrvalue.SimpleRule[string] {
+	return attrvalue.NewSimpleNestedBlockRule[string](
+		"azurerm_service_plan",
+		"sku_name",
+		"name",
+		[]string{"", ""},
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Web/serverFarms/#use-standard-or-premium-tier",
+		false,
+		"",
+	)
+}
+
+*/
