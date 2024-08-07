@@ -9,6 +9,7 @@ require (
 	github.com/Azure/tflint-ruleset-basic-ext v0.7.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.21.0
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/prashantv/gostub v1.1.0
@@ -16,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/terraform-linters/tflint v0.51.1
 	github.com/terraform-linters/tflint-plugin-sdk v0.20.0
-	github.com/zclconf/go-cty v1.14.4
+	github.com/zclconf/go-cty v1.15.0
 )
 
 require (
@@ -33,7 +34,6 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/terraform-json v0.21.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/kr/text v0.1.0 // indirect
