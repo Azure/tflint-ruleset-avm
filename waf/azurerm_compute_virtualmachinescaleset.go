@@ -26,7 +26,6 @@ func (wf WafRules) AutomaticRepairsPolicyEnabledWindows() *attrvalue.SimpleRule[
 	)
 }
 
-/*
 func (wf WafRules) AutoScaleEnabled() *attrvalue.SimpleRule[bool] {
 	return attrvalue.NewSimpleRule[bool](
 		"azurerm_monitor_autoscale_setting",
@@ -37,7 +36,6 @@ func (wf WafRules) AutoScaleEnabled() *attrvalue.SimpleRule[bool] {
 		"",
 	)
 }
-*/
 
 func (wf WafRules) ZoneBalanceDisabledLinux() *attrvalue.SimpleRule[bool] {
 	return attrvalue.NewSimpleRule[bool](
