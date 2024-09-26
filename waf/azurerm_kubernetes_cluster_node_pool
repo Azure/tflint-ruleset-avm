@@ -1,0 +1,4 @@
+package waf
+
+import "github.com/Azure/tflint-ruleset-avm/attrvalue"
+
