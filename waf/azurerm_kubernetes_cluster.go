@@ -34,7 +34,7 @@ func (wf WafRules) AzurermKubernetesClusterAutoScalingEnabled() *attrvalue.Simpl
 	)
 }
 
-func (wf WafRules) AzurermKubernetesClusterOMSAgentUnconfigured() *attrvalue.UnknownValueNestedBlockRule {
+func (wf WafRules) AzurermKubernetesClusterOMSAgentUnconfigured() *attrvalue.UnknownValueRule {
 	return attrvalue.NewUnknownValueNestedBlockRule(
 		"azurerm_kubernetes_cluster",
 		"oms_agent",
