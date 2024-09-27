@@ -1,3 +1,7 @@
+package waf
+
+import "github.com/Azure/tflint-ruleset-avm/attrvalue"
+
 func (wf WafRules) AzurermVirtualMachineUseMaintenanceConfiguration1() *attrvalue.UnknownValueRule {
 	return attrvalue.NewUnknownValueRule(
 		"azurerm_maintenance_assignment_virtual_machine",
