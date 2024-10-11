@@ -6,7 +6,7 @@ func (wf WafRules) AzurermVirtualMachineZoneUnknown() *attrvalue.UnknownValueRul
 	return attrvalue.NewUnknownValueRule(
 		"azurerm_virtual_machine",
 		"zone",
-		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/compute/virtual-machines/#vm-2---deploy-vms-across-availability-zones",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Compute/virtualMachines/#deploy-vms-across-availability-zones",
 		"",
 	)
 }
@@ -15,7 +15,7 @@ func (wf WafRules) AzurermVirtualMachineZonesUnknown() *attrvalue.UnknownValueRu
 	return attrvalue.NewUnknownValueRule(
 		"azurerm_virtual_machine",
 		"zones",
-		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/compute/virtual-machines/#vm-2---deploy-vms-across-availability-zones",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Compute/virtualMachines/#deploy-vms-across-availability-zones",
 		"",
 	)
 }
