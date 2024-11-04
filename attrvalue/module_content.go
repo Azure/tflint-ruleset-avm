@@ -122,7 +122,6 @@ func fetchAttrsAndContext(r AttrValueRule, runner tflint.Runner) (*terraform.Eva
 		},
 		Config:         config,
 		VariableValues: vvals,
-		CallStack:      terraform.NewCallStack(),
 		ModulePath:     addrs.RootModuleInstance,
 	}
 
@@ -160,7 +159,6 @@ func fetchResourcesAndContext(r AttrValueRule, runner tflint.Runner) (*terraform
 		},
 		Config:         config,
 		VariableValues: vvals,
-		CallStack:      terraform.NewCallStack(),
 		ModulePath:     addrs.RootModuleInstance,
 	}
 
