@@ -80,11 +80,16 @@ stages:
             inputs:
               packageType: 'sdk'
               version: '3.x'
-          - task: EsrpCodeSigning@1
+          - task: EsrpCodeSigning@5
             displayName: "Sign Binary (Windows Only)"
             condition: eq(variables.OS, 'windows')
             inputs:
-              ConnectedServiceName: "ESRP Signing Service"
+              ConnectedServiceName: '$(ESRPServiceConnectionName)' 
+              AppRegistrationClientId: '$(ESRPAppClientId)' 
+              AppRegistrationTenantId: '$(ESRPAppTenantId)' 
+              AuthAKVName: '$(ESRPKVName)' 
+              AuthCertName: '$(ESRPAuthCertName)' 
+              AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/build"
               Pattern: "*.exe"
               signConfigType: "inlineSignParams"
