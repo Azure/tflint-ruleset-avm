@@ -75,11 +75,6 @@ stages:
               OS: $(OS)
               ARCH: $(ARCH)
               VERSION: ${{ parameters.version }}
-          - task: UseDotNet@2
-            displayName: 'Install .NET SDK'
-            inputs:
-              packageType: 'sdk'
-              version: '3.x'
           - task: EsrpCodeSigning@5
             displayName: "Sign Binary (Windows Only)"
             condition: eq(variables.OS, 'windows')
