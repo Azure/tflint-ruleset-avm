@@ -26,8 +26,12 @@ var Rules = func() []tflint.Rule {
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
+			NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
+				"0.2.999",
+				"1.0.0",
+			}),
 		},
-		waf.Rules,
+		waf.GetRules(),
 		interfaces.Rules,
 		outputs.Rules,
 	)

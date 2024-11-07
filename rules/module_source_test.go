@@ -65,6 +65,14 @@ func TestModuleSource(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "source sub module, ok",
+			config: `module "other-module" {
+  source  = "./modules/my-sub-module"
+  version = "0.5.3"
+}`,
+			issues: helper.Issues{},
+		},
 	}
 
 	for _, tc := range cases {
