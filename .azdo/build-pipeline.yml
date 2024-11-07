@@ -75,16 +75,16 @@ stages:
               OS: $(OS)
               ARCH: $(ARCH)
               VERSION: ${{ parameters.version }}
-          - task: UseDotNet@2
-            displayName: 'Install .NET SDK'
-            inputs:
-              packageType: 'sdk'
-              version: '3.x'
-          - task: EsrpCodeSigning@1
+          - task: EsrpCodeSigning@5
             displayName: "Sign Binary (Windows Only)"
             condition: eq(variables.OS, 'windows')
             inputs:
-              ConnectedServiceName: "ESRP Signing Service"
+              ConnectedServiceName: '$(ESRPServiceConnectionName)' 
+              AppRegistrationClientId: '$(ESRPAppClientId)' 
+              AppRegistrationTenantId: '$(ESRPAppTenantId)' 
+              AuthAKVName: '$(ESRPKVName)' 
+              AuthCertName: '$(ESRPAuthCertName)' 
+              AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/build"
               Pattern: "*.exe"
               signConfigType: "inlineSignParams"
@@ -177,15 +177,15 @@ stages:
             displayName: "Prepare Binary Archives & Digests"
             env:
               VERSION: ${{ parameters.version }}
-          - task: UseDotNet@2
-            displayName: 'Install .NET SDK'
-            inputs:
-              packageType: 'sdk'
-              version: '3.x'
-          - task: EsrpCodeSigning@1
+          - task: EsrpCodeSigning@5
             displayName: "Sign Binary Archive Digests"
             inputs:
-              ConnectedServiceName: "ESRP Signing Service"
+              ConnectedServiceName: '$(ESRPServiceConnectionName)' 
+              AppRegistrationClientId: '$(ESRPAppClientId)' 
+              AppRegistrationTenantId: '$(ESRPAppTenantId)' 
+              AuthAKVName: '$(ESRPKVName)' 
+              AuthCertName: '$(ESRPAuthCertName)' 
+              AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/release"
               Pattern: "checksums.txt.sig"
               signConfigType: "inlineSignParams"
