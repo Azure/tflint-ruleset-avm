@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-version v1.7.0
-	github.com/hashicorp/hcl/v2 v2.22.0
+	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/prashantv/gostub v1.1.0
 	github.com/spf13/afero v1.11.0
