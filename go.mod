@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/terraform-linters/tflint v0.53.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.21.0
-	github.com/zclconf/go-cty v1.15.0
+	github.com/zclconf/go-cty v1.15.1
 )
 
 require (
