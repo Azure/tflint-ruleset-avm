@@ -98,7 +98,7 @@ func (b *baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (bo
 
 func (b *baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.Attribute, cty.Value) error) error {
 	ctx, attrs, diags := fetchAttrsAndContext(b, r)
-	if diags.HasErrors() && b.failOnEvaluationError {
+	if diags.HasErrors() {
 		if b.failOnEvaluationError {
 			return fmt.Errorf("could not get partial content: %s", diags)
 		}
