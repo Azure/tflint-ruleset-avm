@@ -33,7 +33,7 @@ var Rules = func() []tflint.Rule {
 				"1.9.999",
 				"3.0.0",
 			}, false),
-			NewProviderVersionRule("azapi", "hashicorp/azurerm", "~> 4.0", []string{
+			NewProviderVersionRule("azurerm", "hashicorp/azurerm", "~> 4.0", []string{
 				"3.199.999",
 				"5.0.0",
 			}, false),
