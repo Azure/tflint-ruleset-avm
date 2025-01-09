@@ -5,22 +5,23 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-var _ tflint.Runner = &issueCollectDummyRunner{}
+var _ tflint.Runner = &dummyRunner{}
 
-type issueCollectDummyRunner struct {
+// dummyRunner is used in `valid_template_interpolation` rule to run other WAF rules, but we just want to probe potential interpolation errors, not emit issues, so we wrap the actual runner with this dummy runner, swallow all emitted issues.
+type dummyRunner struct {
 	tflint.Runner
 }
 
-func newIssueCollectDummyRunner(runner tflint.Runner) *issueCollectDummyRunner {
-	return &issueCollectDummyRunner{
+func newIssueCollectDummyRunner(runner tflint.Runner) *dummyRunner {
+	return &dummyRunner{
 		Runner: runner,
 	}
 }
 
-func (r *issueCollectDummyRunner) EmitIssue(rule tflint.Rule, message string, issueRange hcl.Range) error {
+func (r *dummyRunner) EmitIssue(rule tflint.Rule, message string, issueRange hcl.Range) error {
 	return nil
 }
 
-func (r *issueCollectDummyRunner) EmitIssueWithFix(rule tflint.Rule, message string, issueRange hcl.Range, fixFunc func(f tflint.Fixer) error) error {
+func (r *dummyRunner) EmitIssueWithFix(rule tflint.Rule, message string, issueRange hcl.Range, fixFunc func(f tflint.Fixer) error) error {
 	return nil
 }
