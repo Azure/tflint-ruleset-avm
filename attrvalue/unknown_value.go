@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
-
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -12,7 +11,7 @@ import (
 // UnknownValueRule checks whether an attribute value is null or part of a variable with no default value.
 type UnknownValueRule struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
-	baseValue
+	*baseValue
 	ruleName string
 }
 

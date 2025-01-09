@@ -4,10 +4,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/prashantv/gostub"
 	"github.com/spf13/afero"
-
-	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )

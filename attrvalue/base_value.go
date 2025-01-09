@@ -8,18 +8,24 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-var _ AttrValueRule = baseValue{}
-
-type baseValue struct {
-	resourceType    string // e.g. "azurerm_storage_account"
-	nestedBlockType *string
-	attributeName   string // e.g. "account_replication_type"
-	enabled         bool
-	link            string
-	severity        tflint.Severity
+type PartialContentEvaluationRule interface {
+	EnableFailOnEvaluationError()
 }
 
-func (b baseValue) GetNestedBlockType() *string {
+var _ AttrValueRule = &baseValue{}
+var _ PartialContentEvaluationRule = &baseValue{}
+
+type baseValue struct {
+	resourceType          string // e.g. "azurerm_storage_account"
+	nestedBlockType       *string
+	attributeName         string // e.g. "account_replication_type"
+	enabled               bool
+	link                  string
+	severity              tflint.Severity
+	failOnEvaluationError bool
+}
+
+func (b *baseValue) GetNestedBlockType() *string {
 	return b.nestedBlockType
 }
 
@@ -30,8 +36,8 @@ func newBaseValue(
 	enabled bool,
 	link string,
 	severity tflint.Severity,
-) baseValue {
-	return baseValue{
+) *baseValue {
+	return &baseValue{
 		resourceType:    resourceType,
 		nestedBlockType: nestedBlockType,
 		attributeName:   attributeName,
@@ -41,26 +47,33 @@ func newBaseValue(
 	}
 }
 
-func (b baseValue) GetResourceType() string {
+func (b *baseValue) GetResourceType() string {
 	return b.resourceType
 }
 
-func (b baseValue) GetAttributeName() string {
+func (b *baseValue) GetAttributeName() string {
 	return b.attributeName
 }
 
-func (b baseValue) Enabled() bool {
+func (b *baseValue) Enabled() bool {
 	return b.enabled
 }
 
-func (b baseValue) Severity() tflint.Severity {
+func (b *baseValue) Severity() tflint.Severity {
 	return b.severity
 }
 
-func (b baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (bool, *hclext.Block, error) {
-	_, resources, diags := fetchResourcesAndContext(b, r)
+func (b *baseValue) EnableFailOnEvaluationError() {
+	b.failOnEvaluationError = true
+}
+
+func (b *baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (bool, *hclext.Block, error) {
+	resources, _, diags := fetchResourcesAndContext(b, r)
 	if diags.HasErrors() {
-		return false, nil, fmt.Errorf("could not get partial content: %s", diags)
+		if b.failOnEvaluationError {
+			return false, nil, fmt.Errorf("could not get partial content: %s", diags)
+		}
+		return true, nil, nil
 	}
 
 	if len(resources) == 0 {
@@ -83,10 +96,13 @@ func (b baseValue) attributeExistsWhereResourceIsSpecified(r tflint.Runner) (boo
 	return true, nil, nil
 }
 
-func (b baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.Attribute, cty.Value) error) error {
+func (b *baseValue) checkAttributes(r tflint.Runner, ct cty.Type, c func(*hclext.Attribute, cty.Value) error) error {
 	ctx, attrs, diags := fetchAttrsAndContext(b, r)
-	if diags.HasErrors() {
-		return fmt.Errorf("could not get partial content: %s", diags)
+	if diags.HasErrors() && b.failOnEvaluationError {
+		if b.failOnEvaluationError {
+			return fmt.Errorf("could not get partial content: %s", diags)
+		}
+		return nil
 	}
 	for _, attr := range attrs {
 		val, diags := ctx.EvaluateExpr(attr.Expr, ct)

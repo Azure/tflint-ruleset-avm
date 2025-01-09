@@ -29,6 +29,7 @@ var Rules = func() []tflint.Rule {
 				"0.2.999",
 				"1.0.0",
 			}),
+			NewValidTemplateInterpolationRule(),
 		},
 		waf.GetRules(),
 		interfaces.Rules,
