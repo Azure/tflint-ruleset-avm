@@ -25,7 +25,7 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.99",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{},
 		},
 		{
@@ -35,7 +35,7 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.99",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{},
 		},
 		{
@@ -51,16 +51,32 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{
 				{
 					Rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 						"0.2.999",
 						"1.0.0",
-					}),
+					}, true),
 					Message: "`modtm` provider should be declared in the `required_providers` block",
 				},
 			},
+		},
+		{
+			desc: "no modtm defined in required_providers but not mandatory - ok",
+			config: `terraform{
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "3.111.0"
+    }
+  }
+}`,
+			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
+				"0.2.999",
+				"1.0.0",
+			}, false),
+			expected: helper.Issues{},
 		},
 		{
 			desc: "modtm defined in required_providers with incorrect source emit issue",
@@ -75,13 +91,13 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{
 				{
 					Rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 						"0.2.999",
 						"1.0.0",
-					}),
+					}, true),
 					Message: "provider `modtm`'s source should be Azure/modtm, got notAzure/modtm",
 				},
 			},
@@ -99,13 +115,13 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{
 				{
 					Rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 						"0.2.999",
 						"1.0.0",
-					}),
+					}, true),
 					Message: "this module should not support provider `modtm` version 0.2.999, recommended version constraint: ~> 0.3",
 				},
 			},
@@ -123,13 +139,13 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{
 				{
 					Rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 						"0.2.999",
 						"1.0.0",
-					}),
+					}, true),
 					Message: "this module should not support provider `modtm` version 1.0.0, recommended version constraint: ~> 0.3",
 				},
 			},
@@ -147,7 +163,7 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{},
 		},
 		{
@@ -163,7 +179,7 @@ func TestModtmProviderVersionRule(t *testing.T) {
 			rule: rules.NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
 				"0.2.999",
 				"1.0.0",
-			}),
+			}, true),
 			expected: helper.Issues{},
 		},
 	}
