@@ -51,7 +51,7 @@ func (wf WafRules) ZoneBalanceDisabledLinux() *attrvalue.SimpleRule[bool] {
 func (wf WafRules) ZoneBalanceDisabledWindows() *attrvalue.SimpleRule[bool] {
 	return attrvalue.NewSimpleRule[bool](
 		"azurerm_windows_virtual_machine_scale_set",
-		"zone_balance ",
+		"zone_balance",
 		[]bool{false},
 		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Compute/virtualMachineScaleSets/#disable-force-strictly-even-balance-across-zones-to-avoid-scale-in-and-out-fail-attempts",
 		false,
