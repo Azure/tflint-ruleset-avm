@@ -14,7 +14,7 @@ import (
 // It can be used to check string, number, and bool attributes.
 type SimpleRule[T any] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
-	baseValue
+	*baseValue
 	expectedValues []T // e.g. []string{"ZRS"}
 	mustExist      bool
 	ruleName       string

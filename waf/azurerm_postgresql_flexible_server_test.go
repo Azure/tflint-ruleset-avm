@@ -3,10 +3,9 @@ package waf_test
 import (
 	"testing"
 
-	"github.com/prashantv/gostub"
-
 	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/Azure/tflint-ruleset-avm/waf"
+	"github.com/prashantv/gostub"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )

@@ -14,7 +14,7 @@ import (
 // It is not concerned with the order of the numbers in the list.
 type SetRule[T cmp.Ordered] struct {
 	tflint.DefaultRule // Embed the default rule to reuse its implementation
-	baseValue
+	*baseValue
 	expectedValues [][]T // e.g. [][int{1, 2, 3}]
 	ruleName       string
 }
