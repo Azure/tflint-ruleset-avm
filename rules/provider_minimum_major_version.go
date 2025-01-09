@@ -18,14 +18,16 @@ type ProviderVersionRule struct {
 	ProviderSource               string
 	RecommendedVersionConstraint string
 	VersionsShouldFailed         []string
+	MustExist                    bool
 }
 
-func NewProviderVersionRule(providerName, providerSource, recommendedVersion string, versionsShouldFailed []string) *ProviderVersionRule {
+func NewProviderVersionRule(providerName, providerSource, recommendedVersion string, versionsShouldFailed []string, mustExist bool) *ProviderVersionRule {
 	return &ProviderVersionRule{
 		ProviderName:                 providerName,
 		ProviderSource:               providerSource,
 		RecommendedVersionConstraint: recommendedVersion,
 		VersionsShouldFailed:         versionsShouldFailed,
+		MustExist:                    mustExist,
 	}
 }
 
@@ -115,7 +117,7 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 	if !requiredProviderFound {
 		return nil
 	}
-	if !providerFound {
+	if !providerFound && m.MustExist {
 		return r.EmitIssue(m, fmt.Sprintf("`%s` provider should be declared in the `required_providers` block", m.ProviderName), content.Blocks[0].DefRange)
 	}
 	return nil
