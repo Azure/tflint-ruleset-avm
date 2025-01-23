@@ -23,3 +23,24 @@ func (wf WafRules) AzurermApplicationGatewaySku() *attrvalue.SimpleRule[string] 
 		"",
 	)
 }
+
+func (wf WafRules) AzurermApplicationGatewayFirewall() *attrvalue.UnknownValueRule {
+	return attrvalue.NewUnknownValueRule(
+		"azurerm_application_gateway",
+		"firewall_policy_id",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/applicationGateways/#enable-web-application-firewall-policies",
+		"",
+	)
+}
+
+func (wf WafRules) AzurermApplicationGatewayListenerHttps() *attrvalue.SimpleRule[string] {
+	return attrvalue.NewSimpleNestedBlockRule[string](
+		"azurerm_application_gateway",
+		"http_listener",
+		"protocol",
+		[]string{"https", "HTTPS", "Https"},
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/applicationGateways/#secure-all-incoming-connections-with-ssl",
+		false,
+		"",
+	)
+}
