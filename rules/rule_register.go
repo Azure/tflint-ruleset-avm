@@ -25,18 +25,9 @@ var Rules = func() []tflint.Rule {
 			Wrap(azurerm.NewAzurermResourceTagRule()),
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),
-			NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
-				"0.2.999",
-				"1.0.0",
-			}, true),
-			NewProviderVersionRule("azapi", "Azure/azapi", "~> 2.0", []string{
-				"1.9.999",
-				"3.0.0",
-			}, false),
-			NewProviderVersionRule("azurerm", "hashicorp/azurerm", "~> 4.0", []string{
-				"3.199.999",
-				"5.0.0",
-			}, false),
+			NewProviderVersionRule("modtm", "Azure/modtm", "0.3.0", "~> 0.3", true),
+			NewProviderVersionRule("azapi", "Azure/azapi", "2.999.0", "~> 2.0", false),
+			NewProviderVersionRule("azurerm", "hashicorp/azurerm", "4.999.0", "~> 4.0", false),
 			NewValidTemplateInterpolationRule(),
 		},
 		waf.GetRules(),
