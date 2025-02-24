@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.0
 	github.com/Azure/tflint-ruleset-basic-ext v0.7.1
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/hcl/v2 v2.23.0
