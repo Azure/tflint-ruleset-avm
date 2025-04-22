@@ -50,7 +50,9 @@ func TestIntegration(t *testing.T) {
 	}
 
 	dir, _ := os.Getwd()
-	defer os.Chdir(dir)
+	defer func() {
+		_ = os.Chdir(dir)
+	}()
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {

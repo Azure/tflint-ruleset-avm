@@ -100,14 +100,13 @@ func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclext.Block) erro
 
 func (t *ModuleSourceRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
 	return func(source string) error {
-		if !((strings.HasPrefix(source, "Azure/") && strings.Contains(source, "avm-")) || strings.HasPrefix(source, "./modules/")) {
-			return r.EmitIssue(
-				t,
-				"The `source` property constraint should start with `Azure/` and contain `avm-` to only involve AVM Module",
-				issueRange,
-			)
+		if (strings.HasPrefix(source, "Azure/") && strings.Contains(source, "avm-")) || strings.HasPrefix(source, "./modules/") {
+			return nil
 		}
-
-		return nil
+		return r.EmitIssue(
+			t,
+			"The `source` property constraint should start with `Azure/` and contain `avm-` to only involve AVM Module",
+			issueRange,
+		)
 	}
 }
