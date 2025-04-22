@@ -1,13 +1,9 @@
 package rules_test
 
 import (
-	"os"
 	"testing"
 
-	"github.com/Azure/tflint-ruleset-avm/attrvalue"
 	"github.com/Azure/tflint-ruleset-avm/rules"
-	"github.com/prashantv/gostub"
-	"github.com/spf13/afero"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
@@ -147,18 +143,10 @@ func TestModtmProviderVersionRule(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
 			runner := helper.TestRunner(t, map[string]string{"main.tf": c.config})
-			stub := gostub.Stub(&attrvalue.AppFs, mockFs(c.config))
-			defer stub.Reset()
 			if err := c.rule.Check(runner); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			helper.AssertIssuesWithoutRange(t, c.expected, runner.Issues)
 		})
 	}
-}
-
-func mockFs(c string) afero.Afero {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "main.tf", []byte(c), os.ModePerm)
-	return afero.Afero{Fs: fs}
 }
