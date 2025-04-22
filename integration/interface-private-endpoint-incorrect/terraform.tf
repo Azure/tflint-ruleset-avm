@@ -12,7 +12,3 @@ terraform {
 
   }
 }
-module "other-module" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.5.3"
-}

@@ -15,5 +15,5 @@ var ManagedIdentities = AvmInterface{
 	RuleName:      "managed_identities",
 	VarTypeString: ManagedIdentitiesTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#managed-identities",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#managed-identities",
 }
