@@ -12,12 +12,6 @@ type dummyRunner struct {
 	tflint.Runner
 }
 
-func newIssueCollectDummyRunner(runner tflint.Runner) *dummyRunner {
-	return &dummyRunner{
-		Runner: runner,
-	}
-}
-
 func (r *dummyRunner) EmitIssue(rule tflint.Rule, message string, issueRange hcl.Range) error {
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-version"
 	goverison "github.com/hashicorp/go-version"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -45,7 +44,7 @@ func (m *ProviderVersionRule) Severity() tflint.Severity {
 }
 
 func (m *ProviderVersionRule) Check(r tflint.Runner) error {
-	ver, err := version.NewVersion(m.Version)
+	ver, err := goverison.NewVersion(m.Version)
 	if err != nil {
 		return fmt.Errorf("invalid version constraint: %s", err)
 	}
@@ -104,8 +103,11 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 			if err != nil {
 				return fmt.Errorf("invalid version constraint: %s", err)
 			}
-			if !constraint.Check(ver) {
-				r.EmitIssue(m, fmt.Sprintf("provider `%s`'s version should satisfy %s, got %s. Recommended version constraint `%s`", m.ProviderName, m.Version, provider.Version, m.RecommendedConstraint), providerAttr.Range)
+			if constraint.Check(ver) {
+				continue
+			}
+			if err = r.EmitIssue(m, fmt.Sprintf("provider `%s`'s version should satisfy %s, got %s. Recommended version constraint `%s`", m.ProviderName, m.Version, provider.Version, m.RecommendedConstraint), providerAttr.Range); err != nil {
+				return err
 			}
 		}
 	}
