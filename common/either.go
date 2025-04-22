@@ -54,7 +54,7 @@ func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 	}
 	sr := runners[e.primaryRule]
 	for _, issue := range sr.issues {
-		if err := runner.EmitIssue(e, issue.message, issue.issueRange); err != nil {
+		if err := runner.EmitIssue(e.primaryRule, issue.message, issue.issueRange); err != nil {
 			return err
 		}
 	}

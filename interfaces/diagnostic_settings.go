@@ -25,5 +25,5 @@ var DiagnosticSettings = AvmInterface{
 	RuleName:      "diagnostic_settings",
 	VarTypeString: DiagnosticTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#diagnostic-settings",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings",
 }

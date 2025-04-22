@@ -6,10 +6,9 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/matt-FFFFFF/tfvarcheck/check"
 	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
-	"github.com/zclconf/go-cty/cty"
-
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+	"github.com/zclconf/go-cty/cty"
 )
 
 // variableBodySchema is the schema for the variable block that we want to extract from the config.
