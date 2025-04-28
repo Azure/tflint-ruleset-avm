@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.2
 
 require (
-	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.0
+	github.com/Azure/tflint-ruleset-azurerm-ext v0.6.1
 	github.com/Azure/tflint-ruleset-basic-ext v0.7.1
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -34,11 +34,11 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-plugin v1.6.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/hashicorp/terraform-json v0.21.0 // indirect
+	github.com/hashicorp/terraform-json v0.22.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lonegunmanb/terraform-azurerm-schema/v3 v3.97.1 // indirect
+	github.com/lonegunmanb/terraform-azurerm-schema/v3 v3.108.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
