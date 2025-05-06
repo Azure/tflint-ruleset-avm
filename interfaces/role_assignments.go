@@ -26,5 +26,5 @@ var RoleAssignments = AvmInterface{
 	RuleName:      "role_assignments",
 	VarTypeString: RoleAssignmentsTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#role-assignments",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments",
 }

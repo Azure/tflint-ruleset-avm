@@ -23,34 +23,21 @@ func TestIntegration(t *testing.T) {
 		Dir     string
 	}{
 		{
-			Name:    "optional-defaults",
+			Name:    "interface-private-endpoint",
 			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "optional-defaults",
+			Dir:     "interface-private-endpoint",
 		},
 		{
-			Name:    "optional-defaults-incorrect",
+			Name:    "interface-private-endpoint-incorrect",
 			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "optional-defaults-incorrect",
-		},
-		{
-			Name:    "simplevaluerule-null-value",
-			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "simplevaluerule-null-value",
-		},
-		{
-			Name:    "unknownrule-null",
-			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "unknownrule-null",
-		},
-		{
-			Name:    "unknownrule-null-incorrect",
-			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "unknownrule-null-incorrect",
+			Dir:     "interface-private-endpoint-incorrect",
 		},
 	}
 
 	dir, _ := os.Getwd()
-	defer os.Chdir(dir)
+	defer func() {
+		_ = os.Chdir(dir)
+	}()
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {

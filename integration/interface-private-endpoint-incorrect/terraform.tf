@@ -3,15 +3,12 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.97.0, < 4.0.0"
+      version = "~> 4.0"
     }
     modtm = {
       source  = "Azure/modtm"
       version = "~> 0.3.0"
     }
+
   }
-}
-module "other-module" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.5.3"
 }

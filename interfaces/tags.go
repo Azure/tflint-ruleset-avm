@@ -17,5 +17,5 @@ var Tags = AvmInterface{
 	RuleName:      "tags",
 	VarTypeString: TagsTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#tags",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags",
 }

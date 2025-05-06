@@ -14,23 +14,25 @@ var _ tflint.Rule = new(ProviderVersionRule)
 
 type ProviderVersionRule struct {
 	tflint.DefaultRule
-	ProviderName                 string
-	ProviderSource               string
-	RecommendedVersionConstraint string
-	VersionsShouldFailed         []string
+	ProviderName          string
+	ProviderSource        string
+	Version               string
+	RecommendedConstraint string
+	MustExist             bool
 }
 
-func NewProviderVersionRule(providerName, providerSource, recommendedVersion string, versionsShouldFailed []string) *ProviderVersionRule {
+func NewProviderVersionRule(providerName, providerSource, ver, recConstr string, mustExist bool) *ProviderVersionRule {
 	return &ProviderVersionRule{
-		ProviderName:                 providerName,
-		ProviderSource:               providerSource,
-		RecommendedVersionConstraint: recommendedVersion,
-		VersionsShouldFailed:         versionsShouldFailed,
+		ProviderName:          providerName,
+		ProviderSource:        providerSource,
+		Version:               ver,
+		MustExist:             mustExist,
+		RecommendedConstraint: recConstr,
 	}
 }
 
 func (m *ProviderVersionRule) Name() string {
-	return fmt.Sprintf("provider_%s_version", m.ProviderName)
+	return fmt.Sprintf("provider_%s_version_constraint", m.ProviderName)
 }
 
 func (m *ProviderVersionRule) Enabled() bool {
@@ -42,6 +44,10 @@ func (m *ProviderVersionRule) Severity() tflint.Severity {
 }
 
 func (m *ProviderVersionRule) Check(r tflint.Runner) error {
+	ver, err := goverison.NewVersion(m.Version)
+	if err != nil {
+		return fmt.Errorf("invalid version constraint: %s", err)
+	}
 	content, err := r.GetModuleContent(&hclext.BodySchema{
 		Blocks: []hclext.BlockSchema{
 			{
@@ -95,27 +101,20 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 			}
 			constraint, err := goverison.NewConstraint(provider.Version)
 			if err != nil {
+				return fmt.Errorf("invalid version constraint: %s", err)
+			}
+			if constraint.Check(ver) {
+				continue
+			}
+			if err = r.EmitIssue(m, fmt.Sprintf("provider `%s`'s version should satisfy %s, got %s. Recommended version constraint `%s`", m.ProviderName, m.Version, provider.Version, m.RecommendedConstraint), providerAttr.Range); err != nil {
 				return err
-			}
-			var versionsShouldFailed []*goverison.Version
-			for _, v := range m.VersionsShouldFailed {
-				testVersion, err := goverison.NewVersion(v)
-				if err != nil {
-					return err
-				}
-				versionsShouldFailed = append(versionsShouldFailed, testVersion)
-			}
-			for i, v := range versionsShouldFailed {
-				if constraint.Check(v) {
-					return r.EmitIssue(m, fmt.Sprintf("this module should not support provider `%s` version %s, recommended version constraint: %s", m.ProviderName, m.VersionsShouldFailed[i], m.RecommendedVersionConstraint), providerAttr.Range)
-				}
 			}
 		}
 	}
 	if !requiredProviderFound {
 		return nil
 	}
-	if !providerFound {
+	if !providerFound && m.MustExist {
 		return r.EmitIssue(m, fmt.Sprintf("`%s` provider should be declared in the `required_providers` block", m.ProviderName), content.Blocks[0].DefRange)
 	}
 	return nil

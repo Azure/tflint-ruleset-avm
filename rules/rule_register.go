@@ -5,7 +5,6 @@ import (
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/outputs"
-	"github.com/Azure/tflint-ruleset-avm/waf"
 	azurerm "github.com/Azure/tflint-ruleset-azurerm-ext/rules"
 	basic "github.com/Azure/tflint-ruleset-basic-ext/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -26,12 +25,10 @@ var Rules = func() []tflint.Rule {
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
-			NewProviderVersionRule("modtm", "Azure/modtm", "~> 0.3", []string{
-				"0.2.999",
-				"1.0.0",
-			}),
+			NewProviderVersionRule("modtm", "Azure/modtm", "0.3.0", "~> 0.3", true),
+			NewProviderVersionRule("azapi", "Azure/azapi", "2.999.0", "~> 2.0", false),
+			NewProviderVersionRule("azurerm", "hashicorp/azurerm", "4.999.0", "~> 4.0", false),
 		},
-		waf.GetRules(),
 		interfaces.Rules,
 		outputs.Rules,
 	)
