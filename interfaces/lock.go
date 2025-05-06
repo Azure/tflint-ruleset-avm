@@ -21,6 +21,6 @@ var Lock = AvmInterface{
 	RuleName:      "lock",
 	VarTypeString: LockTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#resource-locks",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks",
 	RuleSeverity:  tflint.ERROR,
 }

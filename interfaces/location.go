@@ -15,6 +15,6 @@ var Location = AvmInterface{
 	RuleName:      "location",
 	VarTypeString: LocationTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-rmnfr2---category-inputs---parametervariable-naming",
+	RuleLink:      "",
 	RuleSeverity:  tflint.ERROR,
 }

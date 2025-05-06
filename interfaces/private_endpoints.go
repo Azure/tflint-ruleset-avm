@@ -41,5 +41,5 @@ var PrivateEndpoints = AvmInterface{
 	RuleName:      "private_endpoints",
 	VarTypeString: PrivateEndpointTypeString,
 	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/shared/interfaces/#private-endpoints",
+	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints",
 }
