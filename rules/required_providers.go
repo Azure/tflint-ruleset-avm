@@ -217,15 +217,19 @@ func (t *RequiredProvidersRule) checkRequiredProvidersVersion(r tflint.Runner, p
 	file, _ := r.GetFile(providerBlock.Range().Filename)
 
 	for _, v := range providerBlock.Body.Attributes {
-		if provider, ok := v.Expr.(*hclsyntax.ObjectConsExpr); ok {
-			for _, item := range provider.Items {
-				attrType := string(item.KeyExpr.Range().SliceBytes(file.Bytes))
-				if attrType != "version" {
-					continue
-				}
+		switch provider := v.Expr.(type) {
+		case *hclsyntax.ObjectConsExpr:
+			{
+				for _, item := range provider.Items {
+					attrType := string(item.KeyExpr.Range().SliceBytes(file.Bytes))
+					if attrType != "version" {
+						continue
+					}
 
-				attrVal := string(item.ValueExpr.Range().SliceBytes(file.Bytes))
-				if !strings.Contains(attrVal, "~>") && !(strings.Contains(attrVal, ">") && strings.Contains(attrVal, "<")) {
+					attrVal := string(item.ValueExpr.Range().SliceBytes(file.Bytes))
+					if strings.Contains(attrVal, "~>") || (strings.Contains(attrVal, ">") && strings.Contains(attrVal, "<")) {
+						continue
+					}
 					errList = multierror.Append(errList, r.EmitIssue(
 						t,
 						"The `version` property constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
@@ -233,30 +237,35 @@ func (t *RequiredProvidersRule) checkRequiredProvidersVersion(r tflint.Runner, p
 					))
 				}
 			}
-		} else if provider, ok := v.Expr.(*hclsyntax.TemplateExpr); ok {
-			versionVal, diags := provider.Value(nil)
-			if diags.HasErrors() {
-				errList = multierror.Append(errList, r.EmitIssue(
-					t,
-					diags.Error(),
-					provider.Range(),
-				))
-			}
+		case *hclsyntax.TemplateExpr:
+			{
+				versionVal, diags := provider.Value(nil)
+				if diags.HasErrors() {
+					errList = multierror.Append(errList, r.EmitIssue(
+						t,
+						diags.Error(),
+						provider.Range(),
+					))
+				}
 
-			version := versionVal.AsString()
-			if !strings.Contains(version, "~>") && !(strings.Contains(version, ">") && strings.Contains(version, "<")) {
+				version := versionVal.AsString()
+				if strings.Contains(version, "~>") || (strings.Contains(version, ">") && strings.Contains(version, "<")) {
+					continue
+				}
 				errList = multierror.Append(errList, r.EmitIssue(
 					t,
 					"The provider version constraint can use the ~> #.# or the >= #.#.#, < #.#.# format",
 					provider.Range(),
 				))
 			}
-		} else {
-			errList = multierror.Append(errList, r.EmitIssue(
-				t,
-				"The provider only supports string type and block type",
-				provider.Range(),
-			))
+		default:
+			{
+				errList = multierror.Append(errList, r.EmitIssue(
+					t,
+					"The provider only supports string type and block type",
+					provider.Range(),
+				))
+			}
 		}
 	}
 
