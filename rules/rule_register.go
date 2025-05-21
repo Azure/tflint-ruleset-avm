@@ -24,6 +24,7 @@ var Rules = func() []tflint.Rule {
 			Wrap(azurerm.NewAzurermResourceTagRule()),
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),
+			NewRequiredProvidersRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
 			NewProviderVersionRule("modtm", "Azure/modtm", "0.3.0", "~> 0.3", true),
 			NewProviderVersionRule("azapi", "Azure/azapi", "2.999.0", "~> 2.0", false),
