@@ -10,6 +10,8 @@ parameters:
 variables:
   - name: pipelineId
     value: 377
+  - group: AME ESRP Variable Group
+
 
 stages:
   - stage: build
