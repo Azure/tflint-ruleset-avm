@@ -77,15 +77,20 @@ stages:
               OS: $(OS)
               ARCH: $(ARCH)
               VERSION: ${{ parameters.version }}
-          - task: EsrpCodeSigning@5
+          - task: UseDotNet@2
+            displayName: 'Install .NET SDK'
+            inputs:
+              packageType: 'sdk'
+              version: "6.x"
+          - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
             displayName: "Sign Binary (Windows Only)"
             condition: eq(variables.OS, 'windows')
             inputs:
-              ConnectedServiceName: '$(ESRPServiceConnectionName)' 
-              AppRegistrationClientId: '$(ESRPAppClientId)' 
-              AppRegistrationTenantId: '$(ESRPAppTenantId)' 
-              AuthAKVName: '$(ESRPKVName)' 
-              AuthCertName: '$(ESRPAuthCertName)' 
+              ConnectedServiceName: '$(ESRPServiceConnectionName)'
+              AppRegistrationClientId: '$(ESRPAppClientId)'
+              AppRegistrationTenantId: '$(ESRPAppTenantId)'
+              AuthAKVName: '$(ESRPKVName)'
+              AuthCertName: '$(ESRPAuthCertName)'
               AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/build"
               Pattern: "*.exe"
@@ -179,17 +184,22 @@ stages:
             displayName: "Prepare Binary Archives & Digests"
             env:
               VERSION: ${{ parameters.version }}
-          - task: EsrpCodeSigning@5
+          - task: UseDotNet@2
+            displayName: 'Install .NET SDK'
+            inputs:
+              packageType: 'sdk'
+              version: "6.x"
+          - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
             displayName: "Sign Binary Archive Digests"
             inputs:
-              ConnectedServiceName: '$(ESRPServiceConnectionName)' 
-              AppRegistrationClientId: '$(ESRPAppClientId)' 
-              AppRegistrationTenantId: '$(ESRPAppTenantId)' 
-              AuthAKVName: '$(ESRPKVName)' 
-              AuthCertName: '$(ESRPAuthCertName)' 
+              ConnectedServiceName: '$(ESRPServiceConnectionName)'
+              AppRegistrationClientId: '$(ESRPAppClientId)'
+              AppRegistrationTenantId: '$(ESRPAppTenantId)'
+              AuthAKVName: '$(ESRPKVName)'
+              AuthCertName: '$(ESRPAuthCertName)'
               AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/release"
-              Pattern: "checksums.txt.sig"
+              Pattern: "*_SHA256SUMS.sig"
               signConfigType: "inlineSignParams"
               inlineOperation: |
                 [
