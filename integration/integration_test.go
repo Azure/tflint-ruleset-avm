@@ -64,8 +64,3 @@ func TestIntegration(t *testing.T) {
 func p[T any](v T) *T {
 	return &v
 }
-
-func IsWindowsResultExist() bool {
-	_, err := os.Stat("result_windows.json")
-	return !os.IsNotExist(err)
-}
