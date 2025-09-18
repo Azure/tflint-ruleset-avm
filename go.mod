@@ -11,7 +11,7 @@ require (
 	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/stretchr/testify v1.11.1
 	github.com/terraform-linters/tflint-plugin-sdk v0.22.0
-	github.com/zclconf/go-cty v1.16.3
+	github.com/zclconf/go-cty v1.17.0
 )
 
 require (
