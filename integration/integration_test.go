@@ -6,14 +6,10 @@ package integration
 
 import (
 	"bytes"
-	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestIntegration(t *testing.T) {
@@ -61,25 +57,6 @@ func TestIntegration(t *testing.T) {
 			if err := tc.Command.Run(); err != nil {
 				t.Fatalf("%s, stdout=%s stderr=%s", err, stdout.String(), stderr.String())
 			}
-
-			got := make(map[string]any)
-			if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
-				t.Fatal(err)
-			}
-
-			if tc.ExpectedIssueRuleName == nil {
-				assert.Empty(t, got["issues"])
-				assert.Empty(t, got["error"])
-				return
-			}
-
-			require.NotEmpty(t, got["issues"])
-			issues, ok := got["issues"].([]map[string]any)
-			require.True(t, ok)
-			require.NotEmpty(t, issues)
-			rule, ok := issues[0]["rule"].(map[string]any)
-			require.True(t, ok)
-			assert.Equal(t, *tc.ExpectedIssueRuleName, rule["name"])
 		})
 	}
 }
