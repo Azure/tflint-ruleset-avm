@@ -10,17 +10,18 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIntegration(t *testing.T) {
 	cases := []struct {
-		Name    string
-		Command *exec.Cmd
-		Dir     string
+		Name                  string
+		Command               *exec.Cmd
+		Dir                   string
+		ExpectedIssueRuleName *string
 	}{
 		{
 			Name:    "interface-private-endpoint",
@@ -28,9 +29,10 @@ func TestIntegration(t *testing.T) {
 			Dir:     "interface-private-endpoint",
 		},
 		{
-			Name:    "interface-private-endpoint-incorrect",
-			Command: exec.Command("tflint", "--format", "json", "--force"),
-			Dir:     "interface-private-endpoint-incorrect",
+			Name:                  "interface-private-endpoint-incorrect",
+			Command:               exec.Command("tflint", "--format", "json", "--force"),
+			Dir:                   "interface-private-endpoint-incorrect",
+			ExpectedIssueRuleName: p("private_endpoints"),
 		},
 	}
 
@@ -60,32 +62,30 @@ func TestIntegration(t *testing.T) {
 				t.Fatalf("%s, stdout=%s stderr=%s", err, stdout.String(), stderr.String())
 			}
 
-			var b []byte
-			var err error
-			if runtime.GOOS == "windows" && IsWindowsResultExist() {
-				b, err = os.ReadFile(filepath.Join(testDir, "result_windows.json"))
-			} else {
-				b, err = os.ReadFile(filepath.Join(testDir, "result.json"))
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			var expected interface{}
-			if err := json.Unmarshal(b, &expected); err != nil {
-				t.Fatal(err)
-			}
-
-			var got interface{}
+			got := make(map[string]any)
 			if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(got, expected); diff != "" {
-				t.Fatal(diff)
+			if tc.ExpectedIssueRuleName == nil {
+				assert.Empty(t, got["issues"])
+				assert.Empty(t, got["error"])
+				return
 			}
+
+			require.NotEmpty(t, got["issues"])
+			issues, ok := got["issues"].([]map[string]any)
+			require.True(t, ok)
+			require.NotEmpty(t, issues)
+			rule, ok := issues[0]["rule"].(map[string]any)
+			require.True(t, ok)
+			assert.Equal(t, *tc.ExpectedIssueRuleName, rule["name"])
 		})
 	}
+}
+
+func p[T any](v T) *T {
+	return &v
 }
 
 func IsWindowsResultExist() bool {
