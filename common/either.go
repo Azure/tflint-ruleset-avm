@@ -8,20 +8,18 @@ var _ tflint.Rule = new(EitherCheckRule)
 
 type EitherCheckRule struct {
 	tflint.DefaultRule
-	primaryRule   tflint.Rule
-	secondaryRule tflint.Rule
-	name          string
-	enabled       bool
-	severity      tflint.Severity
+	rules    []tflint.Rule
+	name     string
+	enabled  bool
+	severity tflint.Severity
 }
 
-func NewEitherCheckRule(name string, enabled bool, severity tflint.Severity, primaryRule tflint.Rule, secondary tflint.Rule) *EitherCheckRule {
+func NewEitherCheckRule(name string, enabled bool, severity tflint.Severity, rules ...tflint.Rule) *EitherCheckRule {
 	return &EitherCheckRule{
-		name:          name,
-		enabled:       enabled,
-		severity:      severity,
-		primaryRule:   primaryRule,
-		secondaryRule: secondary,
+		name:     name,
+		enabled:  enabled,
+		severity: severity,
+		rules:    rules,
 	}
 }
 
@@ -40,7 +38,9 @@ func (e *EitherCheckRule) Severity() tflint.Severity {
 func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 	runners := map[tflint.Rule]*subRunner{}
 
-	for _, r := range []tflint.Rule{e.primaryRule, e.secondaryRule} {
+	issues := []issue{}
+	var failingRule tflint.Rule
+	for _, r := range e.rules {
 		sr := &subRunner{
 			Runner: runner,
 		}
@@ -51,12 +51,19 @@ func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 		if len(sr.issues) == 0 {
 			return nil
 		}
+
+		if len(issues) == 0 && failingRule == nil {
+			issues = sr.issues
+			failingRule = r
+		}
 	}
-	sr := runners[e.primaryRule]
+
+	sr := runners[e.rules[0]]
 	for _, issue := range sr.issues {
-		if err := runner.EmitIssue(e.primaryRule, issue.message, issue.issueRange); err != nil {
+		if err := runner.EmitIssue(failingRule, issue.message, issue.issueRange); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

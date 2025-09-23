@@ -1,13 +1,14 @@
 package common_test
 
 import (
+	"testing"
+
 	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
-	"testing"
 )
 
 var _ tflint.Rule = &mockRule{}
@@ -43,33 +44,38 @@ func (m *mockRule) Link() string {
 func TestEitherPrivateEndpoints(t *testing.T) {
 	cases := []struct {
 		name          string
-		rule1         tflint.Rule
-		rule2         tflint.Rule
+		rules         []tflint.Rule
 		expectedIssue bool
 	}{
 		{
 			name:          "correct",
-			rule1:         &mockRule{success: true},
-			rule2:         &mockRule{success: true},
+			rules:         []tflint.Rule{&mockRule{success: true}, &mockRule{success: true}},
 			expectedIssue: false,
 		},
 		{
 			name:          "correct2",
-			rule1:         &mockRule{success: true},
-			rule2:         &mockRule{success: false},
+			rules:         []tflint.Rule{&mockRule{success: true}, &mockRule{success: false}},
 			expectedIssue: false,
 		},
 		{
 			name:          "correct3",
-			rule1:         &mockRule{success: false},
-			rule2:         &mockRule{success: true},
+			rules:         []tflint.Rule{&mockRule{success: false}, &mockRule{success: true}},
 			expectedIssue: false,
 		},
 		{
 			name:          "incorrect",
-			rule1:         &mockRule{success: false},
-			rule2:         &mockRule{success: false},
+			rules:         []tflint.Rule{&mockRule{success: false}, &mockRule{success: false}},
 			expectedIssue: true,
+		},
+		{
+			name:          "threeRulesCorrect",
+			rules:         []tflint.Rule{&mockRule{success: false}, &mockRule{success: false}, &mockRule{success: false}},
+			expectedIssue: true,
+		},
+		{
+			name:          "threeRulesIncorrect",
+			rules:         []tflint.Rule{&mockRule{success: false}, &mockRule{success: false}, &mockRule{success: true}},
+			expectedIssue: false,
 		},
 	}
 
@@ -81,7 +87,7 @@ func TestEitherPrivateEndpoints(t *testing.T) {
 
 			runner := helper.TestRunner(t, map[string]string{filename: ""})
 
-			sut := common.NewEitherCheckRule("either", true, tflint.ERROR, tc.rule1, tc.rule2)
+			sut := common.NewEitherCheckRule("either", true, tflint.ERROR, tc.rules...)
 			err := sut.Check(runner)
 			require.NoError(t, err)
 

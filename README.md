@@ -53,6 +53,24 @@ ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
 
 > *TBC*
 
+### Regenerating the Rules Documentation
+
+The full list of rules is generated automatically into `RULES.md` using a small helper program.
+
+To regenerate after adding, removing, or modifying rules:
+
+```bash
+go generate ./...
+```
+
+This runs the generator in `cmd/rulesdoc` (triggered by the `go:generate` directive in `generate.go`) which:
+
+1. Loads the registered rules from `rules.Rules`.
+2. Sorts them by name for deterministic output.
+3. Writes a markdown table to `RULES.md` at the repository root.
+
+Please commit the updated `RULES.md` alongside any rule changes.
+
 ## Building the plugin
 
 Clone the repository locally and run the following command:
