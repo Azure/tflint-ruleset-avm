@@ -199,7 +199,7 @@ stages:
               AuthCertName: '$(ESRPAuthCertName)'
               AuthSignCertName: '$(ESRPSignCertName)'
               FolderPath: "$(system.defaultWorkingDirectory)/release"
-              Pattern: "*_SHA256SUMS.sig"
+              Pattern: "checksums.txt.sig"
               signConfigType: "inlineSignParams"
               inlineOperation: |
                 [
