@@ -23,6 +23,7 @@ var PrivateEndpointTypeString = `map(object({
     name = optional(string, null)
   }), null)
   tags               = optional(map(string), null)
+	subresource_name   = optional(string, null)
   subnet_resource_id = string
   private_dns_zone_group_name             = optional(string, "default")
   private_dns_zone_resource_ids           = optional(set(string), [])
