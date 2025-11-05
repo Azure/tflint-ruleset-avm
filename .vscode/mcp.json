@@ -2,8 +2,9 @@
   "servers": {
     "godoc": {
       "command": "godoc-mcp",
+      "type": "stdio",
       "args": [],
-      "env": {},
+      "env": {}
     },
     "terraform-mcp-eva": {
       "type": "stdio",

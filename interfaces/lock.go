@@ -10,8 +10,9 @@ import (
 // When updating the type constraint string, make sure to also update the two
 // private endpoint interfaces (the one with subresource and the one without).
 var LockTypeString = `object({
-	kind = string
-	name = optional(string, null)
+	kind  = string
+	name  = optional(string, null)
+	notes = optional(string, null)
 })`
 
 var lockType = StringToTypeConstraintWithDefaults(LockTypeString)
