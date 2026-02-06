@@ -7,7 +7,6 @@ import (
 
 var Rules = []tflint.Rule{
 	NewVarCheckRuleFromAvmInterface(CustomerManagedKey),
-	NewVarCheckRuleFromAvmInterface(DiagnosticSettings),
 	NewVarCheckRuleFromAvmInterface(Location),
 	NewVarCheckRuleFromAvmInterface(Lock),
 	NewVarCheckRuleFromAvmInterface(ManagedIdentities),
@@ -17,5 +16,10 @@ var Rules = []tflint.Rule{
 		return common.NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
 			NewVarCheckRuleFromAvmInterface(PrivateEndpoints),
 			NewVarCheckRuleFromAvmInterface(PrivateEndpointsWithSubresourceName))
+	}(),
+    func() tflint.Rule {
+		return common.NewEitherCheckRule("diagnostic_settings", true, tflint.ERROR,
+			NewVarCheckRuleFromAvmInterface(DiagnosticSettings),
+			NewVarCheckRuleFromAvmInterface(DiagnosticSettingsV2))
 	}(),
 }
