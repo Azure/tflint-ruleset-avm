@@ -101,7 +101,7 @@ This script:
 1. Runs `go generate ./...`, which executes `cmd/rulesdoc` to refresh `RULES.md` from `rules.Rules`.
 2. Splices the rules table from `RULES.md` into the `<!-- RULES:START --> ... <!-- RULES:END -->` markers in `README.md`.
 
-A GitHub Actions workflow (`.github/workflows/update-readme.yml`) runs the same script on pushes to `main` that touch rule sources and commits any drift back automatically.
+A GitHub Actions workflow (`.github/workflows/rules-docs-check.yml`) runs the same script on pull requests that touch rule sources and fails the build if `README.md` or `RULES.md` is out of date, so drift cannot land on `main`.
 
 ## Building the plugin
 

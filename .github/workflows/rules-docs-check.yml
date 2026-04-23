@@ -1,9 +1,9 @@
 ---
-name: Update README
+name: Rules Docs Check
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    types: ['opened', 'synchronize']
     paths:
       - 'rules/**'
       - 'interfaces/**'
@@ -11,15 +11,18 @@ on:
       - 'common/**'
       - 'cmd/rulesdoc/**'
       - 'generate.go'
+      - 'README.md'
+      - 'RULES.md'
       - 'scripts/update-readme.sh'
-      - '.github/workflows/update-readme.yml'
+      - '.github/workflows/rules-docs-check.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  update-readme:
+  check-rules-docs:
+    name: Verify RULES.md and README rules section are up to date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
@@ -30,17 +33,15 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - name: Regenerate README rules section
+      - name: Regenerate docs
         run: ./scripts/update-readme.sh
 
-      - name: Commit changes
+      - name: Fail if docs are out of date
         run: |
           if [[ -n "$(git status --porcelain README.md RULES.md)" ]]; then
-            git config user.name  "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add README.md RULES.md
-            git commit -m "docs: refresh rules documentation [skip ci]"
-            git push
-          else
-            echo "README.md and RULES.md already up to date."
+            echo "::error::README.md or RULES.md is out of date. Run './scripts/update-readme.sh' locally and commit the result."
+            echo "--- diff ---"
+            git --no-pager diff --color=never README.md RULES.md
+            exit 1
           fi
+          echo "README.md and RULES.md are up to date."
