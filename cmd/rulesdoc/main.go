@@ -25,17 +25,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // best-effort close of output file in a CLI generator
 
 	w := bufio.NewWriter(f)
-	defer w.Flush()
+	defer w.Flush() //nolint:errcheck // best-effort flush; any error will surface on the deferred f.Close below
 
-	fmt.Fprintln(w, "# Rules Reference")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "This document lists all rules currently registered in this ruleset. The Enabled column reflects the default state (some external rules are wrapped to be disabled by default).")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "| Name | Enabled | Severity | Link |")
-	fmt.Fprintln(w, "| ---- | ------- | -------- | ---- |")
+	fmt.Fprintln(w, "# Rules Reference")                                                                                                                                                                                 //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w)                                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "This document lists all rules currently registered in this ruleset. The Enabled column reflects the default state (some external rules are wrapped to be disabled by default).") //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w)                                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "| Name | Enabled | Severity | Link |")                                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "| ---- | ------- | -------- | ---- |")                                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
 
 	for _, r := range rs {
 		name := r.Name()
@@ -46,7 +46,7 @@ func main() {
 		// Normalize severity textual representation.
 		severity := severityString(r.Severity())
 		link := linkOrDash(r)
-		fmt.Fprintf(w, "| %s | %s | %s | %s |\n", name, enabled, severity, link)
+		fmt.Fprintf(w, "| %s | %s | %s | %s |\n", name, enabled, severity, link) //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
 	}
 }
 
