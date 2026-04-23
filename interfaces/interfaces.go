@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
