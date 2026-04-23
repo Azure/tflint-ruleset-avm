@@ -147,7 +147,7 @@ variable "simple" {
 	default = null
 	type = %s
 	nullable = true
-}`, interfaces.LockTypeString),
+}`, simpleVarTypeString),
 			Expected: helper.Issues{
 				&helper.Issue{
 					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(SimpleVar),

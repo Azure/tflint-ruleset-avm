@@ -9,6 +9,7 @@ import (
 // When updating the type constraint string, make sure to also update the two
 // private endpoint interfaces (the one with subresource and the one without).
 var RoleAssignmentsTypeString = `map(object({
+	name																	 = optional(string, null)
   role_definition_id_or_name             = string
   principal_id                           = string
   description                            = optional(string, null)

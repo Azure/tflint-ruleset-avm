@@ -1,0 +1,47 @@
+---
+name: Rules Docs Check
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - 'rules/**'
+      - 'interfaces/**'
+      - 'outputs/**'
+      - 'common/**'
+      - 'cmd/rulesdoc/**'
+      - 'generate.go'
+      - 'README.md'
+      - 'RULES.md'
+      - 'scripts/update-readme.sh'
+      - '.github/workflows/rules-docs-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-rules-docs:
+    name: Verify RULES.md and README rules section are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Regenerate docs
+        run: ./scripts/update-readme.sh
+
+      - name: Fail if docs are out of date
+        run: |
+          if [[ -n "$(git status --porcelain README.md RULES.md)" ]]; then
+            echo "::error::README.md or RULES.md is out of date. Run './scripts/update-readme.sh' locally and commit the result."
+            echo "--- diff ---"
+            git --no-pager diff --color=never README.md RULES.md
+            exit 1
+          fi
+          echo "README.md and RULES.md are up to date."

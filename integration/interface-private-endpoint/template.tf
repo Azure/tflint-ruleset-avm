@@ -2,6 +2,7 @@ variable "private_endpoints" {
   type = map(object({
     name               = optional(string, null)
     role_assignments   = optional(map(object({
+      name                                   = optional(string, null)
       role_definition_id_or_name             = string
       principal_id                           = string
       description                            = optional(string, null)
@@ -17,7 +18,7 @@ variable "private_endpoints" {
     }), null)
     tags               = optional(map(string), null)
     subnet_resource_id = string
-    subresource_name   = string  # NOTE: `subresource_name` can be excluded if the resource does not support multiple sub resource types (e.g. storage account supports blob, queue, etc)
+    subresource_name   = optional(string, null)  # NOTE: `subresource_name` can be excluded if the resource does not support multiple sub resource types (e.g. storage account supports blob, queue, etc)
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_associations = optional(map(string), {})

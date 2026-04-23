@@ -12,11 +12,7 @@ var Rules = []tflint.Rule{
 	NewVarCheckRuleFromAvmInterface(ManagedIdentities),
 	NewVarCheckRuleFromAvmInterface(RoleAssignments),
 	NewVarCheckRuleFromAvmInterface(Tags),
-	func() tflint.Rule {
-		return common.NewEitherCheckRule("private_endpoints", true, tflint.ERROR,
-			NewVarCheckRuleFromAvmInterface(PrivateEndpoints),
-			NewVarCheckRuleFromAvmInterface(PrivateEndpointsWithSubresourceName))
-	}(),
+	NewVarCheckRuleFromAvmInterface(PrivateEndpoints),
     func() tflint.Rule {
 		return common.NewEitherCheckRule("diagnostic_settings", true, tflint.ERROR,
 			NewVarCheckRuleFromAvmInterface(DiagnosticSettings),
