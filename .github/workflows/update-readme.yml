@@ -1,0 +1,46 @@
+---
+name: Update README
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rules/**'
+      - 'interfaces/**'
+      - 'outputs/**'
+      - 'common/**'
+      - 'cmd/rulesdoc/**'
+      - 'generate.go'
+      - 'scripts/update-readme.sh'
+      - '.github/workflows/update-readme.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Regenerate README rules section
+        run: ./scripts/update-readme.sh
+
+      - name: Commit changes
+        run: |
+          if [[ -n "$(git status --porcelain README.md RULES.md)" ]]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md RULES.md
+            git commit -m "docs: refresh rules documentation [skip ci]"
+            git push
+          else
+            echo "README.md and RULES.md already up to date."
+          fi
