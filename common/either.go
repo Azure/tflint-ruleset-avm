@@ -35,6 +35,13 @@ func (e *EitherCheckRule) Severity() tflint.Severity {
 	return e.severity
 }
 
+func (e *EitherCheckRule) Link() string {
+	if len(e.rules) == 0 {
+		return ""
+	}
+	return e.rules[0].Link()
+}
+
 func (e *EitherCheckRule) Check(runner tflint.Runner) error {
 	runners := map[tflint.Rule]*subRunner{}
 

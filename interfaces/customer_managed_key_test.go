@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
 
-// TestDiagnosticSettingsInterface tests the diagnostic settings interface.
+// TestCustomerManagedKeyInterface tests both customer managed key interface variants.
 func TestCustomerManagedKeyInterface(t *testing.T) {
 	cases := []struct {
 		Name     string
@@ -20,9 +20,14 @@ func TestCustomerManagedKeyInterface(t *testing.T) {
 			Content:  toTerraformVarType(interfaces.CustomerManagedKey),
 			Expected: helper.Issues{},
 		},
+		{
+			Name:     "correct v2",
+			Content:  toTerraformVarType(interfaces.CustomerManagedKeyV2),
+			Expected: helper.Issues{},
+		},
 	}
 
-	rule := interfaces.NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey)
+	rule := interfaces.Rules[0]
 
 	for _, tc := range cases {
 		tc := tc

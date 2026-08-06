@@ -58,7 +58,7 @@ ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
 | azapi_response_export_values | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
 | azurerm_resource_tag | false | NOTICE | [https://github.com/Azure/tflint-ruleset-azurerm-ext/blob/...](https://github.com/Azure/tflint-ruleset-azurerm-ext/blob/v0.6.0/docs/rules/azurerm_resource_tag.md) |
 | customer_managed_key | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#customer-managed-keys) |
-| diagnostic_settings | true | ERROR | - |
+| diagnostic_settings | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings) |
 | location | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/r...](https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming) |
 | lock | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks) |
 | managed_identities | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#managed-identities) |
