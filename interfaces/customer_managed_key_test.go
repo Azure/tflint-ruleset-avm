@@ -1,6 +1,7 @@
 package interfaces_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -25,6 +26,22 @@ func TestCustomerManagedKeyInterface(t *testing.T) {
 			Content:  toTerraformVarType(interfaces.CustomerManagedKeyV2),
 			Expected: helper.Issues{},
 		},
+		{
+			Name: "incorrect shape",
+			Content: `
+variable "customer_managed_key" {
+	type = object({
+		key_vault_key_uri = number
+	})
+	default = null
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(interfaces.CustomerManagedKey),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.CustomerManagedKeyTypeString),
+				},
+			},
+		},
 	}
 
 	rule := interfaces.Rules[0]
@@ -44,7 +61,7 @@ func TestCustomerManagedKeyInterface(t *testing.T) {
 				t.Fatalf("Unexpected error occurred: %s", err)
 			}
 
-			helper.AssertIssues(t, tc.Expected, runner.Issues)
+			helper.AssertIssuesWithoutRange(t, tc.Expected, runner.Issues)
 		})
 	}
 }
