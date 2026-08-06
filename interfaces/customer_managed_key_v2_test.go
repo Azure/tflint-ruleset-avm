@@ -26,8 +26,10 @@ func TestCustomerManagedKeyV2Interface(t *testing.T) {
 			Content: `
 variable "customer_managed_key" {
 	type = object({
-		key_vault_key_uri                = number
-		user_assigned_identity_client_id = optional(string, null)
+		key_vault_key_uri = string
+		user_assigned_identity = optional(object({
+			client_id = number
+		}), null)
 	})
 	default = null
 }`,
