@@ -72,6 +72,29 @@ func TestIntegration(t *testing.T) {
 				{Name: "azurerm_arg_order", Severity: "info"},
 			},
 		},
+		{
+			Name: "azapi-required-interfaces",
+			Dir:  "azapi-required-interfaces",
+		},
+		{
+			Name: "azapi-required-interfaces-incorrect",
+			Dir:  "azapi-required-interfaces-incorrect",
+			ExpectedIssues: []expectedIssue{
+				{Name: "ignore_body_changes", Severity: "error"},
+				{Name: "resource_types", Severity: "error"},
+				{Name: "retry", Severity: "error"},
+				{Name: "timeouts", Severity: "error"},
+			},
+			ExpectFailure: true,
+		},
+		{
+			Name: "azapi-required-interfaces-child-parent",
+			Dir:  "azapi-required-interfaces-child",
+		},
+		{
+			Name: "azapi-required-interfaces-child-module",
+			Dir:  filepath.Join("azapi-required-interfaces-child", "child"),
+		},
 	}
 
 	dir, _ := os.Getwd()

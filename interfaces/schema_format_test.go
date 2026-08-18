@@ -24,3 +24,22 @@ func TestRegisteredInterfaceSchemasAreCanonicalHCL(t *testing.T) {
 		}
 	}
 }
+
+func TestAzapiRequiredInterfaceSchemasAreCanonicalHCL(t *testing.T) {
+	for name, schema := range map[string]string{
+		"retry":    retryTypeString,
+		"timeouts": timeoutsTypeString,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if strings.ContainsRune(schema, '\t') {
+				t.Fatalf("schema contains a tab:\n%s", schema)
+			}
+
+			source := "schema = " + schema + "\n"
+			formatted := string(hclwrite.Format([]byte(source)))
+			if source != formatted {
+				t.Fatalf("schema is not canonical HCL formatting:\n%s\nformatted:\n%s", source, formatted)
+			}
+		})
+	}
+}

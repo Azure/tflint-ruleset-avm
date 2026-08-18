@@ -11,6 +11,12 @@ variable "private_endpoints" {
   DESCRIPTION
 }
 
+variable "private_endpoints_manage_dns_zone_group" {
+  type     = bool
+  default  = true
+  nullable = false
+}
+
 output "resource_id" {
   # Just make var.private_endpoints an used variable, not mean to be valid.
   value = var.private_endpoints["default"].name

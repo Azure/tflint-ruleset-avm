@@ -40,11 +40,13 @@ plugin "avm" {
 | deprecated_private_endpoints_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
 | deprecated_role_assignments_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | diagnostic_settings | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings) |
+| ignore_body_changes | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR8/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR8/) |
 | location | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/r...](https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming) |
 | lock | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks) |
 | managed_identities | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#managed-identities) |
 | no_entire_resource_output_tffr2 | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/r...](https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-tffr2---category-outputs---additional-terraform-outputs) |
 | private_endpoints | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
+| private_endpoints_manage_dns_zone_group | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/includes/i...](https://azure.github.io/Azure-Verified-Modules/includes/interfaces/tf/int.pe.schema.tf) |
 | provider_azapi_version_constraint | true | ERROR | - |
 | provider_azurerm_disallowed | true | ERROR | - |
 | provider_azurerm_version_constraint | true | ERROR | - |
@@ -52,6 +54,8 @@ plugin "avm" {
 | required_module_source_tffr1 | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr1---category-composition---cross-referencing-modules) |
 | required_module_source_tfnfr10 | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr10---category-code-style---no-double-quotes-in-ignore_changes) |
 | required_output_rmfr7 | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/shar...](https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-rmfr7---category-outputs---minimum-required-outputs) |
+| resource_types | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/) |
+| retry | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 | role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
 | terraform_count_index_usage | false | WARNING | - |
@@ -69,6 +73,7 @@ plugin "avm" {
 | terraform_variable_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_separate.md) |
 | terraform_versions_file | false | NOTICE | - |
 | tfnfr26 | false | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr26---category-code-style---providers-must-be-declared-in-the-required_providers-block-in-terraformtf-and-must-have-a-constraint-on-minimum-and-maximum-major-version) |
+| timeouts | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 <!-- RULES:END -->
 
 See [`RULES.md`](./RULES.md) for the full rules reference (same content, kept in sync automatically).
@@ -86,7 +91,7 @@ To regenerate after adding, removing, or modifying rules, run:
 This script:
 
 1. Runs `go generate ./...`, which executes `cmd/rulesdoc` to refresh `RULES.md` from `rules.Rules`.
-2. Splices the rules table from `RULES.md` into the `<!-- RULES:START --> ... <!-- RULES:END -->` markers in `README.md`.
+2. Splices the rules table from `RULES.md` into the `<!-- RULES:START -->` / `<!-- RULES:END -->` markers in `README.md`.
 
 A GitHub Actions workflow (`.github/workflows/rules-docs-check.yml`) runs the same script on pull requests that touch rule sources and fails the build if `README.md` or `RULES.md` is out of date, so drift cannot land on `main`.
 
