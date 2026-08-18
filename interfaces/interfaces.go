@@ -36,7 +36,7 @@ var interfaceRuleRegistrations = []interfaceRuleRegistration{
 }
 
 var Rules = func() []tflint.Rule {
-	rules := make([]tflint.Rule, 0, len(interfaceRuleRegistrations)+3)
+	rules := make([]tflint.Rule, 0, len(interfaceRuleRegistrations)+3+len(requiredInterfaceRules))
 	for _, registration := range interfaceRuleRegistrations {
 		if len(registration.variants) == 1 {
 			rules = append(rules, NewVarCheckRuleFromAvmInterface(registration.variants[0]))
@@ -45,7 +45,7 @@ var Rules = func() []tflint.Rule {
 		rules = append(rules, newEitherInterfaceRule(registration.name, registration.variants...))
 	}
 
-	return append(rules,
+	rules = append(rules,
 		newDeprecatedInterfaceVariantRule(
 			"deprecated_lock_interface",
 			"lock",
@@ -68,4 +68,5 @@ var Rules = func() []tflint.Rule {
 			privateEndpointVariants[1:]...,
 		),
 	)
+	return append(rules, requiredInterfaceRules...)
 }()

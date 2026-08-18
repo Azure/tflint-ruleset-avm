@@ -34,6 +34,12 @@ variable "private_endpoints" {
   nullable = false
 }
 
+variable "private_endpoints_manage_dns_zone_group" {
+  type     = bool
+  default  = true
+  nullable = false
+}
+
 output "resource_id" {
   value = ""
 }
