@@ -15,6 +15,15 @@ type issue struct {
 	issueRange hcl.Range
 }
 
+// RulePasses reports whether a rule emits no issues for the supplied runner.
+func RulePasses(runner tflint.Runner, rule tflint.Rule) (bool, error) {
+	sr := &subRunner{Runner: runner}
+	if err := rule.Check(sr); err != nil {
+		return false, err
+	}
+	return len(sr.issues) == 0, nil
+}
+
 func (e *subRunner) EmitIssue(rule tflint.Rule, message string, issueRange hcl.Range) error {
 	e.issues = append(e.issues, issue{
 		message:    message,

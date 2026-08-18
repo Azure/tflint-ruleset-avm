@@ -16,6 +16,7 @@ var _ tflint.Rule = &mockRule{}
 type mockRule struct {
 	tflint.DefaultRule
 	success bool
+	link    string
 }
 
 func (m *mockRule) Check(r tflint.Runner) error {
@@ -38,7 +39,7 @@ func (m *mockRule) Severity() tflint.Severity {
 }
 
 func (m *mockRule) Link() string {
-	return ""
+	return m.link
 }
 
 func TestEitherPrivateEndpoints(t *testing.T) {
@@ -98,4 +99,15 @@ func TestEitherPrivateEndpoints(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEitherLink(t *testing.T) {
+	sut := common.NewEitherCheckRule(
+		"either",
+		true,
+		tflint.ERROR,
+		&mockRule{success: true, link: "https://example.com/rule"},
+	)
+
+	assert.Equal(t, "https://example.com/rule", sut.Link())
 }
