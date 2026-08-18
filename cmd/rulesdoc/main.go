@@ -30,12 +30,12 @@ func main() {
 	w := bufio.NewWriter(f)
 	defer w.Flush() //nolint:errcheck // best-effort flush; any error will surface on the deferred f.Close below
 
-	fmt.Fprintln(w, "# Rules Reference")                                                                                                                                                                                 //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
-	fmt.Fprintln(w)                                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
-	fmt.Fprintln(w, "This document lists all rules currently registered in this ruleset. The Enabled column reflects the default state (some external rules are wrapped to be disabled by default).") //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
-	fmt.Fprintln(w)                                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
-	fmt.Fprintln(w, "| Name | Enabled | Severity | Link |")                                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
-	fmt.Fprintln(w, "| ---- | ------- | -------- | ---- |")                                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "# Rules Reference")                                                                                                                                                                  //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w)                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "This document lists all rules currently registered in this ruleset. The Enabled column reflects the default state (some consolidated rules are wrapped to be disabled by default).") //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w)                                                                                                                                                                                       //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "| Name | Enabled | Severity | Link |")                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
+	fmt.Fprintln(w, "| ---- | ------- | -------- | ---- |")                                                                                                                                               //nolint:errcheck // writes to bufio.Writer; errors are caught at Flush
 
 	for _, r := range rs {
 		name := r.Name()
