@@ -18,7 +18,7 @@ func TestCustomerManagedKeyV2Interface(t *testing.T) {
 	}{
 		{
 			Name:     "correct",
-			Content:  toTerraformVarType(interfaces.CustomerManagedKeyV2),
+			Content:  customerManagedKeyV2Fixture,
 			Expected: helper.Issues{},
 		},
 		{

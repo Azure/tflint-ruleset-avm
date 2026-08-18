@@ -10,6 +10,9 @@ This document lists all rules currently registered in this ruleset. The Enabled 
 | azurerm_arg_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_arg_order.md) |
 | azurerm_resource_tag | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_resource_tag.md) |
 | customer_managed_key | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#customer-managed-keys) |
+| deprecated_lock_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks) |
+| deprecated_private_endpoints_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
+| deprecated_role_assignments_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | diagnostic_settings | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings) |
 | location | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/r...](https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming) |
 | lock | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks) |

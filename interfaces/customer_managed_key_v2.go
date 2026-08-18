@@ -6,10 +6,10 @@ import (
 )
 
 var CustomerManagedKeyV2TypeString = `object({
-	key_vault_key_uri = string
-	user_assigned_identity = optional(object({
-		client_id = string
-	}), null)
+  key_vault_key_uri = string
+  user_assigned_identity = optional(object({
+    client_id = string
+  }), null)
 })`
 
 var customerManagedKeyV2Type = StringToTypeConstraintWithDefaults(CustomerManagedKeyV2TypeString)

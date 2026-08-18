@@ -6,22 +6,32 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// LockTypeString is the type constraint string for lock interface.
-// When updating the type constraint string, make sure to also update the two
-// private endpoint interfaces (the one with subresource and the one without).
-var LockTypeString = `object({
-	kind  = string
-	name  = optional(string, null)
-	notes = optional(string, null)
+const LockV1TypeString = `object({
+  kind = string
+  name = optional(string, null)
 })`
 
-var lockType = StringToTypeConstraintWithDefaults(LockTypeString)
+const LockV2TypeString = `object({
+  kind  = string
+  name  = optional(string, null)
+  notes = optional(string, null)
+})`
 
-var Lock = AvmInterface{
-	VarCheck:      varcheck.NewVarCheck(lockType, cty.NullVal(cty.DynamicPseudoType), true),
-	RuleName:      "lock",
-	VarTypeString: LockTypeString,
-	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks",
-	RuleSeverity:  tflint.ERROR,
+const LockTypeString = LockV2TypeString
+
+func newLockInterface(typeString string) AvmInterface {
+	return AvmInterface{
+		VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(typeString), cty.NullVal(cty.DynamicPseudoType), true),
+		RuleName:      "lock",
+		VarTypeString: typeString,
+		RuleEnabled:   true,
+		RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks",
+		RuleSeverity:  tflint.ERROR,
+	}
 }
+
+var LockV1 = newLockInterface(LockV1TypeString)
+
+var LockV2 = newLockInterface(LockV2TypeString)
+
+var Lock = LockV2

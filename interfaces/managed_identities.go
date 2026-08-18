@@ -6,8 +6,8 @@ import (
 )
 
 var ManagedIdentitiesTypeString = `object({
-	system_assigned            = optional(bool, false)
-	user_assigned_resource_ids = optional(set(string), [])
+  system_assigned            = optional(bool, false)
+  user_assigned_resource_ids = optional(set(string), [])
 })`
 
 var ManagedIdentities = AvmInterface{

@@ -5,11 +5,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// RoleAssignmentsTypeString is the type constraint string for role assignments.
-// When updating the type constraint string, make sure to also update the two
-// private endpoint interfaces (the one with subresource and the one without).
-var RoleAssignmentsTypeString = `map(object({
-	name																	 = optional(string, null)
+const RoleAssignmentsV1TypeString = `map(object({
   role_definition_id_or_name             = string
   principal_id                           = string
   description                            = optional(string, null)
@@ -17,15 +13,35 @@ var RoleAssignmentsTypeString = `map(object({
   condition                              = optional(string, null)
   condition_version                      = optional(string, null)
   delegated_managed_identity_resource_id = optional(string, null)
-	principal_type         							   = optional(string, null)
+  principal_type                         = optional(string, null)
 }))`
 
-var roleAssignmentsType = StringToTypeConstraintWithDefaults(RoleAssignmentsTypeString)
+const RoleAssignmentsV2TypeString = `map(object({
+  name                                   = optional(string, null)
+  role_definition_id_or_name             = string
+  principal_id                           = string
+  description                            = optional(string, null)
+  skip_service_principal_aad_check       = optional(bool, false)
+  condition                              = optional(string, null)
+  condition_version                      = optional(string, null)
+  delegated_managed_identity_resource_id = optional(string, null)
+  principal_type                         = optional(string, null)
+}))`
 
-var RoleAssignments = AvmInterface{
-	VarCheck:      varcheck.NewVarCheck(roleAssignmentsType, cty.EmptyObjectVal, false),
-	RuleName:      "role_assignments",
-	VarTypeString: RoleAssignmentsTypeString,
-	RuleEnabled:   true,
-	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments",
+const RoleAssignmentsTypeString = RoleAssignmentsV2TypeString
+
+func newRoleAssignmentsInterface(typeString string) AvmInterface {
+	return AvmInterface{
+		VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(typeString), cty.EmptyObjectVal, false),
+		RuleName:      "role_assignments",
+		VarTypeString: typeString,
+		RuleEnabled:   true,
+		RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments",
+	}
 }
+
+var RoleAssignmentsV1 = newRoleAssignmentsInterface(RoleAssignmentsV1TypeString)
+
+var RoleAssignmentsV2 = newRoleAssignmentsInterface(RoleAssignmentsV2TypeString)
+
+var RoleAssignments = RoleAssignmentsV2

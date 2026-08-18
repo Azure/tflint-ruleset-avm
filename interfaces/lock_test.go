@@ -1,6 +1,7 @@
 package interfaces_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -9,37 +10,95 @@ import (
 
 // TestLockTerraformVar tests Lock interface.
 func TestTerraformLockInterface(t *testing.T) {
+	const lockV1 = `variable "lock" {
+  type = object({
+    kind = string
+    name = optional(string, null)
+  })
+  default = null
+}`
+	const lockV2 = `variable "lock" {
+  type = object({
+    kind  = string
+    name  = optional(string, null)
+    notes = optional(string, null)
+  })
+  default = null
+}`
+
+	compatibilityRule := registeredInterfaceRule(t, "lock")
+	deprecationRule := registeredInterfaceRule(t, "deprecated_lock_interface")
 	cases := []struct {
-		Name     string
-		Content  string
-		JSON     bool
-		Expected helper.Issues
+		Name                string
+		Content             string
+		Expected            helper.Issues
+		ExpectedDeprecation helper.Issues
 	}{
 		{
-			Name:     "correct",
-			Content:  toTerraformVarType(interfaces.Lock),
+			Name:    "correct v1",
+			Content: lockV1,
+			ExpectedDeprecation: helper.Issues{
+				{
+					Rule:    deprecationRule,
+					Message: deprecatedLockMessage,
+				},
+			},
+		},
+		{
+			Name:     "correct v2",
+			Content:  lockV2,
 			Expected: helper.Issues{},
 		},
+		{
+			Name: "incorrect notes",
+			Content: `
+variable "lock" {
+  type = object({
+    kind  = string
+    name  = optional(string, null)
+    notes = string
+  })
+  default = null
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    interfaces.NewVarCheckRuleFromAvmInterface(interfaces.LockV2),
+					Message: fmt.Sprintf("variable type does not comply with the interface specification:\n\n%s", interfaces.LockV2TypeString),
+				},
+			},
+		},
+		{
+			Name:    "missing variable",
+			Content: "",
+		},
 	}
-
-	rule := interfaces.NewVarCheckRuleFromAvmInterface(interfaces.Lock)
 
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
-			filename := "variables.tf"
-			if tc.JSON {
-				filename += ".json"
-			}
+			runner := helper.TestRunner(t, map[string]string{"variables.tf": tc.Content})
 
-			runner := helper.TestRunner(t, map[string]string{filename: tc.Content})
-
-			if err := rule.Check(runner); err != nil {
+			if err := compatibilityRule.Check(runner); err != nil {
 				t.Fatalf("Unexpected error occurred: %s", err)
 			}
+			expected := tc.Expected
+			if expected == nil {
+				expected = helper.Issues{}
+			}
+			helper.AssertIssuesWithoutRange(t, expected, runner.Issues)
 
-			helper.AssertIssues(t, tc.Expected, runner.Issues)
+			runner = helper.TestRunner(t, map[string]string{"variables.tf": tc.Content})
+			if err := deprecationRule.Check(runner); err != nil {
+				t.Fatalf("Unexpected error occurred: %s", err)
+			}
+			expected = tc.ExpectedDeprecation
+			if expected == nil {
+				expected = helper.Issues{}
+			}
+			helper.AssertIssuesWithoutRange(t, expected, runner.Issues)
 		})
 	}
 }
+
+const deprecatedLockMessage = "lock uses deprecated interface variant 1; migrate to variant 2 by adding notes = optional(string, null). Support for variant 1 will be removed in the release following the v0.19.0 migration window."
