@@ -6,43 +6,20 @@ This repository contains the TFLint ruleset for Azure Verified Modules.
 
 ## Requirements
 
-- TFLint v0.42+
+- TFLint v0.62+
 - Go v1.22
 
 ## Installation
 
-TODO: This template repository does not contain release binaries, so this installation will not work. Please rewrite for your repository. See the "Building the plugin" section to get this template ruleset working.
-
-You can install the plugin with `tflint --init`. Declare a config in `.tflint.hcl` as follows:
+You can install a released plugin with `tflint --init`. Declare a config in `.tflint.hcl`, replacing `X.Y.Z` with the release version without the `v` prefix:
 
 ```hcl
 plugin "avm" {
   enabled = true
 
-  version = "0.2.0"
-  source  = "github.com/Azure/tflint-ruleset-avm"
-
-  signing_key = <<-KEY
-----BEGIN PGP PUBLIC KEY BLOCK-----
-Version: BSN Pgp v1.1.0.0
-
-mQENBF9hII8BCADEOCDl3/1tAZQp/1BCVJN+tqIRCd3ywzhOXTC38XWC0zVbFtiA
-vbBFL1e78aoDIyUFDZcphCyYDqBkweXeYyYVCojZFVniyKklc2xZ15LDwlMBhneU
-yEPSzDCltFn67wMPQMKa4+TujZJ3TIs1OUnUTsCPrjavGgmrfAdxAF/EjCDrnVp9
-XmRWJii/9elAnMqWLDkMDfPaWkv3lWuyYCBHc7avOJE9oWypmWoEPOujwmtika/i
-FhmvZbojZN6huf7pykXGRl1wEpu0MMEFvm4UsfEOv8JHVBZEu2w6glQugT6a+IZ6
-atH3zyy+i1mmgsJPlMF1soHNEufeK1CabMklABEBAAG0Q1RlcnJhZm9ybSBBRE8g
-cHJvdmlkZXIgcmVsZWFzZSA8dGVycmFmb3JtYWRvcHJvdmlkZXJAbWljcm9zb2Z0
-LmNvbT6JATgEEwEIACIFAl9hII8CGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheA
-AAoJEG8Lkb3phHjPT+YH/3aksw2yhoqVl+Dxkrpsq9LIsXBHmHfbk8/nwbZ7F6o6
-fZetwozQzS/v5IriE42NFdk2omilDa/Iumk5soPrCamIIToYMbGvZJ9MJzCflXzp
-H3crqEgoCwu/93FVot4hhNOGmS2ra538zDQ3JsSbsVSc2TyPeBCF08+qJrr9VSML
-LceuEvCKUN8P8LH+PXN4kKM1xNlSVw4RfH6mNJKdUG1Klvh2nbq0kuw8jiHITn2F
-ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
-/i9e5KqIAEIf14OPm3h+e6kCdWXRG0RJWWVWeOHIEfQ=
-=KwXd
------END PGP PUBLIC KEY BLOCK-----
-  KEY
+  version   = "X.Y.Z"
+  source    = "github.com/Azure/tflint-ruleset-avm"
+  signature = "attestation"
 }
 ```
 
@@ -56,7 +33,8 @@ ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
 | azapi_data_response_export_values | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
 | azapi_replace_triggers_refs | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#replace_triggers_refs) |
 | azapi_response_export_values | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
-| azurerm_resource_tag | false | NOTICE | [https://github.com/Azure/tflint-ruleset-azurerm-ext/blob/...](https://github.com/Azure/tflint-ruleset-azurerm-ext/blob/v0.6.0/docs/rules/azurerm_resource_tag.md) |
+| azurerm_arg_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_arg_order.md) |
+| azurerm_resource_tag | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_resource_tag.md) |
 | customer_managed_key | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#customer-managed-keys) |
 | diagnostic_settings | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings) |
 | location | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/r...](https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming) |
@@ -73,14 +51,20 @@ ALGvKXPLwggdNA86RIQc9tc3z/uJrBGSA2n6UkJbV1gFZDETjHzVtgDqqEQwap7D
 | required_output_rmfr7 | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/shar...](https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-rmfr7---category-outputs---minimum-required-outputs) |
 | role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
+| terraform_count_index_usage | false | WARNING | - |
 | terraform_heredoc_usage | false | NOTICE | - |
+| terraform_locals_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_locals_order.md) |
 | terraform_module_provider_declaration | false | WARNING | - |
-| terraform_output_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0...](https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0.6.0/docs/rules/terraform_output_separate.md) |
+| terraform_output_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_output_order.md) |
+| terraform_output_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_output_separate.md) |
 | terraform_required_providers_declaration | false | NOTICE | - |
 | terraform_required_version_declaration | false | NOTICE | - |
+| terraform_resource_data_arg_layout | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_resource_data_arg_layout.md) |
 | terraform_sensitive_variable_no_default | false | WARNING | - |
-| terraform_variable_nullable_false | false | NOTICE | [https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0...](https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0.6.0/docs/rules/terraform_variable_nullable_false.md) |
-| terraform_variable_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0...](https://github.com/Azure/tflint-ruleset-basic-ext/blob/v0.6.0/docs/rules/terraform_variable_separate.md) |
+| terraform_variable_nullable_false | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_nullable_false.md) |
+| terraform_variable_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_order.md) |
+| terraform_variable_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_separate.md) |
+| terraform_versions_file | false | NOTICE | - |
 | tfnfr26 | false | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr26---category-code-style---providers-must-be-declared-in-the-required_providers-block-in-terraformtf-and-must-have-a-constraint-on-minimum-and-maximum-major-version) |
 <!-- RULES:END -->
 
@@ -127,3 +111,12 @@ plugin "avm" {
 EOS
 $ tflint
 ```
+
+## Releasing
+
+1. Create and publish a GitHub pre-release with a `vX.Y.Z` tag and release notes.
+2. Queue the `tflint-ruleset-avm` release pipeline in `github-private/azure/Azure-Verified-Modules` with that tag.
+3. The pipeline builds every target in `release/targets.json`, Authenticode-signs the Windows binaries, packages and validates the assets, replaces the pre-release assets, and promotes the pre-release.
+4. Promotion triggers `sign-checksums.yml`, which validates the release assets and creates a GitHub Artifact Attestation for `checksums.txt`.
+
+Release pipelines are manually queued and never run from a GitHub push or tag.

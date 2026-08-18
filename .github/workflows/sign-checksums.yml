@@ -1,0 +1,69 @@
+---
+name: sign-checksums
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose checksums.txt should be attested, e.g. v0.18.0
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check that checksums.txt is attached to the release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          $assets = gh release view $env:TAG --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name' 2>$null
+          $found = @($assets) -contains 'checksums.txt'
+          "found=$($found.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if (-not $found) {
+            Write-Host "::warning::No checksums.txt attached to release $env:TAG, nothing to attest."
+          }
+
+      - name: Checkout release tag
+        if: steps.check.outputs.found == 'true'
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+
+      - name: Download and validate release assets
+        if: steps.check.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          if ($env:TAG -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Invalid release tag: $env:TAG"
+          }
+
+          gh release download $env:TAG `
+            --repo $env:GITHUB_REPOSITORY `
+            --pattern 'tflint-ruleset-avm_*.zip' `
+            --pattern 'checksums.txt' `
+            --dir release-assets
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to download release assets for $env:TAG"
+          }
+
+          ./scripts/Test-ReleaseAssets.ps1 -ReleaseDirectory release-assets
+
+      - name: Attest checksums.txt
+        if: steps.check.outputs.found == 'true'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: release-assets/checksums.txt

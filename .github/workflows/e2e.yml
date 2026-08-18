@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        version: [v0.50.3, latest]
+        version: [v0.62.0, latest]
     env:
       TFLINT_VERSION: ${{ matrix.version }}
     steps:
