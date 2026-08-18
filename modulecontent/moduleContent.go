@@ -106,7 +106,11 @@ func initEvaluator(runner tflint.Runner) (*terraform.Config, *terraform.Evaluato
 			Summary: err.Error(),
 		}}
 	}
-	config, diags := loader.LoadConfig(".", terraform.CallLocalModule)
+	rootModule, diags := loader.LoadRootModule(".")
+	if diags.HasErrors() {
+		return nil, nil, diags
+	}
+	config, diags := terraform.BuildConfig(rootModule, loader.ModuleWalker(terraform.CallLocalModule), wd)
 	if diags.HasErrors() {
 		return nil, nil, diags
 	}
