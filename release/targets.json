@@ -1,0 +1,14 @@
+[
+  { "goos": "darwin", "goarch": "amd64" },
+  { "goos": "darwin", "goarch": "arm64" },
+  { "goos": "freebsd", "goarch": "386" },
+  { "goos": "freebsd", "goarch": "amd64" },
+  { "goos": "freebsd", "goarch": "arm" },
+  { "goos": "freebsd", "goarch": "arm64" },
+  { "goos": "linux", "goarch": "386" },
+  { "goos": "linux", "goarch": "amd64" },
+  { "goos": "linux", "goarch": "arm" },
+  { "goos": "linux", "goarch": "arm64" },
+  { "goos": "windows", "goarch": "386" },
+  { "goos": "windows", "goarch": "amd64" }
+]
