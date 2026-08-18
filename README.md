@@ -109,6 +109,7 @@ $ tflint
 
 1. Create and publish a GitHub pre-release with a `vX.Y.Z` tag and release notes.
 2. Queue the `tflint-ruleset-avm` release pipeline in `github-private/azure/Azure-Verified-Modules` with that tag.
-3. The pipeline builds every target in `release/targets.json`, Authenticode-signs the Windows binaries, packages and validates the assets, replaces the pre-release assets, dispatches `attest-release-checksums.yml` with the release tag as both the input and workflow ref, waits for attestation, and promotes the pre-release.
+3. The pipeline builds every target in `release/targets.json`, Authenticode-signs the Windows binaries, packages and validates the assets, replaces the pre-release assets, and promotes the pre-release.
+4. Promotion triggers `sign-checksums.yml`, which validates the release assets and creates a GitHub Artifact Attestation for `checksums.txt`.
 
 Release pipelines are manually queued and never run from a GitHub push or tag.
