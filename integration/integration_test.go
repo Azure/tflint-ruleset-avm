@@ -44,6 +44,16 @@ func TestIntegration(t *testing.T) {
 			Dir:               "interface-private-endpoint-incorrect",
 			ExpectedRuleNames: []string{"private_endpoints"},
 		},
+		{
+			Name:              "basic-ext",
+			Dir:               "basic-ext",
+			ExpectedRuleNames: []string{"terraform_variable_separate"},
+		},
+		{
+			Name:              "azurerm-ext",
+			Dir:               "azurerm-ext",
+			ExpectedRuleNames: []string{"azurerm_arg_order"},
+		},
 	}
 
 	dir, _ := os.Getwd()
