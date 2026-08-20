@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
+	"github.com/Azure/tflint-ruleset-avm/internal/tfvarcheck/varcheck"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/matt-FFFFFF/tfvarcheck/varcheck"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"

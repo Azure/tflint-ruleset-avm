@@ -4,10 +4,21 @@
 
 This repository contains the TFLint ruleset for Azure Verified Modules.
 
+## Embedded AzAPI tag capabilities
+
+The `azapi_resource_tag` rule uses a standalone, embedded snapshot at
+`internal/tagcapability/data/azapi_tags_v1.json`; it does not download schemas
+at runtime or depend on the AzAPI provider. The snapshot records its
+MIT-licensed upstream sources and exact revisions. The weekly/manual
+[`Update AzAPI Tag Snapshot`](.github/workflows/update-azapi-tag-snapshot.yml)
+workflow regenerates it from `azure-rest-api-specs` through
+`bicep-types-az`, validates it, and opens or updates a deterministic PR only
+when the data changes.
+
 ## Requirements
 
 - TFLint v0.62+
-- Go v1.22
+- Go v1.26+
 
 ## Installation
 
@@ -32,9 +43,8 @@ plugin "avm" {
 | ---- | ------- | -------- | ---- |
 | azapi_data_response_export_values | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
 | azapi_replace_triggers_refs | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#replace_triggers_refs) |
+| azapi_resource_tag | true | ERROR | [https://aka.ms/avm/spec/TFFR9](https://aka.ms/avm/spec/TFFR9) |
 | azapi_response_export_values | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
-| azurerm_arg_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_arg_order.md) |
-| azurerm_resource_tag | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/azurerm/azurerm_resource_tag.md) |
 | customer_managed_key | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#customer-managed-keys) |
 | deprecated_lock_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks) |
 | deprecated_private_endpoints_interface | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
@@ -58,21 +68,10 @@ plugin "avm" {
 | retry | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 | role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
-| terraform_count_index_usage | false | WARNING | - |
-| terraform_heredoc_usage | false | NOTICE | - |
-| terraform_locals_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_locals_order.md) |
-| terraform_module_provider_declaration | false | WARNING | - |
-| terraform_output_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_output_order.md) |
-| terraform_output_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_output_separate.md) |
-| terraform_required_providers_declaration | false | NOTICE | - |
-| terraform_required_version_declaration | false | NOTICE | - |
-| terraform_resource_data_arg_layout | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_resource_data_arg_layout.md) |
-| terraform_sensitive_variable_no_default | false | WARNING | - |
-| terraform_variable_nullable_false | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_nullable_false.md) |
-| terraform_variable_order | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_order.md) |
-| terraform_variable_separate | false | NOTICE | [https://github.com/Azure/tflint-ruleset-avm/blob/main/doc...](https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_variable_separate.md) |
-| terraform_versions_file | false | NOTICE | - |
-| tfnfr26 | false | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr26---category-code-style---providers-must-be-declared-in-the-required_providers-block-in-terraformtf-and-must-have-a-constraint-on-minimum-and-maximum-major-version) |
+| terraform_heredoc_usage | true | NOTICE | [https://aka.ms/avm/spec/TFNFR40](https://aka.ms/avm/spec/TFNFR40) |
+| terraform_module_provider_declaration | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
+| terraform_sensitive_variable_no_default | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/) |
+| terraform_tf_file | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/) |
 | timeouts | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 <!-- RULES:END -->
 

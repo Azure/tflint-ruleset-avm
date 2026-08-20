@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestTerraformTf(t *testing.T) {
+func TestTerraformTfFileRule(t *testing.T) {
 	cases := []struct {
 		desc            string
 		files           map[string]string
@@ -20,7 +20,7 @@ func TestTerraformTf(t *testing.T) {
 			desc:            "NoTerraformDotTfFileShouldEmitIssue",
 			files:           map[string]string{},
 			expectIssue:     true,
-			expectedMessage: "must contain `terraform.tf` file",
+			expectedMessage: "must contain a `terraform.tf` file",
 		},
 		{
 			desc: "NoTerraformDotTfFileShouldEmitIssue2",
@@ -28,7 +28,7 @@ func TestTerraformTf(t *testing.T) {
 				"main.tf": "",
 			},
 			expectIssue:     true,
-			expectedMessage: "must contain `terraform.tf` file",
+			expectedMessage: "must contain a `terraform.tf` file",
 		},
 		{
 			desc: "NoTerraformBlockInTerraformDotTfFileShouldEmitError",
@@ -36,7 +36,7 @@ func TestTerraformTf(t *testing.T) {
 				"terraform.tf": "",
 			},
 			expectIssue:     true,
-			expectedMessage: "must contain `terraform` block",
+			expectedMessage: "must contain exactly one `terraform` block",
 		},
 		{
 			desc: "TerraformDotTfFileContainsBlockOtherThanTerraformBlockShouldEmitError",
@@ -45,7 +45,7 @@ func TestTerraformTf(t *testing.T) {
 								 terraform {}`,
 			},
 			expectIssue:     true,
-			expectedMessage: "must contain `terraform` block only",
+			expectedMessage: "must contain exactly one `terraform` block",
 		},
 		{
 			desc: "TerraformDotTfFileContainsBlockOtherThanTerraformBlockShouldEmitError2",
@@ -54,7 +54,25 @@ func TestTerraformTf(t *testing.T) {
 								 locals {}`,
 			},
 			expectIssue:     true,
-			expectedMessage: "must contain `terraform` block only",
+			expectedMessage: "must contain exactly one `terraform` block",
+		},
+		{
+			desc: "TerraformDotTfFileContainsMultipleTerraformBlocks",
+			files: map[string]string{
+				"terraform.tf": `terraform {}
+								 terraform {}`,
+			},
+			expectIssue:     true,
+			expectedMessage: "must contain exactly one `terraform` block",
+		},
+		{
+			desc: "TerraformDotTfFileContainsTopLevelAttribute",
+			files: map[string]string{
+				"terraform.tf": `unexpected = true
+								 terraform {}`,
+			},
+			expectIssue:     true,
+			expectedMessage: "no other top-level content",
 		},
 		{
 			desc: "TerraformDotTfFileContainsTerraformBlockOnly",
@@ -68,7 +86,7 @@ func TestTerraformTf(t *testing.T) {
 		cc := c
 		t.Run(cc.desc, func(t *testing.T) {
 			r := helper.TestRunner(t, cc.files)
-			sut := rules.NewTerraformDotTfRule()
+			sut := rules.NewTerraformTfFileRule()
 			err := sut.Check(r)
 			require.NoError(t, err)
 			if cc.expectIssue {

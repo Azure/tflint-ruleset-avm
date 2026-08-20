@@ -3,7 +3,6 @@ package rules
 import (
 	"slices"
 
-	azurerm "github.com/Azure/tflint-ruleset-avm/azurerm/rules"
 	basic "github.com/Azure/tflint-ruleset-avm/basic/rules"
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/outputs"
@@ -12,10 +11,10 @@ import (
 
 var Rules = func() []tflint.Rule {
 	return slices.Concat(
-		wrapAll(basic.Rules),
-		wrapAll(azurerm.Rules),
+		basic.Rules,
 		[]tflint.Rule{
-			NewTerraformDotTfRule(),
+			NewTerraformTfFileRule(),
+			NewAzapiResourceTagRule(),
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
 			NewDisallowedProviderRule("azurerm", "hashicorp/azurerm"),
@@ -57,25 +56,3 @@ var Rules = func() []tflint.Rule {
 		outputs.Rules,
 	)
 }()
-
-type wrappedRule struct {
-	tflint.Rule
-}
-
-func (*wrappedRule) Enabled() bool {
-	return false
-}
-
-func Wrap(r tflint.Rule) tflint.Rule {
-	return &wrappedRule{
-		Rule: r,
-	}
-}
-
-func wrapAll(source []tflint.Rule) []tflint.Rule {
-	wrapped := make([]tflint.Rule, 0, len(source))
-	for _, rule := range source {
-		wrapped = append(wrapped, Wrap(rule))
-	}
-	return wrapped
-}

@@ -24,7 +24,7 @@ func NewTerraformSensitiveVariableNoDefaultRule() *TerraformSensitiveVariableNoD
 }
 
 func (r *TerraformSensitiveVariableNoDefaultRule) Enabled() bool {
-	return false
+	return true
 }
 
 func (r *TerraformSensitiveVariableNoDefaultRule) Check(runner tflint.Runner) error {
@@ -39,6 +39,10 @@ func (r *TerraformSensitiveVariableNoDefaultRule) Name() string {
 // Severity returns the rule severity
 func (r *TerraformSensitiveVariableNoDefaultRule) Severity() tflint.Severity {
 	return tflint.WARNING
+}
+
+func (r *TerraformSensitiveVariableNoDefaultRule) Link() string {
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/"
 }
 
 func (r *TerraformSensitiveVariableNoDefaultRule) CheckFile(runner tflint.Runner, file *hcl.File) error {
