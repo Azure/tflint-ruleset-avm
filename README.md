@@ -4,10 +4,21 @@
 
 This repository contains the TFLint ruleset for Azure Verified Modules.
 
+## Embedded AzAPI tag capabilities
+
+The `azapi_resource_tag` rule uses a standalone, embedded snapshot at
+`internal/tagcapability/data/azapi_tags_v1.json`; it does not download schemas
+at runtime or depend on the AzAPI provider. The snapshot records its
+MIT-licensed upstream sources and exact revisions. The weekly/manual
+[`Update AzAPI Tag Snapshot`](.github/workflows/update-azapi-tag-snapshot.yml)
+workflow regenerates it from `azure-rest-api-specs` through
+`bicep-types-az`, validates it, and opens or updates a deterministic PR only
+when the data changes.
+
 ## Requirements
 
 - TFLint v0.62+
-- Go v1.22
+- Go v1.26+
 
 ## Installation
 

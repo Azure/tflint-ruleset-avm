@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	azschema "github.com/Azure/terraform-provider-azapi/pkg/schema"
+	"github.com/Azure/tflint-ruleset-avm/internal/tagcapability"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ func TestAzapiResourceTagRule(t *testing.T) {
 	tests := []struct {
 		name          string
 		content       string
-		status        azschema.PropertyStatus
+		status        tagcapability.Status
 		resolveErr    error
 		expectedIssue string
 	}{
@@ -24,45 +24,44 @@ func TestAzapiResourceTagRule(t *testing.T) {
 			name: "supported resource propagates tags",
 			content: azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, `
   tags = var.tags`),
-			status: azschema.PropertyStatusWritable,
+			status: tagcapability.StatusWritable,
 		},
 		{
 			name:          "supported resource is missing tags",
 			content:       azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, ""),
-			status:        azschema.PropertyStatusWritable,
+			status:        tagcapability.StatusWritable,
 			expectedIssue: "must set `tags = var.tags`",
 		},
 		{
 			name: "supported resource transforms tags",
 			content: azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, `
   tags = merge(var.tags, { environment = "test" })`),
-			status:        azschema.PropertyStatusWritable,
+			status:        tagcapability.StatusWritable,
 			expectedIssue: "must set exactly `tags = var.tags`",
 		},
 		{
 			name:    "unsupported resource omits tags",
 			content: azapiResource(`Microsoft.Authorization/roleAssignments@2022-04-01`, ""),
-			status:  azschema.PropertyStatusUnsupported,
+			status:  tagcapability.StatusUnsupported,
 		},
 		{
 			name: "unsupported resource sets tags",
 			content: azapiResource(`Microsoft.Authorization/roleAssignments@2022-04-01`, `
   tags = var.tags`),
-			status:        azschema.PropertyStatusUnsupported,
+			status:        tagcapability.StatusUnsupported,
 			expectedIssue: "must not set `tags`",
 		},
 		{
 			name: "read-only tags are rejected",
 			content: azapiResource(`Microsoft.Example/widgets@2026-01-01`, `
   tags = var.tags`),
-			status:        azschema.PropertyStatusReadOnly,
+			status:        tagcapability.StatusReadOnly,
 			expectedIssue: "must not set `tags`",
 		},
 		{
 			name:       "unavailable schema is skipped",
 			content:    azapiResource(`Microsoft.Unknown/widgets@2026-01-01`, ""),
-			status:     azschema.PropertyStatusUnknown,
-			resolveErr: azschema.ErrDefinitionUnavailable,
+			resolveErr: tagcapability.ErrUnknownResource,
 		},
 		{
 			name: "dynamic resource type is skipped",
@@ -70,7 +69,7 @@ func TestAzapiResourceTagRule(t *testing.T) {
 resource "azapi_resource" "this" {
   type = var.resource_type
 }`,
-			status: azschema.PropertyStatusWritable,
+			status: tagcapability.StatusWritable,
 		},
 		{
 			name: "non-AzAPI resource is ignored",
@@ -78,7 +77,7 @@ resource "azapi_resource" "this" {
 resource "random_string" "this" {
   length = 8
 }`,
-			status: azschema.PropertyStatusWritable,
+			status: tagcapability.StatusWritable,
 		},
 	}
 
@@ -87,9 +86,8 @@ resource "random_string" "this" {
 			t.Parallel()
 
 			calls := 0
-			rule := newAzapiResourceTagRule(func(resourceType, property string) (azschema.PropertyStatus, error) {
+			rule := newAzapiResourceTagRule(func(resourceType string) (tagcapability.Status, error) {
 				calls++
-				assert.Equal(t, "tags", property)
 				return test.status, test.resolveErr
 			})
 			runner := helper.TestRunner(t, map[string]string{"main.tf": test.content})
@@ -112,8 +110,8 @@ resource "random_string" "this" {
 }
 
 func TestAzapiResourceTagRule_unexpectedResolverError(t *testing.T) {
-	rule := newAzapiResourceTagRule(func(string, string) (azschema.PropertyStatus, error) {
-		return azschema.PropertyStatusUnknown, errors.New("unexpected")
+	rule := newAzapiResourceTagRule(func(string) (tagcapability.Status, error) {
+		return "", errors.New("malformed embedded snapshot")
 	})
 	runner := helper.TestRunner(t, map[string]string{
 		"main.tf": azapiResource(`Microsoft.Example/widgets@2026-01-01`, ""),
@@ -121,6 +119,29 @@ func TestAzapiResourceTagRule_unexpectedResolverError(t *testing.T) {
 
 	err := rule.Check(runner)
 	require.ErrorContains(t, err, "resolve tags support")
+}
+
+func TestAzapiResourceTagRule_unexpectedCapabilityStatus(t *testing.T) {
+	rule := newAzapiResourceTagRule(func(string) (tagcapability.Status, error) {
+		return "unknown", nil
+	})
+	runner := helper.TestRunner(t, map[string]string{
+		"main.tf": azapiResource(`Microsoft.Example/widgets@2026-01-01`, ""),
+	})
+
+	err := rule.Check(runner)
+	require.ErrorContains(t, err, "unexpected property status")
+}
+
+func TestAzapiResourceTagRule_embeddedSnapshot(t *testing.T) {
+	rule := NewAzapiResourceTagRule()
+	runner := helper.TestRunner(t, map[string]string{
+		"main.tf": azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, `
+  tags = var.tags`),
+	})
+
+	require.NoError(t, rule.Check(runner))
+	assert.Empty(t, runner.Issues)
 }
 
 func TestIsStandardTagsExpression(t *testing.T) {

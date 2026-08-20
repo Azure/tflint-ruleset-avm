@@ -1,0 +1,129 @@
+---
+name: Update AzAPI Tag Snapshot
+
+on:
+  schedule:
+    - cron: "45 5 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-azapi-tag-snapshot
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout ruleset
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Checkout Bicep type generator
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Azure/bicep-types-az
+          ref: main
+          path: upstream/bicep-types-az
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Checkout Azure REST API specifications
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Azure/azure-rest-api-specs
+          ref: main
+          path: upstream/azure-rest-api-specs
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            upstream/bicep-types-az/bicep-types/src/bicep-types/package-lock.json
+            upstream/bicep-types-az/src/autorest.bicep/package-lock.json
+            upstream/bicep-types-az/src/generator/package-lock.json
+
+      - name: Build Bicep type generator
+        shell: pwsh
+        working-directory: upstream/bicep-types-az
+        run: |
+          npm ci --prefix bicep-types/src/bicep-types
+          npm run build --prefix bicep-types/src/bicep-types
+          npm ci --prefix src/autorest.bicep
+          npm run build --prefix src/autorest.bicep
+          npm ci --prefix src/generator
+
+      - name: Generate Bicep types
+        shell: pwsh
+        working-directory: upstream/bicep-types-az/src/generator
+        run: npm run generate -- --specs-dir ../../../azure-rest-api-specs
+
+      - name: Extract capability snapshot
+        shell: pwsh
+        run: |
+          $azureRestApiSpecsSha = (git -C upstream/azure-rest-api-specs rev-parse HEAD).Trim()
+          $bicepTypesAzSha = (git -C upstream/bicep-types-az rev-parse HEAD).Trim()
+          $bicepTypesSha = (git -C upstream/bicep-types-az/bicep-types rev-parse HEAD).Trim()
+          go run ./cmd/azapi-tagsnapshot `
+            -types-dir upstream/bicep-types-az/generated `
+            -output internal/tagcapability/data/azapi_tags_v1.json `
+            -previous internal/tagcapability/data/azapi_tags_v1.json `
+            -azure-rest-api-specs-sha $azureRestApiSpecsSha `
+            -bicep-types-az-sha $bicepTypesAzSha `
+            -bicep-types-sha $bicepTypesSha
+
+      - name: Validate snapshot
+        shell: pwsh
+        run: go test ./...
+
+      - name: Upload snapshot
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: azapi-tag-snapshot
+          path: internal/tagcapability/data/azapi_tags_v1.json
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout ruleset
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download snapshot
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: azapi-tag-snapshot
+          path: internal/tagcapability/data
+
+      - name: Create or update snapshot pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.0.0
+        with:
+          add-paths: |
+            internal/tagcapability/data/azapi_tags_v1.json
+          branch: automation/azapi-tag-snapshot
+          delete-branch: true
+          commit-message: "chore(snapshot): update AzAPI tag capabilities"
+          title: "chore(snapshot): update AzAPI tag capabilities"
+          body: |
+            Updates the embedded AzAPI tag-capability snapshot from the public Bicep type generator.
+
+            The snapshot records the exact source revisions used for this update.

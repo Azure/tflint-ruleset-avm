@@ -17,15 +17,9 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require (
-	github.com/hashicorp/terraform-plugin-framework v1.19.0 // indirect
-	github.com/hashicorp/terraform-plugin-go v0.31.0 // indirect
-	github.com/hashicorp/terraform-plugin-log v0.11.0 // indirect
-	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-)
+require github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 
 require (
-	github.com/Azure/terraform-provider-azapi v0.0.0-20260820133736-a2e179ea263f
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-cidr v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
@@ -64,5 +58,3 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
-
-replace github.com/Azure/terraform-provider-azapi => github.com/jaredfholgate/terraform-provider-azapi v0.0.0-20260820133736-a2e179ea263f

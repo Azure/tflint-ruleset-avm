@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	azschema "github.com/Azure/terraform-provider-azapi/pkg/schema"
+	"github.com/Azure/tflint-ruleset-avm/internal/tagcapability"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/logger"
@@ -14,21 +14,21 @@ import (
 
 var _ tflint.Rule = new(AzapiResourceTagRule)
 
-type propertyStatusResolver func(resourceType, property string) (azschema.PropertyStatus, error)
+type tagCapabilityResolver func(resourceType string) (tagcapability.Status, error)
 
 // AzapiResourceTagRule checks that managed AzAPI resources propagate the standard tags input.
 type AzapiResourceTagRule struct {
 	tflint.DefaultRule
-	resolvePropertyStatus propertyStatusResolver
+	resolveTagCapability tagCapabilityResolver
 }
 
 // NewAzapiResourceTagRule returns an AzAPI tags propagation rule.
 func NewAzapiResourceTagRule() *AzapiResourceTagRule {
-	return newAzapiResourceTagRule(azschema.TopLevelPropertyStatus)
+	return newAzapiResourceTagRule(embeddedTagCapability)
 }
 
-func newAzapiResourceTagRule(resolve propertyStatusResolver) *AzapiResourceTagRule {
-	return &AzapiResourceTagRule{resolvePropertyStatus: resolve}
+func newAzapiResourceTagRule(resolve tagCapabilityResolver) *AzapiResourceTagRule {
+	return &AzapiResourceTagRule{resolveTagCapability: resolve}
 }
 
 func (r *AzapiResourceTagRule) Name() string {
@@ -71,10 +71,10 @@ func (r *AzapiResourceTagRule) Check(runner tflint.Runner) error {
 			continue
 		}
 
-		status, err := r.resolvePropertyStatus(resourceType, "tags")
+		status, err := r.resolveTagCapability(resourceType)
 		if err != nil {
-			if knownSchemaLookupError(err) {
-				logger.Debug("skip azapi_resource_tag because the resource schema is unavailable: %s", err)
+			if knownCapabilityLookupError(err) {
+				logger.Debug("skip azapi_resource_tag because the tag capability is unavailable: %s", err)
 				continue
 			}
 			return fmt.Errorf("resolve tags support for %q: %w", resourceType, err)
@@ -82,7 +82,7 @@ func (r *AzapiResourceTagRule) Check(runner tflint.Runner) error {
 
 		tagsAttribute, hasTags := block.Body.Attributes["tags"]
 		switch status {
-		case azschema.PropertyStatusWritable:
+		case tagcapability.StatusWritable:
 			if !hasTags {
 				if err := runner.EmitIssue(
 					r,
@@ -102,7 +102,7 @@ func (r *AzapiResourceTagRule) Check(runner tflint.Runner) error {
 					return err
 				}
 			}
-		case azschema.PropertyStatusReadOnly, azschema.PropertyStatusUnsupported:
+		case tagcapability.StatusReadOnly, tagcapability.StatusUnsupported:
 			if hasTags {
 				if err := runner.EmitIssue(
 					r,
@@ -144,9 +144,14 @@ func isStandardTagsExpression(expression hcl.Expression) bool {
 	return rootOK && attributeOK && root.Name == "var" && attribute.Name == "tags"
 }
 
-func knownSchemaLookupError(err error) bool {
-	return errors.Is(err, azschema.ErrInvalidResourceType) ||
-		errors.Is(err, azschema.ErrInvalidAPIVersion) ||
-		errors.Is(err, azschema.ErrInvalidProperty) ||
-		errors.Is(err, azschema.ErrDefinitionUnavailable)
+func knownCapabilityLookupError(err error) bool {
+	return errors.Is(err, tagcapability.ErrUnknownResource)
+}
+
+func embeddedTagCapability(resourceType string) (tagcapability.Status, error) {
+	snapshot, err := tagcapability.Default()
+	if err != nil {
+		return "", err
+	}
+	return snapshot.Lookup(resourceType)
 }
