@@ -1,6 +1,6 @@
 # Rules Reference
 
-This document lists all rules currently registered in this ruleset. The Enabled column reflects the default state (some consolidated rules are wrapped to be disabled by default).
+This document lists all rules currently registered in this ruleset. AVM rules are enabled by default and can be disabled explicitly in TFLint configuration.
 
 | Name | Enabled | Severity | Link |
 | ---- | ------- | -------- | ---- |
