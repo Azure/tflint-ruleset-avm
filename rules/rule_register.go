@@ -14,6 +14,7 @@ var Rules = func() []tflint.Rule {
 		basic.Rules,
 		[]tflint.Rule{
 			NewTerraformTfFileRule(),
+			NewAzapiResourceTagRule(),
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
 			NewDisallowedProviderRule("azurerm", "hashicorp/azurerm"),
