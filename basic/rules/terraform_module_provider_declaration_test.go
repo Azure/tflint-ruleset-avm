@@ -13,19 +13,19 @@ func Test_TerraformModuleProviderDeclarationRule(t *testing.T) {
 		Expected helper.Issues
 	}{
 		{
-			Name: "1. empty provider block",
+			Name: "empty provider block",
 			Content: `
 provider "azurerm" {
 }`,
 			Expected: helper.Issues{
 				{
 					Rule:    NewTerraformModuleProviderDeclarationRule(),
-					Message: "Provider block in terraform module is expected to have and only have `alias` declared",
+					Message: "Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
 				},
 			},
 		},
 		{
-			Name: "2. provider block with field other than `alias` declared",
+			Name: "configured and aliased provider blocks",
 			Content: `
 provider "azurerm" {
   location = "west"
@@ -43,23 +43,42 @@ provider "azurerm" {
 			Expected: helper.Issues{
 				{
 					Rule:    NewTerraformModuleProviderDeclarationRule(),
-					Message: "Provider block in terraform module is expected to have and only have `alias` declared",
+					Message: "Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
 				},
 				{
 					Rule:    NewTerraformModuleProviderDeclarationRule(),
-					Message: "Provider block in terraform module is expected to have and only have `alias` declared",
+					Message: "Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
 				},
 				{
 					Rule:    NewTerraformModuleProviderDeclarationRule(),
-					Message: "Provider block in terraform module is expected to have and only have `alias` declared",
+					Message: "Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
 				},
 			},
 		},
 		{
-			Name: "3. correct case",
+			Name: "alias-only provider block uses legacy proxy pattern",
 			Content: `
 provider "azurerm" {
   alias = "test"
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    NewTerraformModuleProviderDeclarationRule(),
+					Message: "Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
+				},
+			},
+		},
+		{
+			Name: "configuration aliases without provider block",
+			Content: `
+terraform {
+  required_providers {
+    azurerm = {
+      source                = "hashicorp/azurerm"
+      version               = "~> 4.0"
+      configuration_aliases = [azurerm.alternate]
+    }
+  }
 }`,
 			Expected: helper.Issues{},
 		},

@@ -24,7 +24,7 @@ func NewTerraformSensitiveVariableNoDefaultRule() *TerraformSensitiveVariableNoD
 }
 
 func (r *TerraformSensitiveVariableNoDefaultRule) Enabled() bool {
-	return false
+	return true
 }
 
 func (r *TerraformSensitiveVariableNoDefaultRule) Check(runner tflint.Runner) error {

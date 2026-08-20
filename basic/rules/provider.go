@@ -6,9 +6,7 @@ import (
 
 // Rules is a list of all rules
 var Rules = []tflint.Rule{
-	NewTerraformLocalsOrderRule(),
+	NewTerraformHeredocUsageRule(),
 	NewTerraformModuleProviderDeclarationRule(),
-	NewTerraformRequiredProvidersDeclarationRule(),
-	NewTerraformRequiredVersionDeclarationRule(),
 	NewTerraformSensitiveVariableNoDefaultRule(),
 }

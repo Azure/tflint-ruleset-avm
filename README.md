@@ -56,12 +56,10 @@ plugin "avm" {
 | retry | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 | role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
 | tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
-| terraform_locals_order | false | NOTICE | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR32/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR32/) |
-| terraform_module_provider_declaration | false | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
-| terraform_required_providers_declaration | false | NOTICE | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR26/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR26/) |
-| terraform_required_version_declaration | false | NOTICE | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/) |
-| terraform_sensitive_variable_no_default | false | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/) |
-| tfnfr26 | false | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/) |
+| terraform_heredoc_usage | true | NOTICE | [https://aka.ms/avm/spec/TFNFR40](https://aka.ms/avm/spec/TFNFR40) |
+| terraform_module_provider_declaration | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
+| terraform_sensitive_variable_no_default | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/) |
+| terraform_tf_file | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/) |
 | timeouts | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 <!-- RULES:END -->
 

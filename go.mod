@@ -14,6 +14,7 @@ require (
 	github.com/terraform-linters/tflint-plugin-sdk v0.25.0
 	github.com/tidwall/gjson v1.19.0
 	github.com/zclconf/go-cty v1.19.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -55,5 +56,4 @@ require (
 	google.golang.org/grpc v1.83.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

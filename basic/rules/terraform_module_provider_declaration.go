@@ -10,7 +10,7 @@ import (
 
 var _ tflint.Rule = &TerraformModuleProviderDeclarationRule{}
 
-// TerraformModuleProviderDeclarationRule checks whether local variables are sorted in alphabetic order
+// TerraformModuleProviderDeclarationRule checks that modules do not declare provider blocks.
 type TerraformModuleProviderDeclarationRule struct {
 	tflint.DefaultRule
 }
@@ -21,7 +21,7 @@ func NewTerraformModuleProviderDeclarationRule() *TerraformModuleProviderDeclara
 }
 
 func (r *TerraformModuleProviderDeclarationRule) Enabled() bool {
-	return false
+	return true
 }
 
 func (r *TerraformModuleProviderDeclarationRule) Check(runner tflint.Runner) error {
@@ -48,30 +48,18 @@ func (r *TerraformModuleProviderDeclarationRule) CheckFile(runner tflint.Runner,
 		logger.Debug("skip terraform_module_provider_declaration since it's not hcl file")
 		return nil
 	}
-	blocks := body.Blocks
 	var err error
-	for _, block := range blocks {
-		switch block.Type {
-		case "provider":
-			isProviderErrorUsage := false
-			if len(block.Body.Attributes) != 1 {
-				isProviderErrorUsage = true
-			} else if _, isAliasDeclared := block.Body.Attributes["alias"]; !isAliasDeclared {
-				isProviderErrorUsage = true
-			}
-			if len(block.Body.Blocks) > 0 {
-				isProviderErrorUsage = true
-			}
-			if isProviderErrorUsage {
-				subErr := runner.EmitIssue(
-					r,
-					"Provider block in terraform module is expected to have and only have `alias` declared",
-					block.DefRange(),
-				)
-				if subErr != nil {
-					err = multierror.Append(err, subErr)
-				}
-			}
+	for _, block := range body.Blocks {
+		if block.Type != "provider" {
+			continue
+		}
+		subErr := runner.EmitIssue(
+			r,
+			"Provider blocks must not be declared in Terraform modules; declare aliases with `configuration_aliases` in `required_providers`",
+			block.DefRange(),
+		)
+		if subErr != nil {
+			err = multierror.Append(err, subErr)
 		}
 	}
 	return err
