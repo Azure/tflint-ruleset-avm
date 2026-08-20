@@ -38,6 +38,10 @@ func (r *TerraformRequiredVersionDeclarationRule) Name() string {
 	return "terraform_required_version_declaration"
 }
 
+func (r *TerraformRequiredVersionDeclarationRule) Link() string {
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/"
+}
+
 func (r *TerraformRequiredVersionDeclarationRule) CheckFile(runner tflint.Runner, file *hcl.File) error {
 	var err error
 	body, ok := file.Body.(*hclsyntax.Body)

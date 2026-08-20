@@ -42,6 +42,10 @@ func (r *TerraformRequiredProvidersDeclarationRule) Name() string {
 	return "terraform_required_providers_declaration"
 }
 
+func (r *TerraformRequiredProvidersDeclarationRule) Link() string {
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR26/"
+}
+
 func (r *TerraformRequiredProvidersDeclarationRule) CheckFile(runner tflint.Runner, file *hcl.File) error {
 	var err error
 	body, ok := file.Body.(*hclsyntax.Body)

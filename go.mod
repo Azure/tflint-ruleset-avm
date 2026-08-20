@@ -3,14 +3,10 @@ module github.com/Azure/tflint-ruleset-avm
 go 1.26.3
 
 require (
-	github.com/ahmetb/go-linq/v3 v3.2.0
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/hashicorp/terraform-json v0.28.0
-	github.com/lonegunmanb/terraform-azurerm-schema/v4 v4.81.0
-	github.com/matt-FFFFFF/tfvarcheck v0.2.0
 	github.com/prashantv/gostub v1.1.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.0
@@ -18,7 +14,6 @@ require (
 	github.com/terraform-linters/tflint-plugin-sdk v0.25.0
 	github.com/tidwall/gjson v1.19.0
 	github.com/zclconf/go-cty v1.19.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -59,4 +54,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/grpc v1.83.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

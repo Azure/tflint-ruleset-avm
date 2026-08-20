@@ -22,7 +22,7 @@ func (t *TerraformDotTfRule) Name() string {
 }
 
 func (t *TerraformDotTfRule) Link() string {
-	return "https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr26---category-code-style---providers-must-be-declared-in-the-required_providers-block-in-terraformtf-and-must-have-a-constraint-on-minimum-and-maximum-major-version"
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/"
 }
 
 func (t *TerraformDotTfRule) Enabled() bool {

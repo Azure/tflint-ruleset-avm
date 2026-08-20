@@ -3,7 +3,6 @@ package rules
 import (
 	"slices"
 
-	azurerm "github.com/Azure/tflint-ruleset-avm/azurerm/rules"
 	basic "github.com/Azure/tflint-ruleset-avm/basic/rules"
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/Azure/tflint-ruleset-avm/outputs"
@@ -13,7 +12,6 @@ import (
 var Rules = func() []tflint.Rule {
 	return slices.Concat(
 		wrapAll(basic.Rules),
-		wrapAll(azurerm.Rules),
 		[]tflint.Rule{
 			NewTerraformDotTfRule(),
 			NewModuleSourceRule(),

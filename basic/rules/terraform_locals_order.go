@@ -2,15 +2,14 @@ package rules
 
 import (
 	"fmt"
-	"github.com/terraform-linters/tflint-plugin-sdk/logger"
 	"sort"
 	"strings"
 
-	"github.com/Azure/tflint-ruleset-avm/basic/project"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/terraform-linters/tflint-plugin-sdk/logger"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
@@ -41,7 +40,7 @@ func (r *TerraformLocalsOrderRule) Severity() tflint.Severity {
 
 // Link returns the rule reference link
 func (r *TerraformLocalsOrderRule) Link() string {
-	return project.ReferenceLink(r.Name())
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR32/"
 }
 
 // Check checks whether single line comments is used

@@ -41,6 +41,10 @@ func (r *TerraformSensitiveVariableNoDefaultRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
+func (r *TerraformSensitiveVariableNoDefaultRule) Link() string {
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/"
+}
+
 func (r *TerraformSensitiveVariableNoDefaultRule) CheckFile(runner tflint.Runner, file *hcl.File) error {
 	body, ok := file.Body.(*hclsyntax.Body)
 	if !ok {

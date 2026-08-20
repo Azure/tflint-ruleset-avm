@@ -3,7 +3,6 @@ package rules
 import (
 	"testing"
 
-	azurerm "github.com/Azure/tflint-ruleset-avm/azurerm/rules"
 	basic "github.com/Azure/tflint-ruleset-avm/basic/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
@@ -17,16 +16,14 @@ func TestConsolidatedRulesAreRegisteredDisabledByDefault(t *testing.T) {
 		registered[rule.Name()] = rule
 	}
 
-	for _, source := range [][]tflint.Rule{basic.Rules, azurerm.Rules} {
-		for _, rule := range source {
-			registeredRule, exists := registered[rule.Name()]
-			if !exists {
-				t.Errorf("consolidated rule %q is not registered", rule.Name())
-				continue
-			}
-			if registeredRule.Enabled() {
-				t.Errorf("consolidated rule %q must remain disabled by default", rule.Name())
-			}
+	for _, rule := range basic.Rules {
+		registeredRule, exists := registered[rule.Name()]
+		if !exists {
+			t.Errorf("consolidated rule %q is not registered", rule.Name())
+			continue
+		}
+		if registeredRule.Enabled() {
+			t.Errorf("consolidated rule %q must remain disabled by default", rule.Name())
 		}
 	}
 }

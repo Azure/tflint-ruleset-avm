@@ -59,20 +59,6 @@ func TestIntegration(t *testing.T) {
 			ExpectFailure: true,
 		},
 		{
-			Name: "basic-ext",
-			Dir:  "basic-ext",
-			ExpectedIssues: []expectedIssue{
-				{Name: "terraform_variable_separate", Severity: "info"},
-			},
-		},
-		{
-			Name: "azurerm-ext",
-			Dir:  "azurerm-ext",
-			ExpectedIssues: []expectedIssue{
-				{Name: "azurerm_arg_order", Severity: "info"},
-			},
-		},
-		{
 			Name: "azapi-required-interfaces",
 			Dir:  "azapi-required-interfaces",
 		},

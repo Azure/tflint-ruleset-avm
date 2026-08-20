@@ -38,6 +38,10 @@ func (r *TerraformModuleProviderDeclarationRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
+func (r *TerraformModuleProviderDeclarationRule) Link() string {
+	return "https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/"
+}
+
 func (r *TerraformModuleProviderDeclarationRule) CheckFile(runner tflint.Runner, file *hcl.File) error {
 	body, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
