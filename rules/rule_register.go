@@ -15,6 +15,7 @@ var Rules = func() []tflint.Rule {
 		[]tflint.Rule{
 			NewTerraformTfFileRule(),
 			NewAzapiResourceTagRule(),
+			NewAzapiReplaceTriggersRefsRule(),
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
 			NewDisallowedProviderRule("azurerm", "hashicorp/azurerm"),
@@ -41,15 +42,6 @@ var Rules = func() []tflint.Rule {
 				"[]",
 				tflint.ERROR,
 				DisallowWildcardList("response_export_values"),
-			),
-			NewRequiredAttributeRule(
-				"azapi_replace_triggers_refs",
-				"https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#replace_triggers_refs",
-				"resource",
-				[]string{"azapi_resource"},
-				"replace_triggers_refs",
-				"[]",
-				tflint.ERROR,
 			),
 		},
 		interfaces.Rules,

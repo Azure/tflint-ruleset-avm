@@ -3,7 +3,6 @@ resource "azapi_resource" "example" {
   name                   = "example"
   parent_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example"
   response_export_values = []
-  replace_triggers_refs  = []
 }
 
 output "resource_id" {
