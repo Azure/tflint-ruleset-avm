@@ -25,5 +25,5 @@ func Nullable(got cty.Value, want bool) bool {
 	if want {
 		return got.IsNull()
 	}
-	return !(got.IsNull() || got.True())
+	return !got.IsNull() && !got.True()
 }
