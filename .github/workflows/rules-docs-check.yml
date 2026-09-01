@@ -13,7 +13,7 @@ on:
       - 'generate.go'
       - 'README.md'
       - 'RULES.md'
-      - 'scripts/Update-Readme.ps1'
+      - 'scripts/update-readme.sh'
       - '.github/workflows/rules-docs-check.yml'
   workflow_dispatch:
 
@@ -34,15 +34,14 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Regenerate docs
-        shell: pwsh
-        run: ./scripts/Update-Readme.ps1
+        run: ./scripts/update-readme.sh
 
       - name: Fail if docs are out of date
-        shell: pwsh
         run: |
-          if (git status --porcelain README.md RULES.md) {
-            Write-Error "README.md or RULES.md is out of date. Run './scripts/Update-Readme.ps1' locally and commit the result."
+          if [[ -n "$(git status --porcelain README.md RULES.md)" ]]; then
+            echo "::error::README.md or RULES.md is out of date. Run './scripts/update-readme.sh' locally and commit the result."
+            echo "--- diff ---"
             git --no-pager diff --color=never README.md RULES.md
             exit 1
-          }
-          Write-Output 'README.md and RULES.md are up to date.'
+          fi
+          echo "README.md and RULES.md are up to date."
