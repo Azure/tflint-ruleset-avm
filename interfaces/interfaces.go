@@ -25,14 +25,14 @@ type interfaceRuleRegistration struct {
 }
 
 var interfaceRuleRegistrations = []interfaceRuleRegistration{
-	{name: "customer_managed_key", variants: []AvmInterface{CustomerManagedKeyV2, CustomerManagedKey}},
-	{name: "location", variants: []AvmInterface{Location}},
-	{name: "lock", variants: []AvmInterface{LockV2, LockV1}},
-	{name: "managed_identities", variants: []AvmInterface{ManagedIdentities}},
-	{name: "role_assignments", variants: []AvmInterface{RoleAssignmentsV2, RoleAssignmentsV1}},
-	{name: "tags", variants: []AvmInterface{Tags}},
-	{name: "private_endpoints", variants: privateEndpointVariants},
-	{name: "diagnostic_settings", variants: []AvmInterface{DiagnosticSettings, DiagnosticSettingsV2}},
+	{name: "avm_interface_customer_managed_key", variants: []AvmInterface{CustomerManagedKeyV2, CustomerManagedKey}},
+	{name: "avm_interface_location", variants: []AvmInterface{Location}},
+	{name: "avm_interface_lock", variants: []AvmInterface{LockV2, LockV1}},
+	{name: "avm_interface_managed_identities", variants: []AvmInterface{ManagedIdentities}},
+	{name: "avm_interface_role_assignments", variants: []AvmInterface{RoleAssignmentsV2, RoleAssignmentsV1}},
+	{name: "avm_interface_tags", variants: []AvmInterface{Tags}},
+	{name: "avm_interface_private_endpoints", variants: privateEndpointVariants},
+	{name: "avm_interface_diagnostic_settings", variants: []AvmInterface{DiagnosticSettings, DiagnosticSettingsV2}},
 }
 
 var Rules = func() []tflint.Rule {
@@ -47,21 +47,21 @@ var Rules = func() []tflint.Rule {
 
 	rules = append(rules,
 		newDeprecatedInterfaceVariantRule(
-			"deprecated_lock_interface",
+			"avm_interface_lock_deprecated",
 			"lock",
 			deprecatedLockMessage,
 			LockV2.RuleLink,
 			LockV1,
 		),
 		newDeprecatedInterfaceVariantRule(
-			"deprecated_role_assignments_interface",
+			"avm_interface_role_assignments_deprecated",
 			"role_assignments",
 			deprecatedRoleAssignmentsMessage,
 			RoleAssignmentsV2.RuleLink,
 			RoleAssignmentsV1,
 		),
 		newDeprecatedInterfaceVariantRule(
-			"deprecated_private_endpoints_interface",
+			"avm_interface_private_endpoints_deprecated",
 			"private_endpoints",
 			deprecatedPrivateEndpointsMessage,
 			PrivateEndpoints.RuleLink,

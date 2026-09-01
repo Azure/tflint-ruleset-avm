@@ -33,7 +33,8 @@ const RoleAssignmentsTypeString = RoleAssignmentsV2TypeString
 func newRoleAssignmentsInterface(typeString string) AvmInterface {
 	return AvmInterface{
 		VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(typeString), cty.EmptyObjectVal, false),
-		RuleName:      "role_assignments",
+		RuleName:      "avm_interface_role_assignments",
+		VariableName:  "role_assignments",
 		VarTypeString: typeString,
 		RuleEnabled:   true,
 		RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments",

@@ -52,6 +52,9 @@ type InterfaceVarCheckRule struct {
 
 // NewVarCheckRuleFromAvmInterface returns a new rule with the given variable.
 func NewVarCheckRuleFromAvmInterface(ifce AvmInterface) *InterfaceVarCheckRule {
+	if ifce.VariableName == "" {
+		ifce.VariableName = ifce.RuleName
+	}
 	return &InterfaceVarCheckRule{
 		AvmInterface: ifce,
 	}
@@ -100,7 +103,7 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 
 	// Iterate over the variables and check for the name we are interested in.
 	for _, b := range body.Blocks {
-		if b.Labels[0] != vcr.RuleName {
+		if b.Labels[0] != vcr.VariableName {
 			continue
 		}
 

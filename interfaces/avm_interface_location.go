@@ -12,7 +12,8 @@ var locationType = StringToTypeConstraintWithDefaults(LocationTypeString)
 
 var Location = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(locationType, cty.UnknownVal(cty.String), false),
-	RuleName:      "location",
+	RuleName:      "avm_interface_location",
+	VariableName:  "location",
 	VarTypeString: LocationTypeString,
 	RuleEnabled:   true,
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming",

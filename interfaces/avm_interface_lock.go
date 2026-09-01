@@ -22,7 +22,8 @@ const LockTypeString = LockV2TypeString
 func newLockInterface(typeString string) AvmInterface {
 	return AvmInterface{
 		VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(typeString), cty.NullVal(cty.DynamicPseudoType), true),
-		RuleName:      "lock",
+		RuleName:      "avm_interface_lock",
+		VariableName:  "lock",
 		VarTypeString: typeString,
 		RuleEnabled:   true,
 		RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#resource-locks",

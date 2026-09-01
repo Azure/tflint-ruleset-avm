@@ -24,7 +24,9 @@ type tflintOutput struct {
 		} `json:"rule"`
 		Message string `json:"message"`
 	} `json:"issues"`
-	Errors []any `json:"errors"`
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
 }
 
 type expectedIssue struct {
@@ -32,12 +34,15 @@ type expectedIssue struct {
 	Severity string
 }
 
+const invalidSeverityError = `severity must be one of "error", "warning", or "notice", got "critical"`
+
 func TestIntegration(t *testing.T) {
 	cases := []struct {
 		Name           string
 		Dir            string
 		ExpectedIssues []expectedIssue
 		ExpectFailure  bool
+		ExpectedError  string
 	}{
 		{
 			Name: "interface-private-endpoint",
@@ -47,14 +52,14 @@ func TestIntegration(t *testing.T) {
 			Name: "interface-private-endpoint-deprecated",
 			Dir:  "interface-private-endpoint-deprecated",
 			ExpectedIssues: []expectedIssue{
-				{Name: "deprecated_private_endpoints_interface", Severity: "info"},
+				{Name: "avm_interface_private_endpoints_deprecated", Severity: "info"},
 			},
 		},
 		{
 			Name: "interface-private-endpoint-incorrect",
 			Dir:  "interface-private-endpoint-incorrect",
 			ExpectedIssues: []expectedIssue{
-				{Name: "private_endpoints", Severity: "error"},
+				{Name: "avm_interface_private_endpoints", Severity: "error"},
 			},
 			ExpectFailure: true,
 		},
@@ -66,10 +71,10 @@ func TestIntegration(t *testing.T) {
 			Name: "azapi-required-interfaces-incorrect",
 			Dir:  "azapi-required-interfaces-incorrect",
 			ExpectedIssues: []expectedIssue{
-				{Name: "ignore_body_changes", Severity: "error"},
-				{Name: "resource_types", Severity: "error"},
-				{Name: "retry", Severity: "error"},
-				{Name: "timeouts", Severity: "error"},
+				{Name: "avm_interface_ignore_body_changes", Severity: "error"},
+				{Name: "avm_interface_resource_types", Severity: "info"},
+				{Name: "avm_interface_retry", Severity: "error"},
+				{Name: "avm_interface_timeouts", Severity: "error"},
 			},
 			ExpectFailure: true,
 		},
@@ -80,6 +85,12 @@ func TestIntegration(t *testing.T) {
 		{
 			Name: "azapi-required-interfaces-child-module",
 			Dir:  filepath.Join("azapi-required-interfaces-child", "child"),
+		},
+		{
+			Name:          "invalid-severity",
+			Dir:           "invalid-severity",
+			ExpectFailure: true,
+			ExpectedError: invalidSeverityError,
 		},
 	}
 
@@ -114,11 +125,27 @@ func TestIntegration(t *testing.T) {
 				t.Fatalf("tflint failed to execute: %s, stdout=%s stderr=%s",
 					err, stdout.String(), stderr.String())
 			}
-
 			var out tflintOutput
 			if err := json.Unmarshal(stdout.Bytes(), &out); err != nil {
 				t.Fatalf("failed to parse tflint JSON output: %s\nstdout=%s",
 					err, stdout.String())
+			}
+			if tc.ExpectedError != "" {
+				found := false
+				for _, outputError := range out.Errors {
+					if bytes.Contains([]byte(outputError.Message), []byte(tc.ExpectedError)) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatalf(
+						"expected error %q was not reported, stdout=%s stderr=%s",
+						tc.ExpectedError,
+						stdout.String(),
+						stderr.String(),
+					)
+				}
 			}
 
 			got := make([]expectedIssue, 0, len(out.Issues))

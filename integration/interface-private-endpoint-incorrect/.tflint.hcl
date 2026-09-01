@@ -7,6 +7,6 @@ plugin "avm" {
 }
 
 # Disable rules unrelated to the interface being exercised by this fixture.
-rule "provider_azurerm_disallowed" {
+rule "avm_provider_azurerm_disallowed" {
   enabled = false
 }

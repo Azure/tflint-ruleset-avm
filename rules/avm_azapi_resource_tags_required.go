@@ -32,7 +32,7 @@ func newAzapiResourceTagRule(resolve tagCapabilityResolver) *AzapiResourceTagRul
 }
 
 func (r *AzapiResourceTagRule) Name() string {
-	return "azapi_resource_tag"
+	return "avm_azapi_resource_tags_required"
 }
 
 func (r *AzapiResourceTagRule) Link() string {

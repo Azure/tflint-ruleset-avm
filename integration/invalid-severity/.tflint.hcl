@@ -6,7 +6,7 @@ plugin "avm" {
   enabled = true
 }
 
-rule "avm_interface_resource_types" {
+rule "avm_terraform_literal_heredoc_disallowed" {
   enabled  = true
-  severity = "notice"
+  severity = "critical"
 }

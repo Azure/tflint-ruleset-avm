@@ -48,8 +48,8 @@ func TestPrivateEndpoints(t *testing.T) {
   default  = {}
   nullable = false
 }`
-	compatibilityRule := registeredInterfaceRule(t, "private_endpoints")
-	deprecationRule := registeredInterfaceRule(t, "deprecated_private_endpoints_interface")
+	compatibilityRule := registeredInterfaceRule(t, "avm_interface_private_endpoints")
+	deprecationRule := registeredInterfaceRule(t, "avm_interface_private_endpoints_deprecated")
 	type testCase struct {
 		Name                string
 		Content             string

@@ -35,6 +35,7 @@ type requiredVariableRule struct {
 	tflint.DefaultRule
 
 	name          string
+	variableName  string
 	link          string
 	requirement   string
 	applicability requiredVariableApplicability
@@ -43,6 +44,7 @@ type requiredVariableRule struct {
 
 func newRequiredVariableRule(
 	name string,
+	variableName string,
 	link string,
 	requirement string,
 	applicability requiredVariableApplicability,
@@ -50,6 +52,7 @@ func newRequiredVariableRule(
 ) *requiredVariableRule {
 	return &requiredVariableRule{
 		name:          name,
+		variableName:  variableName,
 		link:          link,
 		requirement:   requirement,
 		applicability: applicability,
@@ -79,14 +82,14 @@ func (r *requiredVariableRule) Check(runner tflint.Runner) error {
 		return err
 	}
 
-	variable, err := findVariableDeclaration(runner, r.name)
+	variable, err := findVariableDeclaration(runner, r.variableName)
 	if err != nil {
 		return err
 	}
 	if variable == nil {
 		return runner.EmitIssue(
 			r,
-			fmt.Sprintf("variable `%s` must be declared %s; see: %s", r.name, r.requirement, r.link),
+			fmt.Sprintf("variable `%s` must be declared %s; see: %s", r.variableName, r.requirement, r.link),
 			sourceRange,
 		)
 	}
@@ -213,7 +216,7 @@ func emitVariableAttributeIssue(
 ) error {
 	return runner.EmitIssue(
 		rule,
-		fmt.Sprintf("variable `%s` %s %s; see: %s", rule.name, attribute, expectation, rule.link),
+		fmt.Sprintf("variable `%s` %s %s; see: %s", rule.variableName, attribute, expectation, rule.link),
 		sourceRange,
 	)
 }

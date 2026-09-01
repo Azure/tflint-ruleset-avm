@@ -20,7 +20,7 @@ func NewTerraformTfFileRule() *TerraformTfFileRule {
 }
 
 func (r *TerraformTfFileRule) Name() string {
-	return "terraform_tf_file"
+	return "avm_terraform_configuration_file_required"
 }
 
 func (r *TerraformTfFileRule) Link() string {

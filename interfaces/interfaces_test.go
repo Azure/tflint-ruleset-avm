@@ -13,7 +13,11 @@ import (
 func toTerraformVarType(i interfaces.AvmInterface) string {
 	f := hclwrite.NewEmptyFile()
 	rootBody := f.Body()
-	varBlock := rootBody.AppendNewBlock("variable", []string{i.RuleName})
+	variableName := i.VariableName
+	if variableName == "" {
+		variableName = i.RuleName
+	}
+	varBlock := rootBody.AppendNewBlock("variable", []string{variableName})
 	varBody := varBlock.Body()
 
 	varBody.SetAttributeRaw("type", hclwrite.Tokens{

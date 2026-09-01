@@ -1,4 +1,4 @@
-# terraform_sensitive_variable_no_default
+# avm_terraform_sensitive_variable_default_disallowed
 
 checks whether the default value is set for sensitive variable
 
@@ -16,12 +16,12 @@ variable "availability_zone_names" {
 $ tflint
 1 issue(s) found:
 
-Warning: Default value is not expected to be set for sensitive variable `availability_zone_names` (terraform_sensitive_variable_no_default)
+Warning: Default value is not expected to be set for sensitive variable `availability_zone_names` (avm_terraform_sensitive_variable_default_disallowed)
 
   on main.tf line 3:
    3:   default   = ["us-west-1a"]
 
-Reference: https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/terraform_sensitive_variable_no_default.md
+Reference: https://github.com/Azure/tflint-ruleset-avm/blob/main/docs/basic/avm_terraform_sensitive_variable_default_disallowed.md
 
 ```
 

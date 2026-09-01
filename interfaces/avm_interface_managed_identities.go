@@ -12,7 +12,8 @@ var ManagedIdentitiesTypeString = `object({
 
 var ManagedIdentities = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(ManagedIdentitiesTypeString), cty.EmptyObjectVal, false),
-	RuleName:      "managed_identities",
+	RuleName:      "avm_interface_managed_identities",
+	VariableName:  "managed_identities",
 	VarTypeString: ManagedIdentitiesTypeString,
 	RuleEnabled:   true,
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#managed-identities",

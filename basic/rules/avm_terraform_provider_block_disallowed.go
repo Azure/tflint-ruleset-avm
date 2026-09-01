@@ -30,7 +30,7 @@ func (r *TerraformModuleProviderDeclarationRule) Check(runner tflint.Runner) err
 
 // Name returns the rule name
 func (r *TerraformModuleProviderDeclarationRule) Name() string {
-	return "terraform_module_provider_declaration"
+	return "avm_terraform_provider_block_disallowed"
 }
 
 // Severity returns the rule severity

@@ -27,8 +27,8 @@ func TestRoleAssignmentsInterface(t *testing.T) {
 }`
 	roleAssignmentsV1 := strings.Replace(roleAssignmentsV2, "    name                                   = optional(string, null)\n", "", 1)
 
-	compatibilityRule := registeredInterfaceRule(t, "role_assignments")
-	deprecationRule := registeredInterfaceRule(t, "deprecated_role_assignments_interface")
+	compatibilityRule := registeredInterfaceRule(t, "avm_interface_role_assignments")
+	deprecationRule := registeredInterfaceRule(t, "avm_interface_role_assignments_deprecated")
 	cases := []struct {
 		Name                string
 		Content             string
