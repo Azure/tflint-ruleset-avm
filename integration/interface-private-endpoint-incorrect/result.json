@@ -19,7 +19,7 @@
       "fixed": false,
       "rule": {
         "link": "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints",
-        "name": "private_endpoints",
+        "name": "avm_interface_private_endpoints",
         "severity": "error"
       }
     }
