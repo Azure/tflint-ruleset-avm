@@ -33,7 +33,7 @@ func (r *TerraformSensitiveVariableNoDefaultRule) Check(runner tflint.Runner) er
 
 // Name returns the rule name
 func (r *TerraformSensitiveVariableNoDefaultRule) Name() string {
-	return "terraform_sensitive_variable_no_default"
+	return "avm_terraform_sensitive_variable_default_disallowed"
 }
 
 // Severity returns the rule severity

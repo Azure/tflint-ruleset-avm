@@ -36,7 +36,7 @@ func NewModuleSourceRule() *ModuleSourceRule {
 }
 
 func (t *ModuleSourceRule) Name() string {
-	return "required_module_source_tffr1"
+	return "avm_terraform_module_source_required"
 }
 
 func (t *ModuleSourceRule) Link() string {

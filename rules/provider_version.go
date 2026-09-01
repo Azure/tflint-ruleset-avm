@@ -32,7 +32,7 @@ func NewProviderVersionRule(providerName, providerSource, ver, recConstr string,
 }
 
 func (m *ProviderVersionRule) Name() string {
-	return fmt.Sprintf("provider_%s_version_constraint", m.ProviderName)
+	return fmt.Sprintf("avm_provider_%s_version_constraint", m.ProviderName)
 }
 
 func (m *ProviderVersionRule) Enabled() bool {

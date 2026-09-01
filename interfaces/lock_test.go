@@ -26,8 +26,8 @@ func TestTerraformLockInterface(t *testing.T) {
   default = null
 }`
 
-	compatibilityRule := registeredInterfaceRule(t, "lock")
-	deprecationRule := registeredInterfaceRule(t, "deprecated_lock_interface")
+	compatibilityRule := registeredInterfaceRule(t, "avm_interface_lock")
+	deprecationRule := registeredInterfaceRule(t, "avm_interface_lock_deprecated")
 	cases := []struct {
 		Name                string
 		Content             string

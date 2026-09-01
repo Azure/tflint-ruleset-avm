@@ -36,7 +36,8 @@ var diagnosticV2Type = StringToTypeConstraintWithDefaults(DiagnosticV2TypeString
 
 var DiagnosticSettingsV2 = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(diagnosticV2Type, cty.EmptyObjectVal, false),
-	RuleName:      "diagnostic_settings",
+	RuleName:      "avm_interface_diagnostic_settings",
+	VariableName:  "diagnostic_settings",
 	VarTypeString: DiagnosticV2TypeString,
 	RuleEnabled:   true,
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#diagnostic-settings",

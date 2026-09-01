@@ -27,7 +27,7 @@ func NewAzapiReplaceTriggersRefsRule() *AzapiReplaceTriggersRefsRule {
 }
 
 func (r *AzapiReplaceTriggersRefsRule) Name() string {
-	return "azapi_replace_triggers_refs"
+	return "avm_azapi_replace_triggers_refs_valid"
 }
 
 func (r *AzapiReplaceTriggersRefsRule) Link() string {

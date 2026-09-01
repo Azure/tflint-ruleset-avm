@@ -30,6 +30,7 @@ const timeoutsTypeString = `object({
 
 var requiredInterfaceRules = []tflint.Rule{
 	newRequiredVariableRule(
+		"avm_interface_resource_types",
 		"resource_types",
 		resourceTypesRuleLink,
 		"when the module directly declares an AzAPI resource",
@@ -44,6 +45,7 @@ var requiredInterfaceRules = []tflint.Rule{
 		}),
 	),
 	newRequiredVariableRule(
+		"avm_interface_retry",
 		"retry",
 		retryTimeoutsRuleLink,
 		"when the module directly declares an AzAPI resource",
@@ -64,6 +66,7 @@ var requiredInterfaceRules = []tflint.Rule{
 		}),
 	),
 	newRequiredVariableRule(
+		"avm_interface_timeouts",
 		"timeouts",
 		retryTimeoutsRuleLink,
 		"when the module directly declares an AzAPI resource",
@@ -85,6 +88,7 @@ var requiredInterfaceRules = []tflint.Rule{
 		}),
 	),
 	newRequiredVariableRule(
+		"avm_interface_ignore_body_changes",
 		"ignore_body_changes",
 		ignoreBodyChangesRuleLink,
 		"when the module directly declares an AzAPI resource",
@@ -99,6 +103,7 @@ var requiredInterfaceRules = []tflint.Rule{
 		}),
 	),
 	newRequiredVariableRule(
+		"avm_interface_private_endpoints_manage_dns_zone_group",
 		"private_endpoints_manage_dns_zone_group",
 		privateEndpointsSchemaLink,
 		"when variable `private_endpoints` is declared",

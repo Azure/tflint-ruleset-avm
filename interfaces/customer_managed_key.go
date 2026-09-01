@@ -18,7 +18,8 @@ var customerManagedKeyType = StringToTypeConstraintWithDefaults(CustomerManagedK
 
 var CustomerManagedKey = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(customerManagedKeyType, cty.NullVal(cty.DynamicPseudoType), true),
-	RuleName:      "customer_managed_key",
+	RuleName:      "avm_interface_customer_managed_key",
+	VariableName:  "customer_managed_key",
 	VarTypeString: CustomerManagedKeyTypeString,
 	RuleEnabled:   true,
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#customer-managed-keys",

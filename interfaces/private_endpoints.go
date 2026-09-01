@@ -61,7 +61,8 @@ func privateEndpointTypeString(includeLockNotes, includeMemberName, includeRoleA
 func newPrivateEndpointsInterface(typeString string) AvmInterface {
 	return AvmInterface{
 		VarCheck:      varcheck.NewVarCheck(StringToTypeConstraintWithDefaults(typeString), cty.EmptyObjectVal, false),
-		RuleName:      "private_endpoints",
+		RuleName:      "avm_interface_private_endpoints",
+		VariableName:  "private_endpoints",
 		VarTypeString: typeString,
 		RuleEnabled:   true,
 		RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints",

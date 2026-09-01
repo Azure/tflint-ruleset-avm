@@ -2,6 +2,7 @@ package interfaces_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
@@ -157,8 +158,9 @@ func TestAzapiRequiredInterfaceMissingVariableSourceRange(t *testing.T) {
 
 func requiredInterfaceRule(t *testing.T, name string) tflint.Rule {
 	t.Helper()
+	ruleName := "avm_interface_" + name
 	for _, rule := range interfaces.Rules {
-		if rule.Name() == name {
+		if rule.Name() == ruleName {
 			return rule
 		}
 	}
@@ -172,7 +174,7 @@ func expectedVariableAttributeIssue(rule tflint.Rule, attribute, expectation str
 			Rule: rule,
 			Message: fmt.Sprintf(
 				"variable `%s` %s %s; see: %s",
-				rule.Name(),
+				strings.TrimPrefix(rule.Name(), "avm_interface_"),
 				attribute,
 				expectation,
 				rule.Link(),

@@ -39,7 +39,7 @@ func NewNoDoubleQuotesInIgnoreChangesRule() *NoDoubleQuotesInIgnoreChangesRule {
 }
 
 func (t *NoDoubleQuotesInIgnoreChangesRule) Name() string {
-	return "required_module_source_tfnfr10"
+	return "avm_terraform_ignore_changes_unquoted_references"
 }
 
 func (t *NoDoubleQuotesInIgnoreChangesRule) Link() string {

@@ -25,7 +25,7 @@ func NewTerraformHeredocUsageRule() *TerraformHeredocUsageRule {
 }
 
 func (r *TerraformHeredocUsageRule) Name() string {
-	return "terraform_heredoc_usage"
+	return "avm_terraform_literal_heredoc_disallowed"
 }
 
 func (r *TerraformHeredocUsageRule) Enabled() bool {

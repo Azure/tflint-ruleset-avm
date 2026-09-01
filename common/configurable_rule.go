@@ -10,7 +10,6 @@ import (
 // ConfigurableRule adds validated severity configuration to a rule.
 type ConfigurableRule struct {
 	tflint.Rule
-	name string
 }
 
 type severityConfig struct {
@@ -28,17 +27,9 @@ type severityRule struct {
 	severity tflint.Severity
 }
 
-// NewConfigurableRule returns a rule with a canonical name and configurable severity.
-func NewConfigurableRule(name string, rule tflint.Rule) *ConfigurableRule {
-	return &ConfigurableRule{
-		Rule: rule,
-		name: name,
-	}
-}
-
-// Name returns the canonical public rule name.
-func (r *ConfigurableRule) Name() string {
-	return r.name
+// NewConfigurableRule returns a rule with configurable severity.
+func NewConfigurableRule(rule tflint.Rule) *ConfigurableRule {
+	return &ConfigurableRule{Rule: rule}
 }
 
 // Check decodes configuration before delegating to the underlying rule.

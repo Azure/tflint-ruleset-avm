@@ -31,8 +31,7 @@ func NewDisallowedProviderRule(providerName, providerSource string) *DisallowedP
 }
 
 func (r *DisallowedProviderRule) Name() string {
-	// naming convention: provider_<name>_disallowed
-	return fmt.Sprintf("provider_%s_disallowed", r.ProviderName)
+	return fmt.Sprintf("avm_provider_%s_disallowed", r.ProviderName)
 }
 
 func (r *DisallowedProviderRule) Enabled() bool { return true }

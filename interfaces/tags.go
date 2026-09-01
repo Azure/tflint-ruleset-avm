@@ -14,7 +14,8 @@ var tagsType = StringToTypeConstraintWithDefaults(TagsTypeString)
 
 var Tags = AvmInterface{
 	VarCheck:      varcheck.NewVarCheck(tagsType, cty.NullVal(cty.DynamicPseudoType), true),
-	RuleName:      "tags",
+	RuleName:      "avm_interface_tags",
+	VariableName:  "tags",
 	VarTypeString: TagsTypeString,
 	RuleEnabled:   true,
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags",

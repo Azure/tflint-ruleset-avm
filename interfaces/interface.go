@@ -9,7 +9,8 @@ import (
 // with additional information for use in TFLint.
 type AvmInterface struct {
 	varcheck.VarCheck
-	RuleName      string          // RuleName of the interface, also the name of the variable to check.
+	RuleName      string          // RuleName is the public TFLint rule name.
+	VariableName  string          // VariableName is the Terraform variable checked by the rule.
 	VarTypeString string          // The variable type value as a sting.
 	RuleEnabled   bool            // Whether the rule is enabled by default.
 	RuleLink      string          // RuleLink to the interface specification.

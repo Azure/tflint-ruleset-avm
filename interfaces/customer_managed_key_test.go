@@ -85,7 +85,7 @@ variable "customer_managed_key" {
 		},
 	}
 
-	rule := registeredInterfaceRule(t, "customer_managed_key")
+	rule := registeredInterfaceRule(t, "avm_interface_customer_managed_key")
 
 	for _, tc := range cases {
 		tc := tc
