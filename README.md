@@ -6,7 +6,7 @@ This repository contains the TFLint ruleset for Azure Verified Modules.
 
 ## Embedded AzAPI tag capabilities
 
-The `azapi_resource_tag` rule uses a standalone, embedded snapshot at
+The `avm_azapi_resource_tags_required` rule uses a standalone, embedded snapshot at
 `internal/tagcapability/data/azapi_tags_v1.json`; it does not download schemas
 at runtime or depend on the AzAPI provider. The snapshot records its
 MIT-licensed upstream sources and exact revisions. The weekly/manual
