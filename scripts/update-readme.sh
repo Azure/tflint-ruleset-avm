@@ -21,7 +21,7 @@ go generate ./...
 [[ -f "$README" ]] || { echo "README.md not found at $README" >&2; exit 1; }
 [[ -f "$RULES"  ]] || { echo "RULES.md not found at $RULES (did 'go generate' fail?)" >&2; exit 1; }
 grep -qF "$START_MARKER" "$README" || { echo "Start marker missing in README.md" >&2; exit 1; }
-grep -qF "$END_MARKER"   "$README" || { echo "End marker missing in README.md" >&2; exit 1; }
+grep -qF "$END_MARKER"   "$README" || { echo "End marker missing in README.md"   >&2; exit 1; }
 
 echo "==> Splicing RULES.md table into README.md"
 README_PATH="$README" \
