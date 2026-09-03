@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/tflint-ruleset-avm/internal/tagcapability"
-	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/logger"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -86,18 +85,8 @@ func (r *AzapiResourceTagRule) Check(runner tflint.Runner) error {
 			if !hasTags {
 				if err := runner.EmitIssue(
 					r,
-					fmt.Sprintf("AzAPI resource type `%s` supports tags and must set `tags = var.tags`", resourceType),
+					fmt.Sprintf("AzAPI resource type `%s` supports tags and must set `tags`", resourceType),
 					block.DefRange,
-				); err != nil {
-					return err
-				}
-				continue
-			}
-			if !isStandardTagsExpression(tagsAttribute.Expr) {
-				if err := runner.EmitIssue(
-					r,
-					"AzAPI resources that support tags must set exactly `tags = var.tags`",
-					tagsAttribute.Range,
 				); err != nil {
 					return err
 				}
@@ -132,16 +121,6 @@ var azapiResourceTagBodySchema = &hclext.BodySchema{
 			},
 		},
 	},
-}
-
-func isStandardTagsExpression(expression hcl.Expression) bool {
-	traversal, diags := hcl.AbsTraversalForExpr(expression)
-	if diags.HasErrors() || len(traversal) != 2 {
-		return false
-	}
-	root, rootOK := traversal[0].(hcl.TraverseRoot)
-	attribute, attributeOK := traversal[1].(hcl.TraverseAttr)
-	return rootOK && attributeOK && root.Name == "var" && attribute.Name == "tags"
 }
 
 func knownCapabilityLookupError(err error) bool {

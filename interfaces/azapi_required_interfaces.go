@@ -13,6 +13,7 @@ const (
 	retryTimeoutsRuleLink      = "https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/"
 	ignoreBodyChangesRuleLink  = "https://azure.github.io/Azure-Verified-Modules/spec/TFFR8/"
 	privateEndpointsSchemaLink = "https://azure.github.io/Azure-Verified-Modules/includes/interfaces/tf/int.pe.schema.tf"
+	resourceTagsRuleLink       = "https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags"
 )
 
 const retryTypeString = `object({
@@ -103,6 +104,21 @@ var requiredInterfaceRules = []tflint.Rule{
 		}),
 	),
 	newRequiredVariableRule(
+		"avm_interface_resource_tags",
+		"resource_tags",
+		resourceTagsRuleLink,
+		"when per-resource or submodule tag overrides are exposed",
+		appliesWhenVariableDeclared("resource_tags"),
+		validateVariableShape(variableShape{
+			typeDescription:     "must use optional `resources` and `modules` namespaces with optional `map(string)` resource leaves and recursive module objects",
+			defaultDescription:  "must be `null`",
+			nullableDescription: "must permit `null`",
+			validateType:        validateResourceTagsType,
+			validateDefault:     nullDefault,
+			nullable:            nullableMayBeTrue,
+		}),
+	),
+	newRequiredVariableRule(
 		"avm_interface_private_endpoints_manage_dns_zone_group",
 		"private_endpoints_manage_dns_zone_group",
 		privateEndpointsSchemaLink,
@@ -139,6 +155,92 @@ func validateIgnoreBodyChangesType(got varcheck.TypeConstraintWithDefaults) bool
 
 	directLeaves, ok := validateRecursiveObject(got.Type, got.Default, 0, ignoreBodyChangesLeaf)
 	return ok && directLeaves > 0
+}
+
+func validateResourceTagsType(got varcheck.TypeConstraintWithDefaults) bool {
+	resourceLeaves, ok := validateResourceTagsObject(got.Type, got.Default)
+	return ok && resourceLeaves > 0
+}
+
+func validateResourceTagsObject(objectType cty.Type, defaults *typeexpr.Defaults) (int, bool) {
+	if !objectType.IsObjectType() {
+		return 0, false
+	}
+
+	attributes := objectType.AttributeTypes()
+	if len(attributes) == 0 || len(attributes) > 2 {
+		return 0, false
+	}
+
+	resourceLeaves := 0
+	for name, attributeType := range attributes {
+		if !objectType.AttributeOptional(name) {
+			return 0, false
+		}
+		if _, hasDefault := defaultsValue(defaults, name); hasDefault {
+			return 0, false
+		}
+
+		var (
+			leaves int
+			ok     bool
+		)
+		switch name {
+		case "resources":
+			leaves, ok = validateResourceTagsResources(attributeType, defaultsChild(defaults, name))
+		case "modules":
+			leaves, ok = validateResourceTagsModules(attributeType, defaultsChild(defaults, name))
+		default:
+			return 0, false
+		}
+		if !ok {
+			return 0, false
+		}
+		resourceLeaves += leaves
+	}
+
+	return resourceLeaves, true
+}
+
+func validateResourceTagsResources(objectType cty.Type, defaults *typeexpr.Defaults) (int, bool) {
+	if !objectType.IsObjectType() || len(objectType.AttributeTypes()) == 0 {
+		return 0, false
+	}
+
+	for name, attributeType := range objectType.AttributeTypes() {
+		if !objectType.AttributeOptional(name) || !attributeType.Equals(cty.Map(cty.String)) {
+			return 0, false
+		}
+		if _, hasDefault := defaultsValue(defaults, name); hasDefault {
+			return 0, false
+		}
+	}
+
+	return len(objectType.AttributeTypes()), true
+}
+
+func validateResourceTagsModules(objectType cty.Type, defaults *typeexpr.Defaults) (int, bool) {
+	if !objectType.IsObjectType() || len(objectType.AttributeTypes()) == 0 {
+		return 0, false
+	}
+
+	resourceLeaves := 0
+	for name, attributeType := range objectType.AttributeTypes() {
+		if !objectType.AttributeOptional(name) || !attributeType.IsObjectType() {
+			return 0, false
+		}
+		if _, hasDefault := defaultsValue(defaults, name); hasDefault {
+			return 0, false
+		}
+
+		leaves, ok := validateResourceTagsObject(attributeType, defaultsChild(defaults, name))
+		if !ok {
+			return 0, false
+		}
+		resourceLeaves += leaves
+	}
+
+	return resourceLeaves, true
 }
 
 type recursiveLeafValidator func(cty.Type, *typeexpr.Defaults, string, int) bool
@@ -236,6 +338,10 @@ func validateFlatOptionalObject(got varcheck.TypeConstraintWithDefaults, expecte
 
 func emptyObjectDefault(got cty.Value, _ varcheck.TypeConstraintWithDefaults) bool {
 	return got.RawEquals(cty.EmptyObjectVal)
+}
+
+func nullDefault(got cty.Value, _ varcheck.TypeConstraintWithDefaults) bool {
+	return got.IsNull()
 }
 
 func nullableObjectDefault(got cty.Value, typeConstraint varcheck.TypeConstraintWithDefaults) bool {

@@ -15,6 +15,18 @@ workflow regenerates it from `azure-rest-api-specs` through
 `bicep-types-az`, validates it, and opens or updates a deterministic PR only
 when the data changes.
 
+For writable resource types, the rule requires a consumer-settable `tags`
+argument but permits any Terraform expression so modules can implement the
+standard module-wide fallback and per-resource override contract. Resource
+types with read-only or unsupported tags must omit the argument.
+
+When a module exposes per-resource or submodule tag overrides, the
+`avm_interface_resource_tags` rule validates the typed recursive
+`resource_tags` interface. The interface separates resource block labels under
+`resources` from child module labels under `modules`; omitted or null resource
+maps inherit `var.tags`, while supplied maps replace it without merging, and
+`{}` deliberately removes all tags.
+
 ## Requirements
 
 - TFLint v0.62+
@@ -66,6 +78,7 @@ The supported severity values are `error`, `warning`, and `notice`. Any other va
 | avm_interface_private_endpoints | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
 | avm_interface_private_endpoints_deprecated | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
 | avm_interface_private_endpoints_manage_dns_zone_group | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/includes/i...](https://azure.github.io/Azure-Verified-Modules/includes/interfaces/tf/int.pe.schema.tf) |
+| avm_interface_resource_tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
 | avm_interface_resource_types | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/) |
 | avm_interface_retry | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 | avm_interface_role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |
