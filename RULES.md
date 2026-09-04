@@ -18,6 +18,7 @@ This document lists all rules currently registered in this ruleset. AVM rules ar
 | avm_interface_private_endpoints | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
 | avm_interface_private_endpoints_deprecated | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#private-endpoints) |
 | avm_interface_private_endpoints_manage_dns_zone_group | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/includes/i...](https://azure.github.io/Azure-Verified-Modules/includes/interfaces/tf/int.pe.schema.tf) |
+| avm_interface_resource_tags | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#tags) |
 | avm_interface_resource_types | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR6/) |
 | avm_interface_retry | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR7/) |
 | avm_interface_role_assignments | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/i...](https://azure.github.io/Azure-Verified-Modules/specs/tf/interfaces/#role-assignments) |

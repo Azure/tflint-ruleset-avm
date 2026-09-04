@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/Azure/tflint-ruleset-avm/internal/tagcapability"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -30,14 +28,19 @@ func TestAzapiResourceTagRule(t *testing.T) {
 			name:          "supported resource is missing tags",
 			content:       azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, ""),
 			status:        tagcapability.StatusWritable,
-			expectedIssue: "must set `tags = var.tags`",
+			expectedIssue: "must set `tags`",
 		},
 		{
-			name: "supported resource transforms tags",
+			name: "supported resource uses per-resource tags",
 			content: azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, `
-  tags = merge(var.tags, { environment = "test" })`),
-			status:        tagcapability.StatusWritable,
-			expectedIssue: "must set exactly `tags = var.tags`",
+  tags = try(var.resource_tags.resources.this, null) != null ? var.resource_tags.resources.this : var.tags`),
+			status: tagcapability.StatusWritable,
+		},
+		{
+			name: "supported resource uses local tags expression",
+			content: azapiResource(`Microsoft.Resources/resourceGroups@2021-04-01`, `
+  tags = local.resource_tags`),
+			status: tagcapability.StatusWritable,
 		},
 		{
 			name:    "unsupported resource omits tags",
@@ -142,23 +145,6 @@ func TestAzapiResourceTagRule_embeddedSnapshot(t *testing.T) {
 
 	require.NoError(t, rule.Check(runner))
 	assert.Empty(t, runner.Issues)
-}
-
-func TestIsStandardTagsExpression(t *testing.T) {
-	tests := map[string]bool{
-		"var.tags":                          true,
-		"var.other":                         false,
-		"local.tags":                        false,
-		"merge(var.tags, local.extra_tags)": false,
-	}
-	for expression, expected := range tests {
-		t.Run(expression, func(t *testing.T) {
-			t.Parallel()
-			parsed, diags := hclsyntax.ParseExpression([]byte(expression), "test.tf", hcl.InitialPos)
-			require.False(t, diags.HasErrors())
-			assert.Equal(t, expected, isStandardTagsExpression(parsed))
-		})
-	}
 }
 
 func azapiResource(resourceType, body string) string {
