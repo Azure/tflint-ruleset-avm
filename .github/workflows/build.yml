@@ -33,3 +33,7 @@ jobs:
       if: runner.os == 'Linux'
       shell: pwsh
       run: ./scripts/Invoke-ReleaseAssetTests.ps1
+    - name: Test release asset downloads
+      if: runner.os == 'Linux'
+      shell: pwsh
+      run: ./scripts/Invoke-ReleaseDownloadTests.ps1
