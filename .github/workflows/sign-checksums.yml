@@ -22,48 +22,37 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - name: Check that checksums.txt is attached to the release
-        id: check
+      - name: Checkout signing scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+
+      - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag || github.event.release.tag_name }}
+          RELEASE_ID: ${{ github.event.release.id }}
         run: |
-          $assets = gh release view $env:TAG --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name' 2>$null
-          $found = @($assets) -contains 'checksums.txt'
-          "found=$($found.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          if (-not $found) {
-            Write-Host "::warning::No checksums.txt attached to release $env:TAG, nothing to attest."
+          $parameters = @{
+            Tag = $env:TAG
+            Repository = $env:GITHUB_REPOSITORY
+            OutputDirectory = 'release-assets'
           }
+          if ($env:RELEASE_ID) {
+            $parameters.ReleaseId = [long] $env:RELEASE_ID
+          }
+          ./scripts/Save-ReleaseAssets.ps1 @parameters
 
       - name: Checkout release tag
-        if: steps.check.outputs.found == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag || github.event.release.tag_name }}
+          path: release-source
 
-      - name: Download and validate release assets
-        if: steps.check.outputs.found == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag || github.event.release.tag_name }}
-        run: |
-          if ($env:TAG -notmatch '^v\d+\.\d+\.\d+$') {
-            throw "Invalid release tag: $env:TAG"
-          }
-
-          gh release download $env:TAG `
-            --repo $env:GITHUB_REPOSITORY `
-            --pattern 'tflint-ruleset-avm_*.zip' `
-            --pattern 'checksums.txt' `
-            --dir release-assets
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to download release assets for $env:TAG"
-          }
-
-          ./scripts/Test-ReleaseAssets.ps1 -ReleaseDirectory release-assets
+      - name: Validate release assets
+        run: ./release-source/scripts/Test-ReleaseAssets.ps1 -ReleaseDirectory release-assets
 
       - name: Attest checksums.txt
-        if: steps.check.outputs.found == 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: release-assets/checksums.txt
