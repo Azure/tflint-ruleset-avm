@@ -7,13 +7,22 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-// ConfigurableRule adds validated severity configuration to a rule.
+// ConfigurableRule adds validated configuration to a rule.
 type ConfigurableRule struct {
 	tflint.Rule
 }
 
 type severityConfig struct {
 	Severity string `hclext:"severity,optional"`
+}
+
+type moduleClassConfig struct {
+	Severity    string `hclext:"severity,optional"`
+	ModuleClass string `hclext:"module_class,optional"`
+}
+
+type moduleClassRule interface {
+	CheckWithModuleClass(tflint.Runner, string) error
 }
 
 type severityRunner struct {
@@ -27,7 +36,7 @@ type severityRule struct {
 	severity tflint.Severity
 }
 
-// NewConfigurableRule returns a rule with configurable severity.
+// NewConfigurableRule returns a rule with validated rule configuration.
 func NewConfigurableRule(rule tflint.Rule) *ConfigurableRule {
 	return &ConfigurableRule{Rule: rule}
 }
@@ -35,8 +44,19 @@ func NewConfigurableRule(rule tflint.Rule) *ConfigurableRule {
 // Check decodes configuration before delegating to the underlying rule.
 func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 	config := severityConfig{}
-	if err := runner.DecodeRuleConfig(r.Name(), &config); err != nil {
-		return err
+	classRule, hasModuleClass := r.Rule.(moduleClassRule)
+	moduleClass := ""
+	if hasModuleClass {
+		classConfig := moduleClassConfig{ModuleClass: "resource"}
+		if err := runner.DecodeRuleConfig(r.Name(), &classConfig); err != nil {
+			return err
+		}
+		config.Severity = classConfig.Severity
+		moduleClass = classConfig.ModuleClass
+	} else {
+		if err := runner.DecodeRuleConfig(r.Name(), &config); err != nil {
+			return err
+		}
 	}
 
 	severity, err := parseSeverity(config.Severity, r.Severity())
@@ -44,11 +64,15 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 		return fmt.Errorf("invalid configuration for rule %q: %w", r.Name(), err)
 	}
 
-	return r.Rule.Check(&severityRunner{
+	configuredRunner := &severityRunner{
 		Runner:   runner,
 		rule:     r,
 		severity: severity,
-	})
+	}
+	if hasModuleClass {
+		return classRule.CheckWithModuleClass(configuredRunner, moduleClass)
+	}
+	return r.Rule.Check(configuredRunner)
 }
 
 func parseSeverity(value string, defaultSeverity tflint.Severity) (tflint.Severity, error) {

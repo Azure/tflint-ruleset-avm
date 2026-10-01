@@ -95,3 +95,46 @@ func (vcr *RequiredOutputRule) Check(r tflint.Runner) error {
 		},
 	)
 }
+
+// ResourceIDRequiredRule enforces the resource_id output only for resource-module roots.
+type ResourceIDRequiredRule struct {
+	*RequiredOutputRule
+}
+
+var _ tflint.Rule = new(ResourceIDRequiredRule)
+
+type resourceIDRuleConfig struct {
+	Severity    string `hclext:"severity,optional"`
+	ModuleClass string `hclext:"module_class,optional"`
+}
+
+// NewResourceIDRequiredRule returns the resource_id rule with module-class configuration.
+func NewResourceIDRequiredRule(link string) *ResourceIDRequiredRule {
+	return &ResourceIDRequiredRule{
+		RequiredOutputRule: NewRequiredOutputRule("avm_output_resource_id_required", "resource_id", link),
+	}
+}
+
+// Check decodes the module class when the rule is used without the ruleset wrapper.
+func (r *ResourceIDRequiredRule) Check(runner tflint.Runner) error {
+	config := resourceIDRuleConfig{ModuleClass: "resource"}
+	if err := runner.DecodeRuleConfig(r.Name(), &config); err != nil {
+		return err
+	}
+	return r.CheckWithModuleClass(runner, config.ModuleClass)
+}
+
+// CheckWithModuleClass checks resource roots and skips explicitly configured non-resource roots.
+func (r *ResourceIDRequiredRule) CheckWithModuleClass(runner tflint.Runner, moduleClass string) error {
+	switch moduleClass {
+	case "resource":
+		return r.RequiredOutputRule.Check(runner)
+	case "pattern", "utility":
+		return nil
+	default:
+		return fmt.Errorf(
+			"invalid configuration for rule %q: module_class must be one of %q, %q, or %q, got %q",
+			r.Name(), "resource", "pattern", "utility", moduleClass,
+		)
+	}
+}
