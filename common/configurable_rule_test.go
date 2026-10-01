@@ -94,3 +94,19 @@ rule "avm_test_rule" {
 	require.ErrorContains(t, err, `severity must be one of "error", "warning", or "notice", got "critical"`)
 	assert.Empty(t, runner.Issues)
 }
+
+func TestConfigurableRuleRejectsModuleClassForOtherRules(t *testing.T) {
+	rule := common.NewConfigurableRule(&emittingRule{severity: tflint.ERROR})
+	runner := helper.TestRunner(t, map[string]string{
+		".tflint.hcl": `
+rule "avm_test_rule" {
+  enabled      = true
+  module_class = "pattern"
+}`,
+	})
+
+	err := rule.Check(runner)
+
+	require.ErrorContains(t, err, "Unsupported argument")
+	assert.Empty(t, runner.Issues)
+}

@@ -40,6 +40,9 @@ func TestIntegration(t *testing.T) {
 	cases := []struct {
 		Name           string
 		Dir            string
+		OnlyRule       string
+		UseChdir       bool
+		UseRecursive   bool
 		ExpectedIssues []expectedIssue
 		ExpectFailure  bool
 		ExpectedError  string
@@ -92,6 +95,38 @@ func TestIntegration(t *testing.T) {
 			ExpectFailure: true,
 			ExpectedError: invalidSeverityError,
 		},
+		{
+			Name:     "output-resource-id-pattern-chdir",
+			Dir:      "output-resource-id-pattern",
+			OnlyRule: "avm_output_resource_id_required",
+			UseChdir: true,
+		},
+		{
+			Name:         "output-resource-id-pattern-recursive",
+			Dir:          "output-resource-id-pattern",
+			OnlyRule:     "avm_output_resource_id_required",
+			UseRecursive: true,
+		},
+		{
+			Name:     "output-resource-id-resource-chdir",
+			Dir:      "output-resource-id-resource",
+			OnlyRule: "avm_output_resource_id_required",
+			UseChdir: true,
+			ExpectedIssues: []expectedIssue{
+				{Name: "avm_output_resource_id_required", Severity: "error"},
+			},
+			ExpectFailure: true,
+		},
+		{
+			Name:         "output-resource-id-resource-recursive",
+			Dir:          "output-resource-id-resource",
+			OnlyRule:     "avm_output_resource_id_required",
+			UseRecursive: true,
+			ExpectedIssues: []expectedIssue{
+				{Name: "avm_output_resource_id_required", Severity: "error"},
+			},
+			ExpectFailure: true,
+		},
 	}
 
 	dir, _ := os.Getwd()
@@ -109,11 +144,22 @@ func TestIntegration(t *testing.T) {
 				}
 			})
 
-			if err := os.Chdir(testDir); err != nil {
-				t.Fatal(err)
+			if !tc.UseChdir {
+				if err := os.Chdir(testDir); err != nil {
+					t.Fatal(err)
+				}
 			}
 
-			cmd := exec.Command("tflint", "--format", "json", "--minimum-failure-severity=warning")
+			args := []string{"--format", "json", "--minimum-failure-severity=warning"}
+			if tc.OnlyRule != "" {
+				args = append(args, "--only="+tc.OnlyRule)
+			}
+			if tc.UseChdir {
+				args = append([]string{"--chdir=" + testDir}, args...)
+			} else if tc.UseRecursive {
+				args = append([]string{"--recursive"}, args...)
+			}
+			cmd := exec.Command("tflint", args...)
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
