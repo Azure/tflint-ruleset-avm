@@ -104,6 +104,11 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 				return fmt.Errorf("invalid version constraint: %s", err)
 			}
 			if constraint.Check(ver) {
+				if m.ProviderName == "azurerm" && !azurermConstraintHasUpperBound(constraint, ver) {
+					if err = r.EmitIssue(m, fmt.Sprintf("provider `%s`'s version must exclude 5.0.0 and later, got %s. Recommended version constraint `%s`", m.ProviderName, provider.Version, m.RecommendedConstraint), providerAttr.Range); err != nil {
+						return err
+					}
+				}
 				continue
 			}
 			if err = r.EmitIssue(m, fmt.Sprintf("provider `%s`'s version should satisfy %s, got %s. Recommended version constraint `%s`", m.ProviderName, m.Version, provider.Version, m.RecommendedConstraint), providerAttr.Range); err != nil {
@@ -118,4 +123,28 @@ func (m *ProviderVersionRule) Check(r tflint.Runner) error {
 		return r.EmitIssue(m, fmt.Sprintf("`%s` provider should be declared in the `required_providers` block", m.ProviderName), content.Blocks[0].DefRange)
 	}
 	return nil
+}
+
+func azurermConstraintHasUpperBound(constraints goverison.Constraints, supportedVersion *goverison.Version) bool {
+	upper := goverison.Must(goverison.NewVersion("5.0.0"))
+	if !supportedVersion.LessThan(upper) {
+		return false
+	}
+	inclusiveUpper := goverison.MustConstraints(goverison.NewConstraint("<= 5.0.0"))[0]
+
+	// Every constraint already admits supportedVersion below 5.0.0. For release
+	// versions, a non-exclusion constraint rejecting 5.0.0 proves an upper bound;
+	// individual != exclusions only create holes and cannot bound a range.
+	for _, constraint := range constraints {
+		if strings.HasPrefix(strings.TrimSpace(constraint.String()), "!=") {
+			continue
+		}
+		if !constraint.Check(upper) {
+			return true
+		}
+		if constraint.Equals(inclusiveUpper) && !constraints.Check(upper) {
+			return true
+		}
+	}
+	return false
 }

@@ -59,6 +59,12 @@ rule "avm_interface_resource_types" {
 
 The supported severity values are `error`, `warning`, and `notice`. Any other value is rejected as invalid configuration.
 
+### AzureRM version constraint
+
+`avm_provider_azurerm_version_constraint` requires declared AzureRM constraints to include `4.999.0` and exclude `5.0.0` and later. Use `~> 4.0` or a compatible range such as `>= 4.2, < 5.0`. Open-ended ranges and ranges ending at `< 6.0` fail even with individual 5.x versions excluded. AzureRM remains optional for AzAPI-only modules; source checks and the existing rejection of narrow 4.x pins are unchanged.
+
+This upper-bound check requires a plugin release containing the fix; v1.2.0 and earlier do not enforce it. ModTM and AzAPI version policies are unchanged.
+
 ### Resource ID output rule
 
 `avm_output_resource_id_required` applies to resource-module roots, not pattern or utility roots. It defaults to `resource` when `module_class` is omitted, including when `metadata.json` is missing or malformed. Configure non-resource roots explicitly in `.tflint.hcl`:
