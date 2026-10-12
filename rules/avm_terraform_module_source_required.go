@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -31,6 +32,11 @@ type ModuleSourceRule struct {
 	tflint.DefaultRule
 }
 
+type moduleSourceRuleConfig struct {
+	Severity    string `hclext:"severity,optional"`
+	ModuleScope string `hclext:"module_scope,optional"`
+}
+
 func NewModuleSourceRule() *ModuleSourceRule {
 	return &ModuleSourceRule{}
 }
@@ -52,6 +58,28 @@ func (t *ModuleSourceRule) Severity() tflint.Severity {
 }
 
 func (t *ModuleSourceRule) Check(r tflint.Runner) error {
+	config := moduleSourceRuleConfig{ModuleScope: "root"}
+	if err := r.DecodeRuleConfig(t.Name(), &config); err != nil {
+		return err
+	}
+	return t.CheckWithModuleScope(r, config.ModuleScope)
+}
+
+// CheckWithModuleScope allows only direct local sources for the configured AVM scope.
+func (t *ModuleSourceRule) CheckWithModuleScope(r tflint.Runner, moduleScope string) error {
+	var localPrefix string
+	switch moduleScope {
+	case "root":
+		localPrefix = "./modules/"
+	case "submodule":
+		localPrefix = "../"
+	default:
+		return fmt.Errorf(
+			"invalid configuration for rule %q: module_scope must be one of %q or %q, got %q",
+			t.Name(), "root", "submodule", moduleScope,
+		)
+	}
+
 	path, err := r.GetModulePath()
 	if err != nil {
 		return err
@@ -73,7 +101,7 @@ func (t *ModuleSourceRule) Check(r tflint.Runner) error {
 			continue
 		}
 
-		if subErr := t.checkBlock(r, block); subErr != nil {
+		if subErr := t.checkBlock(r, block, localPrefix); subErr != nil {
 			errList = multierror.Append(errList, subErr)
 		}
 	}
@@ -81,7 +109,7 @@ func (t *ModuleSourceRule) Check(r tflint.Runner) error {
 	return errList
 }
 
-func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclext.Block) error {
+func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclext.Block, localPrefix string) error {
 	source, exists := block.Body.Attributes["source"]
 	if !exists {
 		return r.EmitIssue(
@@ -91,22 +119,30 @@ func (t *ModuleSourceRule) checkBlock(r tflint.Runner, block *hclext.Block) erro
 		)
 	}
 
-	if err := r.EvaluateExpr(source.Expr, t.isAVMModule(r, source.NameRange), &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType}); err != nil {
+	if err := r.EvaluateExpr(source.Expr, t.isAVMModule(r, source.NameRange, localPrefix), &tflint.EvaluateExprOption{ModuleCtx: tflint.RootModuleCtxType}); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (t *ModuleSourceRule) isAVMModule(r tflint.Runner, issueRange hcl.Range) func(string) error {
+func (t *ModuleSourceRule) isAVMModule(r tflint.Runner, issueRange hcl.Range, localPrefix string) func(string) error {
 	return func(source string) error {
-		if (strings.HasPrefix(source, "Azure/") && strings.Contains(source, "avm-")) || strings.HasPrefix(source, "./modules/") {
+		if (strings.HasPrefix(source, "Azure/") && strings.Contains(source, "avm-")) || isDirectLocalModuleSource(source, localPrefix) {
 			return nil
 		}
 		return r.EmitIssue(
 			t,
-			"The `source` property constraint should start with `Azure/` and contain `avm-` to only involve AVM Module",
+			fmt.Sprintf("The `source` property must reference an AVM registry module (`Azure/` containing `avm-`) or a direct local module (`%s<name>`)", localPrefix),
 			issueRange,
 		)
 	}
+}
+
+func isDirectLocalModuleSource(source, prefix string) bool {
+	name, ok := strings.CutPrefix(source, prefix)
+	name = strings.TrimSuffix(name, "/")
+	return ok && name != "" &&
+		!strings.ContainsAny(name, "/\\:\x00") &&
+		!strings.HasSuffix(name, ".") && !strings.HasSuffix(name, " ")
 }

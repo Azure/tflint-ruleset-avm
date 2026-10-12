@@ -25,6 +25,15 @@ type moduleClassRule interface {
 	CheckWithModuleClass(tflint.Runner, string) error
 }
 
+type moduleScopeConfig struct {
+	Severity    string `hclext:"severity,optional"`
+	ModuleScope string `hclext:"module_scope,optional"`
+}
+
+type moduleScopeRule interface {
+	CheckWithModuleScope(tflint.Runner, string) error
+}
+
 type severityRunner struct {
 	tflint.Runner
 	rule     tflint.Rule
@@ -45,7 +54,9 @@ func NewConfigurableRule(rule tflint.Rule) *ConfigurableRule {
 func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 	config := severityConfig{}
 	classRule, hasModuleClass := r.Rule.(moduleClassRule)
+	scopeRule, hasModuleScope := r.Rule.(moduleScopeRule)
 	moduleClass := ""
+	moduleScope := ""
 	if hasModuleClass {
 		classConfig := moduleClassConfig{ModuleClass: "resource"}
 		if err := runner.DecodeRuleConfig(r.Name(), &classConfig); err != nil {
@@ -53,6 +64,13 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 		}
 		config.Severity = classConfig.Severity
 		moduleClass = classConfig.ModuleClass
+	} else if hasModuleScope {
+		scopeConfig := moduleScopeConfig{ModuleScope: "root"}
+		if err := runner.DecodeRuleConfig(r.Name(), &scopeConfig); err != nil {
+			return err
+		}
+		config.Severity = scopeConfig.Severity
+		moduleScope = scopeConfig.ModuleScope
 	} else {
 		if err := runner.DecodeRuleConfig(r.Name(), &config); err != nil {
 			return err
@@ -71,6 +89,9 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 	}
 	if hasModuleClass {
 		return classRule.CheckWithModuleClass(configuredRunner, moduleClass)
+	}
+	if hasModuleScope {
+		return scopeRule.CheckWithModuleScope(configuredRunner, moduleScope)
 	}
 	return r.Rule.Check(configuredRunner)
 }
