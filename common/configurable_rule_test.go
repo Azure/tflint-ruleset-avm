@@ -50,7 +50,7 @@ type moduleClassBlockEmittingRule struct {
 
 func (r *moduleClassBlockEmittingRule) Name() string { return "avm_test_module_class_block_rule" }
 func (r *moduleClassBlockEmittingRule) CheckWithModuleClass(runner tflint.Runner, _ string) error {
-	return r.blockEmittingRule.Check(runner)
+	return r.Check(runner)
 }
 
 type moduleScopeBlockEmittingRule struct {
@@ -59,7 +59,7 @@ type moduleScopeBlockEmittingRule struct {
 
 func (r *moduleScopeBlockEmittingRule) Name() string { return "avm_test_module_scope_block_rule" }
 func (r *moduleScopeBlockEmittingRule) CheckWithModuleScope(runner tflint.Runner, _ string) error {
-	return r.blockEmittingRule.Check(runner)
+	return r.Check(runner)
 }
 
 func (r *emittingRule) Name() string              { return "avm_test_rule" }
