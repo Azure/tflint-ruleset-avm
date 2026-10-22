@@ -13,7 +13,7 @@ type ConfigurableRule struct {
 	tflint.Rule
 }
 
-type severityConfig struct {
+type ruleConfig struct {
 	Severity         string   `hclext:"severity,optional"`
 	IgnoredResources []string `hclext:"ignored_resources,optional"`
 }
@@ -56,7 +56,7 @@ func NewConfigurableRule(rule tflint.Rule) *ConfigurableRule {
 
 // Check decodes configuration before delegating to the underlying rule.
 func (r *ConfigurableRule) Check(runner tflint.Runner) error {
-	config := severityConfig{}
+	config := ruleConfig{}
 	classRule, hasModuleClass := r.Rule.(moduleClassRule)
 	scopeRule, hasModuleScope := r.Rule.(moduleScopeRule)
 	moduleClass := ""
