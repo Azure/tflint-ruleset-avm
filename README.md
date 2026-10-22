@@ -77,6 +77,10 @@ rule "avm_interface_resource_types" {
 
 `resource.azapi_resource.telemetry` is accepted as an equivalent explicit managed-resource form. Selectors must include the namespace (when using `data.`), type, and block name. They apply to static block addresses only: `count` and `for_each` blocks are evaluated as declared rather than expanded from Terraform state. Rules without this option preserve their existing behavior.
 
+### AzAPI interface forwarding
+
+The required AzAPI interfaces accept local aliases and composed values, including `merge`, `concat`, `lookup`, and conditional result branches. Conditional predicates and unselected object members do not satisfy forwarding. Wire `var.timeouts` through the nested `timeouts` block's operation attributes, not a `timeouts` argument; nullable inputs may use a dynamic block forwarding through its iterator's `value`. The `ignore_body_changes` interface applies only to managed `azapi_resource` blocks; other AzAPI resource kinds do not support it.
+
 ### AzureRM version constraint
 
 `avm_provider_azurerm_version_constraint` requires declared AzureRM constraints to include `4.999.0` and exclude `5.0.0` and later. Use `~> 4.0` or a compatible range such as `>= 4.2, < 5.0`. Open-ended ranges and ranges ending at `< 6.0` fail even with individual 5.x versions excluded. AzureRM remains optional for AzAPI-only modules; source checks and the existing rejection of narrow 4.x pins are unchanged.

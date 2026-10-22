@@ -96,7 +96,7 @@ var requiredInterfaceRules = []tflint.Rule{
 		"ignore_body_changes",
 		ignoreBodyChangesRuleLink,
 		"when the module directly declares an AzAPI resource",
-		appliesToDirectAzapiResource,
+		appliesToAzapiResourceType(ignoreBodyChangesAzapiResourceTypes),
 		validateVariableShape(variableShape{
 			typeDescription:     "must recursively contain optional list(string) resource leaves with valid defaults and optional object submodule slots defaulting to `{}`",
 			defaultDescription:  "must be `{}`",
@@ -106,7 +106,7 @@ var requiredInterfaceRules = []tflint.Rule{
 			nullable:            nullableMustBeFalse,
 		}),
 		validateAzapiInterfaceWiring("ignore_body_changes", true),
-	),
+	).onlyFor(ignoreBodyChangesAzapiResourceTypes),
 	newRequiredVariableRule(
 		"avm_interface_resource_tags",
 		"resource_tags",

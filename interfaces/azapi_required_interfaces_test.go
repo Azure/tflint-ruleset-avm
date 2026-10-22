@@ -26,8 +26,14 @@ variable "retry" {
 }`
 
 const validTimeouts = `resource "azapi_resource" "example" {
-  type     = "Microsoft.Example/widgets@2024-01-01"
-  timeouts = var.timeouts
+  type = "Microsoft.Example/widgets@2024-01-01"
+
+  timeouts {
+    create = try(var.timeouts.create, null)
+    read   = try(var.timeouts.read, null)
+    update = try(var.timeouts.update, null)
+    delete = try(var.timeouts.delete, null)
+  }
 }
 
 variable "timeouts" {

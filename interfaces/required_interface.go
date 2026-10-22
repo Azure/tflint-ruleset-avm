@@ -7,10 +7,20 @@ import (
 	"github.com/Azure/tflint-ruleset-avm/internal/tfvarcheck/varcheck"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	hcljson "github.com/hashicorp/hcl/v2/json"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
 )
+
+var timeoutsBodySchema = &hclext.BodySchema{
+	Attributes: []hclext.AttributeSchema{
+		{Name: "create"},
+		{Name: "read"},
+		{Name: "update"},
+		{Name: "delete"},
+	},
+}
 
 var azapiResourceBodySchema = &hclext.BodySchema{
 	Blocks: []hclext.BlockSchema{
@@ -21,8 +31,26 @@ var azapiResourceBodySchema = &hclext.BodySchema{
 				Attributes: []hclext.AttributeSchema{
 					{Name: "type"},
 					{Name: "retry"},
-					{Name: "timeouts"},
 					{Name: "ignore_body_changes"},
+				},
+				Blocks: []hclext.BlockSchema{
+					{
+						Type: "timeouts",
+						Body: timeoutsBodySchema,
+					},
+					{
+						Type:       "dynamic",
+						LabelNames: []string{"type"},
+						Body: &hclext.BodySchema{
+							Attributes: []hclext.AttributeSchema{
+								{Name: "for_each"},
+								{Name: "iterator"},
+							},
+							Blocks: []hclext.BlockSchema{
+								{Type: "content", Body: timeoutsBodySchema},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -34,6 +62,10 @@ var mandatoryInterfaceAzapiResourceTypes = map[string]struct{}{
 	"azapi_resource":            {},
 	"azapi_resource_action":     {},
 	"azapi_update_resource":     {},
+}
+
+var ignoreBodyChangesAzapiResourceTypes = map[string]struct{}{
+	"azapi_resource": {},
 }
 
 type requiredVariableApplicability func(tflint.Runner) (bool, hcl.Range, error)
@@ -52,6 +84,7 @@ type requiredVariableRule struct {
 	applicability requiredVariableApplicability
 	validator     requiredVariableValidator
 	wiring        requiredVariableWiringValidator
+	resourceTypes map[string]struct{}
 }
 
 func newRequiredVariableRule(
@@ -75,7 +108,13 @@ func newRequiredVariableRule(
 		applicability: applicability,
 		validator:     validator,
 		wiring:        wiringValidator,
+		resourceTypes: mandatoryInterfaceAzapiResourceTypes,
 	}
+}
+
+func (r *requiredVariableRule) onlyFor(resourceTypes map[string]struct{}) *requiredVariableRule {
+	r.resourceTypes = resourceTypes
+	return r
 }
 
 func (r *requiredVariableRule) Name() string {
@@ -123,7 +162,7 @@ func (r *requiredVariableRule) Check(runner tflint.Runner) error {
 		return err
 	}
 
-	resources, err := directAzapiResources(runner)
+	resources, err := directAzapiResources(runner, r.resourceTypes)
 	if err != nil {
 		return err
 	}
@@ -131,17 +170,23 @@ func (r *requiredVariableRule) Check(runner tflint.Runner) error {
 }
 
 func appliesToDirectAzapiResource(runner tflint.Runner) (bool, hcl.Range, error) {
-	resources, err := directAzapiResources(runner)
-	if err != nil {
-		return false, hcl.Range{}, err
-	}
-	if len(resources) == 0 {
-		return false, hcl.Range{}, nil
-	}
-	return true, resources[0].DefRange, nil
+	return appliesToAzapiResourceType(mandatoryInterfaceAzapiResourceTypes)(runner)
 }
 
-func directAzapiResources(runner tflint.Runner) ([]*hclext.Block, error) {
+func appliesToAzapiResourceType(resourceTypes map[string]struct{}) requiredVariableApplicability {
+	return func(runner tflint.Runner) (bool, hcl.Range, error) {
+		resources, err := directAzapiResources(runner, resourceTypes)
+		if err != nil {
+			return false, hcl.Range{}, err
+		}
+		if len(resources) == 0 {
+			return false, hcl.Range{}, nil
+		}
+		return true, resources[0].DefRange, nil
+	}
+}
+
+func directAzapiResources(runner tflint.Runner, resourceTypes map[string]struct{}) ([]*hclext.Block, error) {
 	content, err := runner.GetModuleContent(
 		azapiResourceBodySchema,
 		&tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone},
@@ -155,7 +200,7 @@ func directAzapiResources(runner tflint.Runner) ([]*hclext.Block, error) {
 		if len(block.Labels) != 2 {
 			continue
 		}
-		if _, ok := mandatoryInterfaceAzapiResourceTypes[block.Labels[0]]; ok {
+		if _, ok := resourceTypes[block.Labels[0]]; ok {
 			resources = append(resources, block)
 		}
 	}
@@ -272,13 +317,15 @@ func validateAzapiInterfaceWiring(attribute string, requiresMember bool) require
 			return err
 		}
 		for _, resource := range resources {
-			value, ok := resource.Body.Attributes[attribute]
-			if ok && referencesInterfaceVariable(value.Expr, rule.variableName, requiresMember, locals, map[string]bool{}) {
-				continue
+			expressions, sourceRange := interfaceWiringExpressions(resource, attribute)
+			for _, expression := range expressions {
+				if referencesInterfaceVariable(expression, rule.variableName, requiresMember, locals, map[string]bool{}) {
+					sourceRange = hcl.Range{}
+					break
+				}
 			}
-			sourceRange := resource.DefRange
-			if ok {
-				sourceRange = value.Range
+			if sourceRange.Filename == "" || (attribute == "timeouts" && dynamicTimeoutsForwardInterface(resource, rule.variableName, locals)) {
+				continue
 			}
 			if err := runner.EmitIssue(
 				rule,
@@ -290,6 +337,66 @@ func validateAzapiInterfaceWiring(attribute string, requiresMember bool) require
 		}
 		return nil
 	}
+}
+
+func dynamicTimeoutsForwardInterface(resource *hclext.Block, variableName string, locals map[string]hcl.Expression) bool {
+	for _, block := range resource.Body.Blocks {
+		if block.Type != "dynamic" || len(block.Labels) != 1 || block.Labels[0] != "timeouts" {
+			continue
+		}
+		collection, ok := block.Body.Attributes["for_each"]
+		if !ok {
+			continue
+		}
+		iteratorName := "timeouts"
+		if iterator, ok := block.Body.Attributes["iterator"]; ok {
+			traversal, diagnostics := hcl.AbsTraversalForExpr(iterator.Expr)
+			if diagnostics.HasErrors() || len(traversal) != 1 {
+				continue
+			}
+			iteratorName = traversal.RootName()
+		}
+		iterators := map[string]hcl.Expression{iteratorName: collection.Expr}
+		for _, content := range block.Body.Blocks {
+			for _, value := range content.Body.Attributes {
+				if expressionForwardsInterface(value.Expr, nil, variableName, false, locals, map[string]bool{}, iterators) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func interfaceWiringExpressions(resource *hclext.Block, attribute string) ([]hcl.Expression, hcl.Range) {
+	if attribute != "timeouts" {
+		value, ok := resource.Body.Attributes[attribute]
+		if !ok {
+			return nil, resource.DefRange
+		}
+		return []hcl.Expression{value.Expr}, value.Range
+	}
+
+	var expressions []hcl.Expression
+	var sourceRange hcl.Range
+	for _, block := range resource.Body.Blocks {
+		if block.Type != "timeouts" {
+			if block.Type == "dynamic" && len(block.Labels) == 1 && block.Labels[0] == "timeouts" && sourceRange.Filename == "" {
+				sourceRange = block.DefRange
+			}
+			continue
+		}
+		if sourceRange.Filename == "" {
+			sourceRange = block.DefRange
+		}
+		for _, value := range block.Body.Attributes {
+			expressions = append(expressions, value.Expr)
+		}
+	}
+	if sourceRange.Filename == "" {
+		sourceRange = resource.DefRange
+	}
+	return expressions, sourceRange
 }
 
 func localExpressions(runner tflint.Runner) (map[string]hcl.Expression, error) {
@@ -330,6 +437,7 @@ func referencesInterfaceVariable(
 		requiresMember,
 		locals,
 		visitedLocals,
+		nil,
 	)
 }
 
@@ -340,47 +448,93 @@ func expressionForwardsInterface(
 	requiresMember bool,
 	locals map[string]hcl.Expression,
 	visitedLocals map[string]bool,
+	iterators map[string]hcl.Expression,
 ) bool {
 	switch expression := expression.(type) {
 	case *hclsyntax.ScopeTraversalExpr:
-		return traversalForwardsInterface(expression.Traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+		return traversalForwardsInterface(expression.Traversal, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
 	case *hclsyntax.RelativeTraversalExpr:
-		traversal, diagnostics := hcl.AbsTraversalForExpr(expression)
-		return !diagnostics.HasErrors() &&
-			traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+		return expressionForwardsInterface(
+			expression.Source,
+			append(append(hcl.Traversal{}, expression.Traversal...), suffix...),
+			variableName,
+			requiresMember,
+			locals,
+			visitedLocals,
+			iterators,
+		)
 	case *hclsyntax.ParenthesesExpr:
-		return expressionForwardsInterface(expression.Expression, suffix, variableName, requiresMember, locals, visitedLocals)
-	case *hclsyntax.ConditionalExpr:
-		return expressionForwardsInterface(expression.TrueResult, suffix, variableName, requiresMember, locals, visitedLocals) ||
-			expressionForwardsInterface(expression.FalseResult, suffix, variableName, requiresMember, locals, visitedLocals)
-	case *hclsyntax.FunctionCallExpr:
-		switch strings.ToLower(expression.Name) {
-		case "coalesce", "try":
-			for _, argument := range expression.Args {
-				if expressionForwardsInterface(argument, suffix, variableName, requiresMember, locals, visitedLocals) {
-					return true
-				}
+		return expressionForwardsInterface(expression.Expression, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
+	case *hclsyntax.TemplateWrapExpr:
+		return expressionForwardsInterface(expression.Wrapped, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
+	case *hclsyntax.TupleConsExpr:
+		for _, item := range expression.Exprs {
+			if expressionForwardsInterface(item, suffix, variableName, requiresMember, locals, visitedLocals, iterators) {
+				return true
 			}
 		}
-	case *hclsyntax.ObjectConsExpr:
-		if len(suffix) == 0 {
-			return false
+	case *hclsyntax.TemplateExpr:
+		for _, part := range expression.Parts {
+			if expressionForwardsInterface(part, suffix, variableName, requiresMember, locals, visitedLocals, iterators) {
+				return true
+			}
 		}
-		member, ok := traversalMemberName(suffix[0])
-		if !ok {
-			return false
-		}
-		for _, item := range expression.Items {
-			key, diagnostics := item.KeyExpr.Value(nil)
-			if diagnostics.HasErrors() || !key.IsKnown() || key.IsNull() || !key.Type().Equals(cty.String) || key.AsString() != member {
+	case *hclsyntax.ConditionalExpr:
+		return expressionForwardsInterface(expression.TrueResult, suffix, variableName, requiresMember, locals, visitedLocals, iterators) ||
+			expressionForwardsInterface(expression.FalseResult, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
+	case *hclsyntax.FunctionCallExpr:
+		isLookup := strings.EqualFold(expression.Name, "lookup") && len(expression.Args) >= 2
+		for index, argument := range expression.Args {
+			if isLookup && index == 1 {
 				continue
 			}
-			return expressionForwardsInterface(item.ValueExpr, suffix[1:], variableName, requiresMember, locals, visitedLocals)
+			argumentSuffix := suffix
+			if isLookup && index == 0 {
+				key, diagnostics := expression.Args[1].Value(nil)
+				if diagnostics.HasErrors() {
+					key = cty.DynamicVal
+				}
+				argumentSuffix = append(hcl.Traversal{hcl.TraverseIndex{Key: key}}, suffix...)
+			}
+			if expressionForwardsInterface(argument, argumentSuffix, variableName, requiresMember, locals, visitedLocals, iterators) {
+				return true
+			}
 		}
 	default:
+		if hcljson.IsJSONExpression(expression) {
+			value, diagnostics := expression.Value(nil)
+			if !diagnostics.HasErrors() && value.IsKnown() && !value.IsNull() && value.Type().Equals(cty.String) {
+				template, diagnostics := hclsyntax.ParseTemplate([]byte(value.AsString()), expression.Range().Filename, expression.Range().Start)
+				return !diagnostics.HasErrors() &&
+					expressionForwardsInterface(template, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
+			}
+		}
+		items, diagnostics := hcl.ExprMap(expression)
+		if !diagnostics.HasErrors() {
+			if len(suffix) == 0 {
+				for _, item := range items {
+					if expressionForwardsInterface(item.Value, nil, variableName, requiresMember, locals, visitedLocals, iterators) {
+						return true
+					}
+				}
+				return false
+			}
+			member, ok := traversalMemberName(suffix[0])
+			if !ok {
+				return false
+			}
+			for _, item := range items {
+				key, diagnostics := item.Key.Value(nil)
+				if diagnostics.HasErrors() || !key.IsKnown() || key.IsNull() || !key.Type().Equals(cty.String) || key.AsString() != member {
+					continue
+				}
+				return expressionForwardsInterface(item.Value, suffix[1:], variableName, requiresMember, locals, visitedLocals, iterators)
+			}
+			return false
+		}
 		traversal, diagnostics := hcl.AbsTraversalForExpr(expression)
 		if !diagnostics.HasErrors() {
-			return traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+			return traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals, iterators)
 		}
 	}
 	return false
@@ -393,6 +547,7 @@ func traversalForwardsInterface(
 	requiresMember bool,
 	locals map[string]hcl.Expression,
 	visitedLocals map[string]bool,
+	iterators map[string]hcl.Expression,
 ) bool {
 	if len(traversal) < 2 {
 		return false
@@ -426,9 +581,14 @@ func traversalForwardsInterface(
 		}
 		nextVisitedLocals[name.Name] = true
 		remaining := append(append(hcl.Traversal{}, traversal[2:]...), suffix...)
-		return expressionForwardsInterface(localExpression, remaining, variableName, requiresMember, locals, nextVisitedLocals)
+		return expressionForwardsInterface(localExpression, remaining, variableName, requiresMember, locals, nextVisitedLocals, iterators)
 	default:
-		return false
+		collection, ok := iterators[root.Name]
+		if !ok || name.Name != "value" {
+			return false
+		}
+		remaining := append(append(hcl.Traversal{}, traversal[2:]...), suffix...)
+		return expressionForwardsInterface(collection, remaining, variableName, requiresMember, locals, visitedLocals, nil)
 	}
 }
 
