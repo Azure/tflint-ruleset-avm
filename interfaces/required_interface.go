@@ -293,24 +293,24 @@ func validateAzapiInterfaceWiring(attribute string, requiresMember bool) require
 }
 
 func localExpressions(runner tflint.Runner) (map[string]hcl.Expression, error) {
-	files, err := runner.GetFiles()
+	content, err := runner.GetModuleContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{
+				Type: "locals",
+				Body: &hclext.BodySchema{
+					Mode: hclext.SchemaJustAttributesMode,
+				},
+			},
+		},
+	}, &tflint.GetModuleContentOption{ExpandMode: tflint.ExpandModeNone})
 	if err != nil {
 		return nil, err
 	}
 
 	locals := make(map[string]hcl.Expression)
-	for _, file := range files {
-		body, ok := file.Body.(*hclsyntax.Body)
-		if !ok {
-			continue
-		}
-		for _, block := range body.Blocks {
-			if block.Type != "locals" {
-				continue
-			}
-			for name, attribute := range block.Body.Attributes {
-				locals[name] = attribute.Expr
-			}
+	for _, block := range content.Blocks {
+		for name, attribute := range block.Body.Attributes {
+			locals[name] = attribute.Expr
 		}
 	}
 	return locals, nil
@@ -323,51 +323,125 @@ func referencesInterfaceVariable(
 	locals map[string]hcl.Expression,
 	visitedLocals map[string]bool,
 ) bool {
-	for _, traversal := range expression.Variables() {
-		if isVariableReference(traversal, variableName, requiresMember) {
-			return true
+	return expressionForwardsInterface(
+		expression,
+		nil,
+		variableName,
+		requiresMember,
+		locals,
+		visitedLocals,
+	)
+}
+
+func expressionForwardsInterface(
+	expression hcl.Expression,
+	suffix hcl.Traversal,
+	variableName string,
+	requiresMember bool,
+	locals map[string]hcl.Expression,
+	visitedLocals map[string]bool,
+) bool {
+	switch expression := expression.(type) {
+	case *hclsyntax.ScopeTraversalExpr:
+		return traversalForwardsInterface(expression.Traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.RelativeTraversalExpr:
+		traversal, diagnostics := hcl.AbsTraversalForExpr(expression)
+		return !diagnostics.HasErrors() &&
+			traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.ParenthesesExpr:
+		return expressionForwardsInterface(expression.Expression, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.ConditionalExpr:
+		return expressionForwardsInterface(expression.TrueResult, suffix, variableName, requiresMember, locals, visitedLocals) ||
+			expressionForwardsInterface(expression.FalseResult, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.FunctionCallExpr:
+		switch strings.ToLower(expression.Name) {
+		case "coalesce", "try":
+			for _, argument := range expression.Args {
+				if expressionForwardsInterface(argument, suffix, variableName, requiresMember, locals, visitedLocals) {
+					return true
+				}
+			}
 		}
-		localName, ok := localReferenceName(traversal)
-		if !ok || visitedLocals[localName] {
-			continue
+	case *hclsyntax.ObjectConsExpr:
+		if len(suffix) == 0 {
+			return false
 		}
-		localExpression, ok := locals[localName]
+		member, ok := traversalMemberName(suffix[0])
 		if !ok {
-			continue
+			return false
 		}
-		visitedLocals[localName] = true
-		if referencesInterfaceVariable(localExpression, variableName, requiresMember, locals, visitedLocals) {
-			return true
+		for _, item := range expression.Items {
+			key, diagnostics := item.KeyExpr.Value(nil)
+			if diagnostics.HasErrors() || !key.IsKnown() || key.IsNull() || !key.Type().Equals(cty.String) || key.AsString() != member {
+				continue
+			}
+			return expressionForwardsInterface(item.ValueExpr, suffix[1:], variableName, requiresMember, locals, visitedLocals)
+		}
+	default:
+		traversal, diagnostics := hcl.AbsTraversalForExpr(expression)
+		if !diagnostics.HasErrors() {
+			return traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals)
 		}
 	}
 	return false
 }
 
-func isVariableReference(traversal hcl.Traversal, variableName string, requiresMember bool) bool {
+func traversalForwardsInterface(
+	traversal hcl.Traversal,
+	suffix hcl.Traversal,
+	variableName string,
+	requiresMember bool,
+	locals map[string]hcl.Expression,
+	visitedLocals map[string]bool,
+) bool {
 	if len(traversal) < 2 {
 		return false
 	}
 	root, ok := traversal[0].(hcl.TraverseRoot)
-	if !ok || root.Name != "var" {
+	if !ok {
 		return false
 	}
+
 	name, ok := traversal[1].(hcl.TraverseAttr)
-	if !ok || name.Name != variableName {
+	if !ok {
 		return false
 	}
-	return !requiresMember || len(traversal) > 2
+	switch root.Name {
+	case "var":
+		if name.Name != variableName {
+			return false
+		}
+		return !requiresMember || len(traversal)+len(suffix) > 2
+	case "local":
+		if visitedLocals[name.Name] {
+			return false
+		}
+		localExpression, ok := locals[name.Name]
+		if !ok {
+			return false
+		}
+		nextVisitedLocals := make(map[string]bool, len(visitedLocals)+1)
+		for localName, visited := range visitedLocals {
+			nextVisitedLocals[localName] = visited
+		}
+		nextVisitedLocals[name.Name] = true
+		remaining := append(append(hcl.Traversal{}, traversal[2:]...), suffix...)
+		return expressionForwardsInterface(localExpression, remaining, variableName, requiresMember, locals, nextVisitedLocals)
+	default:
+		return false
+	}
 }
 
-func localReferenceName(traversal hcl.Traversal) (string, bool) {
-	if len(traversal) < 2 {
-		return "", false
+func traversalMemberName(traverser hcl.Traverser) (string, bool) {
+	switch traverser := traverser.(type) {
+	case hcl.TraverseAttr:
+		return traverser.Name, true
+	case hcl.TraverseIndex:
+		if traverser.Key.IsKnown() && !traverser.Key.IsNull() && traverser.Key.Type().Equals(cty.String) {
+			return traverser.Key.AsString(), true
+		}
 	}
-	root, ok := traversal[0].(hcl.TraverseRoot)
-	if !ok || root.Name != "local" {
-		return "", false
-	}
-	name, ok := traversal[1].(hcl.TraverseAttr)
-	return name.Name, ok
+	return "", false
 }
 
 func emitVariableAttributeIssue(

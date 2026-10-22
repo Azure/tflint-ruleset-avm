@@ -135,6 +135,10 @@ func (r *severityRunner) FilterIgnoredBlocks(blocks []*hclext.Block) []*hclext.B
 	return FilterIgnoredBlocks(r.Runner, blocks)
 }
 
+func (r *severityRunner) IsIgnoredResourceBlock(blockType string, labels []string) bool {
+	return IsIgnoredResourceBlock(r.Runner, blockType, labels)
+}
+
 func (r *severityRunner) EmitIssueWithFix(
 	_ tflint.Rule,
 	message string,

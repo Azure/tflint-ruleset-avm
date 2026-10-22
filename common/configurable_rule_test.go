@@ -223,18 +223,30 @@ data "azapi_resource" "telemetry" {
 }
 
 func TestConfigurableRuleRejectsInvalidIgnoredResourceAddress(t *testing.T) {
-	rule := common.NewConfigurableRule(&blockEmittingRule{})
-	runner := helper.TestRunner(t, map[string]string{
-		".tflint.hcl": `rule "avm_test_block_rule" {
+	for _, selector := range []string{
+		"azapi_resource",
+		"var.example",
+		"local.example",
+		"module.example",
+		"data.azapi_resource.telemetry[0]",
+		"azapi_resource.telemetry[0]",
+		"azapi_resource.*",
+	} {
+		t.Run(selector, func(t *testing.T) {
+			rule := common.NewConfigurableRule(&blockEmittingRule{})
+			runner := helper.TestRunner(t, map[string]string{
+				".tflint.hcl": fmt.Sprintf(`rule "avm_test_block_rule" {
   enabled           = true
-  ignored_resources = ["azapi_resource"]
-}`,
-	})
+  ignored_resources = [%q]
+}`, selector),
+			})
 
-	err := rule.Check(runner)
+			err := rule.Check(runner)
 
-	require.ErrorContains(t, err, "ignored_resources entry")
-	assert.Empty(t, runner.Issues)
+			require.ErrorContains(t, err, "ignored_resources entry")
+			assert.Empty(t, runner.Issues)
+		})
+	}
 }
 
 func TestConfigurableRuleSupportsIgnoredResourcesForEveryConfigurationShape(t *testing.T) {

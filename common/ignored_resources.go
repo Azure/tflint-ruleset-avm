@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
+	"github.com/terraform-linters/tflint-plugin-sdk/terraform/addrs"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
@@ -44,35 +45,38 @@ func parseResourceAddress(value string) (resourceAddress, error) {
 		return resourceAddress{}, fmt.Errorf("ignored_resources entry %q must be a Terraform resource or data address", value)
 	}
 
-	parts := traversalParts(traversal)
-	switch {
-	case len(parts) == 2:
-		return resourceAddress{blockType: "resource", typeName: parts[0], name: parts[1]}, nil
-	case len(parts) == 3 && parts[0] == "resource":
-		return resourceAddress{blockType: "resource", typeName: parts[1], name: parts[2]}, nil
-	case len(parts) == 3 && parts[0] == "data":
-		return resourceAddress{blockType: "data", typeName: parts[1], name: parts[2]}, nil
+	reference, diagnostics := addrs.ParseRef(traversal)
+	if diagnostics.HasErrors() || len(reference.Remaining) != 0 {
+		return resourceAddress{}, fmt.Errorf(
+			"ignored_resources entry %q must use resource_type.resource_name, resource.resource_type.resource_name, or data.resource_type.resource_name",
+			value,
+		)
+	}
+
+	var resource addrs.Resource
+	switch subject := reference.Subject.(type) {
+	case addrs.Resource:
+		resource = subject
+	case addrs.ResourceInstance:
+		if subject.Key != addrs.NoKey {
+			return resourceAddress{}, fmt.Errorf(
+				"ignored_resources entry %q must use resource_type.resource_name, resource.resource_type.resource_name, or data.resource_type.resource_name",
+				value,
+			)
+		}
+		resource = subject.Resource
 	default:
 		return resourceAddress{}, fmt.Errorf(
 			"ignored_resources entry %q must use resource_type.resource_name, resource.resource_type.resource_name, or data.resource_type.resource_name",
 			value,
 		)
 	}
-}
 
-func traversalParts(traversal hcl.Traversal) []string {
-	parts := make([]string, 0, len(traversal))
-	for _, step := range traversal {
-		switch step := step.(type) {
-		case hcl.TraverseRoot:
-			parts = append(parts, step.Name)
-		case hcl.TraverseAttr:
-			parts = append(parts, step.Name)
-		default:
-			return nil
-		}
+	blockType := "resource"
+	if resource.Mode == addrs.DataResourceMode {
+		blockType = "data"
 	}
-	return parts
+	return resourceAddress{blockType: blockType, typeName: resource.Type, name: resource.Name}, nil
 }
 
 func (r *ignoredResourceRunner) GetModuleContent(
@@ -102,6 +106,10 @@ func (r *ignoredResourceRunner) FilterIgnoredBlocks(blocks []*hclext.Block) []*h
 	return filterBlocks(blocks, r.ignored)
 }
 
+func (r *ignoredResourceRunner) IsIgnoredResourceBlock(blockType string, labels []string) bool {
+	return isIgnoredAddress(blockType, labels, r.ignored)
+}
+
 // FilterIgnoredBlocks removes configured resource and data blocks when the runner supports exclusions.
 func FilterIgnoredBlocks(runner tflint.Runner, blocks []*hclext.Block) []*hclext.Block {
 	filteringRunner, ok := runner.(interface {
@@ -111,6 +119,14 @@ func FilterIgnoredBlocks(runner tflint.Runner, blocks []*hclext.Block) []*hclext
 		return blocks
 	}
 	return filteringRunner.FilterIgnoredBlocks(blocks)
+}
+
+// IsIgnoredResourceBlock reports whether a static resource or data block is configured as ignored.
+func IsIgnoredResourceBlock(runner tflint.Runner, blockType string, labels []string) bool {
+	filteringRunner, ok := runner.(interface {
+		IsIgnoredResourceBlock(string, []string) bool
+	})
+	return ok && filteringRunner.IsIgnoredResourceBlock(blockType, labels)
 }
 
 func filterBodyContent(content *hclext.BodyContent, ignored ignoredResources) *hclext.BodyContent {
@@ -134,13 +150,17 @@ func filterBlocks(blocks []*hclext.Block, ignored ignoredResources) []*hclext.Bl
 }
 
 func isIgnoredBlock(block *hclext.Block, ignored ignoredResources) bool {
-	if len(block.Labels) != 2 || (block.Type != "resource" && block.Type != "data") {
+	return isIgnoredAddress(block.Type, block.Labels, ignored)
+}
+
+func isIgnoredAddress(blockType string, labels []string, ignored ignoredResources) bool {
+	if len(labels) != 2 || (blockType != "resource" && blockType != "data") {
 		return false
 	}
 	_, ok := ignored[resourceAddress{
-		blockType: block.Type,
-		typeName:  block.Labels[0],
-		name:      block.Labels[1],
+		blockType: blockType,
+		typeName:  labels[0],
+		name:      labels[1],
 	}]
 	return ok
 }

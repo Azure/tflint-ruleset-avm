@@ -249,6 +249,100 @@ locals {
 	helper.AssertIssues(t, helper.Issues{}, runner.Issues)
 }
 
+func TestAzapiRequiredInterfacesAcceptSelectedLocalAliasMembers(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		content  string
+		old      string
+		repl     string
+	}{
+		{
+			name:     "resource types",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = coalesce(local.overrides.widget, "Microsoft.Example/widgets@2024-01-01")`,
+		},
+		{
+			name:     "ignore body changes",
+			variable: "ignore_body_changes",
+			content:  validIgnoreBodyChanges,
+			old:      "ignore_body_changes = var.ignore_body_changes.widget",
+			repl:     "ignore_body_changes = coalesce(local.overrides.widget, [])",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			content := strings.Replace(test.content, test.old, test.repl, 1) + `
+locals {
+  overrides = var.` + test.variable + `
+}`
+			rule := requiredInterfaceRule(t, test.variable)
+			runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+		})
+	}
+}
+
+func TestAzapiRequiredInterfacesRejectConditionOnlyReferences(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		content  string
+		old      string
+		repl     string
+	}{
+		{"resource types", "resource_types", validResourceTypes, "type = var.resource_types.widget", "type = var.resource_types != null ? null : null"},
+		{"retry", "retry", validRetry, "retry = var.retry", "retry = var.retry != null ? null : null"},
+		{"timeouts", "timeouts", validTimeouts, "timeouts = var.timeouts", "timeouts = var.timeouts != null ? null : null"},
+		{"ignore body changes", "ignore_body_changes", validIgnoreBodyChanges, "ignore_body_changes = var.ignore_body_changes.widget", "ignore_body_changes = var.ignore_body_changes != null ? null : null"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := requiredInterfaceRule(t, test.variable)
+			runner := helper.TestRunner(t, map[string]string{"main.tf": strings.Replace(test.content, test.old, test.repl, 1)})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if len(runner.Issues) != 1 {
+				t.Fatalf("expected one wiring issue, got %#v", runner.Issues)
+			}
+		})
+	}
+}
+
+func TestAzapiRequiredInterfacesRejectUnrelatedLocalObjectMember(t *testing.T) {
+	rule := requiredInterfaceRule(t, "resource_types")
+	content := strings.Replace(
+		validResourceTypes,
+		"type = var.resource_types.widget",
+		"type = local.overrides.selected",
+		1,
+	) + `
+locals {
+  overrides = {
+    selected  = "Microsoft.Example/widgets@2024-01-01"
+    unrelated = var.resource_types.widget
+  }
+}`
+	runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+
+	if err := rule.Check(runner); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if len(runner.Issues) != 1 {
+		t.Fatalf("expected one wiring issue, got %#v", runner.Issues)
+	}
+}
+
 func TestAzapiRequiredInterfacesApplyIgnoredResourcesBeforeApplicability(t *testing.T) {
 	rule := common.NewConfigurableRule(requiredInterfaceRule(t, "resource_types"))
 	config := `rule "avm_interface_resource_types" {
