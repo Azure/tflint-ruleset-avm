@@ -11,7 +11,8 @@ import (
 // Canonical TFFR8 snapshot:
 // https://github.com/Azure/Azure-Verified-Modules/blob/005b4f94e9197d1e23ea4213c92b4263bf636a2e/docs/content/specs-defs/includes/terraform/shared/functional/TFFR8.md
 const validIgnoreBodyChanges = `resource "azapi_resource" "example" {
-  type = "Microsoft.Example/widgets@2024-01-01"
+  type                = "Microsoft.Example/widgets@2024-01-01"
+  ignore_body_changes = var.ignore_body_changes.widget
 }
 
 variable "ignore_body_changes" {

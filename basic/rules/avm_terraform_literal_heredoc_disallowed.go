@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -59,6 +60,7 @@ func (r *TerraformHeredocUsageRule) CheckFile(runner tflint.Runner, file *hcl.Fi
 	var start hcl.Range
 	var heredoc strings.Builder
 	inHeredoc := false
+	ignored := ignoredBlockRanges(runner, body)
 	for _, token := range tokens {
 		switch token.Type {
 		case hclsyntax.TokenOHeredoc:
@@ -67,6 +69,9 @@ func (r *TerraformHeredocUsageRule) CheckFile(runner tflint.Runner, file *hcl.Fi
 			start = token.Range
 		case hclsyntax.TokenCHeredoc:
 			inHeredoc = false
+			if rangeInAny(start, ignored) {
+				continue
+			}
 			if subErr := r.checkLiteral(runner, heredoc.String(), start); subErr != nil {
 				err = multierror.Append(err, subErr)
 			}
@@ -77,6 +82,27 @@ func (r *TerraformHeredocUsageRule) CheckFile(runner tflint.Runner, file *hcl.Fi
 		}
 	}
 	return err
+}
+
+func ignoredBlockRanges(runner tflint.Runner, body *hclsyntax.Body) []hcl.Range {
+	ranges := make([]hcl.Range, 0)
+	for _, block := range body.Blocks {
+		if common.IsIgnoredResourceBlock(runner, block.Type, block.Labels) {
+			ranges = append(ranges, block.Range())
+		}
+	}
+	return ranges
+}
+
+func rangeInAny(sourceRange hcl.Range, ranges []hcl.Range) bool {
+	for _, ownerRange := range ranges {
+		if ownerRange.Filename == sourceRange.Filename &&
+			ownerRange.Start.Byte <= sourceRange.Start.Byte &&
+			sourceRange.End.Byte <= ownerRange.End.Byte {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *TerraformHeredocUsageRule) checkLiteral(runner tflint.Runner, heredoc string, sourceRange hcl.Range) error {

@@ -23,10 +23,88 @@ type tflintOutput struct {
 			Severity string `json:"severity"`
 		} `json:"rule"`
 		Message string `json:"message"`
+		Range   struct {
+			Filename string `json:"filename"`
+			Start    struct {
+				Line int `json:"line"`
+			} `json:"start"`
+		} `json:"range"`
 	} `json:"issues"`
 	Errors []struct {
 		Message string `json:"message"`
 	} `json:"errors"`
+}
+
+func TestResourceExclusionsIntegration(t *testing.T) {
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name      string
+		dir       string
+		wantCount int
+		filename  string
+		line      int
+	}{
+		{
+			name:      "wiring applies only to business resources",
+			dir:       "resource-exclusions-wiring",
+			wantCount: 2,
+			filename:  "main.tf",
+			line:      6,
+		},
+		{
+			name:      "fileless variable diagnostic remains explicit",
+			dir:       "resource-exclusions-fileless",
+			wantCount: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			command := exec.Command(
+				"tflint",
+				"--chdir="+filepath.Join(dir, test.dir),
+				"--format",
+				"json",
+				"--only=avm_interface_resource_types",
+				"--minimum-failure-severity=warning",
+			)
+			var stdout, stderr bytes.Buffer
+			command.Stdout = &stdout
+			command.Stderr = &stderr
+			if err := command.Run(); err == nil {
+				t.Fatalf("tflint succeeded but diagnostics were expected, stdout=%s stderr=%s", stdout.String(), stderr.String())
+			}
+
+			var output tflintOutput
+			if err := json.Unmarshal(stdout.Bytes(), &output); err != nil {
+				t.Fatalf("failed to parse tflint JSON output: %s\nstdout=%s", err, stdout.String())
+			}
+			if len(output.Issues) != test.wantCount {
+				t.Fatalf("expected %d issues, got %s", test.wantCount, stdout.String())
+			}
+			for _, issue := range output.Issues {
+				if issue.Rule.Name != "avm_interface_resource_types" {
+					t.Fatalf("unexpected issue %#v", issue)
+				}
+				if !bytes.Contains([]byte(issue.Message), []byte("variable `resource_types`")) &&
+					!bytes.Contains([]byte(issue.Message), []byte("using variable `resource_types`")) {
+					t.Fatalf("unexpected issue message %q", issue.Message)
+				}
+			}
+			if test.filename != "" {
+				for _, issue := range output.Issues {
+					if filepath.Base(issue.Range.Filename) != test.filename || issue.Range.Start.Line < test.line {
+						t.Fatalf("expected business resource diagnostic at %s:%d, got %#v", test.filename, test.line, issue.Range)
+					}
+				}
+			} else if output.Issues[0].Range.Filename != "" || output.Issues[0].Range.Start.Line != 0 {
+				t.Fatalf("expected the missing variables.tf diagnostic to be explicitly fileless, got %#v", output.Issues[0].Range)
+			}
+		})
+	}
 }
 
 type expectedIssue struct {

@@ -59,6 +59,24 @@ rule "avm_interface_resource_types" {
 
 The supported severity values are `error`, `warning`, and `notice`. Any other value is rejected as invalid configuration.
 
+### Resource exclusions
+
+Every AVM rule accepts an optional `ignored_resources` array. Each selector excludes only the matching static resource or data block from that rule's resource checks; it does not suppress unrelated provider, variable, module, or file diagnostics.
+
+Use Terraform-native managed-resource addresses by default, with `data.` for data sources:
+
+```hcl
+rule "avm_interface_resource_types" {
+  enabled = true
+  ignored_resources = [
+    "azapi_resource.telemetry",
+    "data.azapi_resource.telemetry",
+  ]
+}
+```
+
+`resource.azapi_resource.telemetry` is accepted as an equivalent explicit managed-resource form. Selectors must include the namespace (when using `data.`), type, and block name. They apply to static block addresses only: `count` and `for_each` blocks are evaluated as declared rather than expanded from Terraform state. Rules without this option preserve their existing behavior.
+
 ### AzureRM version constraint
 
 `avm_provider_azurerm_version_constraint` requires declared AzureRM constraints to include `4.999.0` and exclude `5.0.0` and later. Use `~> 4.0` or a compatible range such as `>= 4.2, < 5.0`. Open-ended ranges and ranges ending at `< 6.0` fail even with individual 5.x versions excluded. AzureRM remains optional for AzAPI-only modules; source checks and the existing rejection of narrow 4.x pins are unchanged.
