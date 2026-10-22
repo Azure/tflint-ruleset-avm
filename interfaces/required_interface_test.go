@@ -36,6 +36,9 @@ func TestAzapiRequiredInterfacesTriggerOnEveryResourceType(t *testing.T) {
 }`, resourceType)
 
 			for _, variableName := range azapiRequiredVariableNames {
+				if variableName == "ignore_body_changes" && resourceType != "azapi_resource" {
+					continue
+				}
 				rule := requiredInterfaceRule(t, variableName)
 				runner := helper.TestRunner(t, map[string]string{"main.tf": content})
 
@@ -82,6 +85,75 @@ module "child" {
 			t.Fatalf("%s: unexpected error: %s", variableName, err)
 		}
 		helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+	}
+}
+
+func TestIgnoreBodyChangesOnlyAppliesToAzapiResource(t *testing.T) {
+	rule := requiredInterfaceRule(t, "ignore_body_changes")
+	for _, resourceType := range []string{"azapi_data_plane_resource", "azapi_resource_action", "azapi_update_resource"} {
+		t.Run(resourceType, func(t *testing.T) {
+			runner := helper.TestRunner(t, map[string]string{
+				"main.tf": fmt.Sprintf(`resource %q "example" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`, resourceType),
+			})
+			if err := rule.Check(runner); err != nil {
+				t.Fatal(err)
+			}
+			helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+		})
+	}
+}
+
+func TestTimeoutsBlockAppliesToEachSupportedAzapiResource(t *testing.T) {
+	rule := requiredInterfaceRule(t, "timeouts")
+	for _, resourceType := range []string{"azapi_resource", "azapi_data_plane_resource", "azapi_resource_action", "azapi_update_resource"} {
+		t.Run(resourceType, func(t *testing.T) {
+			content := strings.Replace(validTimeouts, `resource "azapi_resource"`, fmt.Sprintf(`resource %q`, resourceType), 1)
+			runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+			if err := rule.Check(runner); err != nil {
+				t.Fatal(err)
+			}
+			helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+		})
+	}
+}
+
+func TestTimeoutsDynamicBlockForwarding(t *testing.T) {
+	rule := requiredInterfaceRule(t, "timeouts")
+	dynamic := `dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }`
+	tests := []struct {
+		name       string
+		block      string
+		wantIssues int
+	}{
+		{"nullable input", dynamic, 0},
+		{"custom iterator", strings.NewReplacer("    content {", "    iterator = settings\n    content {", "timeouts.value", "settings.value").Replace(dynamic), 0},
+		{"condition only collection", strings.Replace(dynamic, "[var.timeouts]", "[{ create = null, read = null, update = null, delete = null }]", 1), 1},
+		{"unwired content", strings.NewReplacer("timeouts.value.create", "null", "timeouts.value.read", "null", "timeouts.value.update", "null", "timeouts.value.delete", "null").Replace(dynamic), 1},
+		{"condition only content", strings.NewReplacer("timeouts.value.create", "timeouts.value.create != null ? null : null", "timeouts.value.read", "null", "timeouts.value.update", "null", "timeouts.value.delete", "null").Replace(dynamic), 1},
+	}
+	start := strings.Index(validTimeouts, "timeouts {")
+	end := strings.Index(validTimeouts[start:], "\n  }") + start + len("\n  }")
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			content := validTimeouts[:start] + test.block + validTimeouts[end:]
+			runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+			if err := rule.Check(runner); err != nil {
+				t.Fatal(err)
+			}
+			if len(runner.Issues) != test.wantIssues {
+				t.Fatalf("expected %d wiring issues, got %#v", test.wantIssues, runner.Issues)
+			}
+		})
 	}
 }
 
@@ -290,6 +362,112 @@ locals {
 	}
 }
 
+func TestAzapiRequiredInterfacesAcceptValueComposition(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		content  string
+		old      string
+		repl     string
+		locals   string
+	}{
+		{
+			name:     "retry merge",
+			variable: "retry",
+			content:  validRetry,
+			old:      "retry = var.retry",
+			repl:     "retry = merge({ interval_seconds = 1 }, coalesce(var.retry, {}))",
+		},
+		{
+			name:     "ignore body changes concat",
+			variable: "ignore_body_changes",
+			content:  validIgnoreBodyChanges,
+			old:      "ignore_body_changes = var.ignore_body_changes.widget",
+			repl:     `ignore_body_changes = concat(["properties.fixed"], coalesce(var.ignore_body_changes.widget, []))`,
+		},
+		{
+			name:     "resource types lookup",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = lookup(var.resource_types, "widget", "Microsoft.Example/widgets@2024-01-01")`,
+		},
+		{
+			name:     "selected local object lookup",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = lookup(local.overrides, "widget", "Microsoft.Example/widgets@2024-01-01")`,
+			locals: `
+locals {
+  overrides = {
+    widget = var.resource_types.widget
+  }
+}`,
+		},
+		{
+			name:     "template wrap",
+			variable: "retry",
+			content:  validRetry,
+			old:      "retry = var.retry",
+			repl:     `retry = "${var.retry}"`,
+		},
+		{
+			name:     "template parts",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = "Microsoft.Example/${var.resource_types.widget}"`,
+		},
+		{
+			name:     "composed retry object",
+			variable: "retry",
+			content:  validRetry,
+			old:      "retry = var.retry",
+			repl:     `retry = { interval_seconds = var.retry.interval_seconds }`,
+		},
+		{
+			name:     "parenthesized local member",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = (coalesce(local.overrides, {})).widget`,
+			locals: `
+locals {
+  overrides = var.resource_types
+}`,
+		},
+		{
+			name:     "timeouts block",
+			variable: "timeouts",
+			content:  validTimeouts,
+			old: `timeouts {
+    create = try(var.timeouts.create, null)
+    read   = try(var.timeouts.read, null)
+    update = try(var.timeouts.update, null)
+    delete = try(var.timeouts.delete, null)
+  }`,
+			repl: `timeouts {
+  create = coalesce(var.timeouts.create, "30m")
+  delete = coalesce(var.timeouts.delete, "30m")
+}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := requiredInterfaceRule(t, test.variable)
+			content := strings.Replace(test.content, test.old, test.repl, 1) + test.locals
+			runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+		})
+	}
+}
+
 func TestAzapiRequiredInterfacesRejectConditionOnlyReferences(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -300,7 +478,14 @@ func TestAzapiRequiredInterfacesRejectConditionOnlyReferences(t *testing.T) {
 	}{
 		{"resource types", "resource_types", validResourceTypes, "type = var.resource_types.widget", "type = var.resource_types != null ? null : null"},
 		{"retry", "retry", validRetry, "retry = var.retry", "retry = var.retry != null ? null : null"},
-		{"timeouts", "timeouts", validTimeouts, "timeouts = var.timeouts", "timeouts = var.timeouts != null ? null : null"},
+		{"timeouts", "timeouts", validTimeouts, `timeouts {
+    create = try(var.timeouts.create, null)
+    read   = try(var.timeouts.read, null)
+    update = try(var.timeouts.update, null)
+    delete = try(var.timeouts.delete, null)
+  }`, `timeouts {
+    create = var.timeouts != null ? null : null
+  }`},
 		{"ignore body changes", "ignore_body_changes", validIgnoreBodyChanges, "ignore_body_changes = var.ignore_body_changes.widget", "ignore_body_changes = var.ignore_body_changes != null ? null : null"},
 	}
 
@@ -337,6 +522,71 @@ locals {
 
 	if err := rule.Check(runner); err != nil {
 		t.Fatalf("unexpected error: %s", err)
+	}
+	if len(runner.Issues) != 1 {
+		t.Fatalf("expected one wiring issue, got %#v", runner.Issues)
+	}
+}
+
+func TestAzapiRequiredInterfacesAcceptJSONLocalAlias(t *testing.T) {
+	rule := requiredInterfaceRule(t, "retry")
+	tests := []struct {
+		name       string
+		expression string
+		locals     string
+		wantIssues int
+	}{
+		{"direct", "local.retry", `{"locals":{"retry":"${var.retry}"}}`, 0},
+		{"composed", "local.retry", `{"locals":{"retry":"${merge({}, coalesce(var.retry, {}))}"}}`, 0},
+		{"selected object", "local.overrides.selected", `{"locals":{"overrides":{"selected":"${var.retry}"}}}`, 0},
+		{"condition only", "local.retry", `{"locals":{"retry":"${var.retry != null ? null : null}"}}`, 1},
+		{"unselected object", "local.overrides.selected", `{"locals":{"overrides":{"selected":null,"unrelated":"${var.retry}"}}}`, 1},
+		{"literal mention", "local.retry", `{"locals":{"retry":"var.retry"}}`, 1},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			runner := helper.TestRunner(t, map[string]string{
+				"main.tf":      strings.Replace(validRetry, "retry = var.retry", "retry = "+test.expression, 1),
+				"main.tf.json": test.locals,
+			})
+			if err := rule.Check(runner); err != nil {
+				t.Fatal(err)
+			}
+			if len(runner.Issues) != test.wantIssues {
+				t.Fatalf("expected %d wiring issues, got %#v", test.wantIssues, runner.Issues)
+			}
+		})
+	}
+}
+
+func TestAzapiRequiredInterfacesRejectLocalAliasCycles(t *testing.T) {
+	rule := requiredInterfaceRule(t, "retry")
+	content := strings.Replace(validRetry, "retry = var.retry", "retry = local.first", 1) + `
+locals {
+  first  = local.second
+  second = local.first
+}`
+	runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+	if err := rule.Check(runner); err != nil {
+		t.Fatal(err)
+	}
+	if len(runner.Issues) != 1 {
+		t.Fatalf("expected one wiring issue, got %#v", runner.Issues)
+	}
+}
+
+func TestAzapiRequiredInterfacesRejectUnselectedLookupMember(t *testing.T) {
+	rule := requiredInterfaceRule(t, "retry")
+	content := strings.Replace(validRetry, "retry = var.retry", `retry = lookup(local.overrides, "selected", null)`, 1) + `
+locals {
+  overrides = {
+    selected  = null
+    unrelated = var.retry
+  }
+}`
+	runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+	if err := rule.Check(runner); err != nil {
+		t.Fatal(err)
 	}
 	if len(runner.Issues) != 1 {
 		t.Fatalf("expected one wiring issue, got %#v", runner.Issues)

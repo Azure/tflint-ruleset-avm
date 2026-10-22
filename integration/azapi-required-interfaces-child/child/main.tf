@@ -1,11 +1,20 @@
 resource "azapi_resource" "example" {
   type                   = var.resource_types.widget
   retry                  = var.retry
-  timeouts               = var.timeouts
   ignore_body_changes    = var.ignore_body_changes.widget
   name                   = "example"
   parent_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example"
   response_export_values = []
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 }
 
 variable "resource_types" {
