@@ -4,6 +4,7 @@
 package modulecontent
 
 import (
+	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/spf13/afero"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
@@ -34,7 +35,7 @@ func FetchAttributes(f BlockFetcher, runner tflint.Runner) (*terraform.Evaluator
 	if diags.HasErrors() {
 		return nil, nil, diags
 	}
-	attrs, diags := getAttributesFilterByLabelOne(ctx, config.Module, f)
+	attrs, diags := getAttributesFilterByLabelOne(runner, ctx, config.Module, f)
 	return ctx, attrs, diags
 }
 
@@ -44,13 +45,13 @@ func FetchBlocks(f BlockFetcher, runner tflint.Runner) (*terraform.Evaluator, []
 	if diags.HasErrors() {
 		return nil, nil, diags
 	}
-	blocks, diags := blocksFilterByLabelOne(ctx, config.Module, f)
+	blocks, diags := blocksFilterByLabelOne(runner, ctx, config.Module, f)
 
 	return ctx, blocks, diags
 }
 
 // blocksFilterByLabelOne returns a slice of resources with the given resource type and the attribute if they exist.
-func blocksFilterByLabelOne(ctx *terraform.Evaluator, module *terraform.Module, bf BlockFetcher) ([]*hclext.Block, hcl.Diagnostics) {
+func blocksFilterByLabelOne(runner tflint.Runner, ctx *terraform.Evaluator, module *terraform.Module, bf BlockFetcher) ([]*hclext.Block, hcl.Diagnostics) {
 	resources, diags := blocksWithPartialContent(ctx, module, bf)
 	if diags.HasErrors() {
 		return nil, diags
@@ -62,17 +63,17 @@ func blocksFilterByLabelOne(ctx *terraform.Evaluator, module *terraform.Module, 
 		}
 		filteredResources = append(filteredResources, resource)
 	}
-	return filteredResources, nil
+	return common.FilterIgnoredBlocks(runner, filteredResources), nil
 }
 
 // getAttributesFilterByLabelOne returns a slice of attributes with the given attribute name from the resources of the given resource type.
-func getAttributesFilterByLabelOne(ctx *terraform.Evaluator, module *terraform.Module, bf BlockFetcher) ([]*hclext.Attribute, hcl.Diagnostics) {
+func getAttributesFilterByLabelOne(runner tflint.Runner, ctx *terraform.Evaluator, module *terraform.Module, bf BlockFetcher) ([]*hclext.Attribute, hcl.Diagnostics) {
 	resources, diags := blocksWithPartialContent(ctx, module, bf)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 	attrs := make([]*hclext.Attribute, 0, len(resources.Blocks))
-	for _, resource := range resources.Blocks {
+	for _, resource := range common.FilterIgnoredBlocks(runner, resources.Blocks) {
 		if resource.Labels[0] != bf.LabelOne() {
 			continue
 		}

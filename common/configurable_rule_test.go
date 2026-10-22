@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
@@ -15,6 +16,50 @@ import (
 type emittingRule struct {
 	tflint.DefaultRule
 	severity tflint.Severity
+}
+
+type blockEmittingRule struct {
+	tflint.DefaultRule
+}
+
+func (r *blockEmittingRule) Name() string              { return "avm_test_block_rule" }
+func (r *blockEmittingRule) Enabled() bool             { return true }
+func (r *blockEmittingRule) Severity() tflint.Severity { return tflint.ERROR }
+func (r *blockEmittingRule) Check(runner tflint.Runner) error {
+	content, err := runner.GetModuleContent(&hclext.BodySchema{
+		Blocks: []hclext.BlockSchema{
+			{Type: "resource", LabelNames: []string{"type", "name"}, Body: &hclext.BodySchema{}},
+			{Type: "data", LabelNames: []string{"type", "name"}, Body: &hclext.BodySchema{}},
+		},
+	}, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, block := range content.Blocks {
+		if err := runner.EmitIssue(r, "block issue", block.DefRange); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type moduleClassBlockEmittingRule struct {
+	blockEmittingRule
+}
+
+func (r *moduleClassBlockEmittingRule) Name() string { return "avm_test_module_class_block_rule" }
+func (r *moduleClassBlockEmittingRule) CheckWithModuleClass(runner tflint.Runner, _ string) error {
+	return r.blockEmittingRule.Check(runner)
+}
+
+type moduleScopeBlockEmittingRule struct {
+	blockEmittingRule
+}
+
+func (r *moduleScopeBlockEmittingRule) Name() string { return "avm_test_module_scope_block_rule" }
+func (r *moduleScopeBlockEmittingRule) CheckWithModuleScope(runner tflint.Runner, _ string) error {
+	return r.blockEmittingRule.Check(runner)
 }
 
 func (r *emittingRule) Name() string              { return "avm_test_rule" }
@@ -125,4 +170,130 @@ rule "avm_test_rule" {
 
 	require.ErrorContains(t, err, "Unsupported argument")
 	assert.Empty(t, runner.Issues)
+}
+
+func TestConfigurableRuleFiltersIgnoredResourceAndDataAddresses(t *testing.T) {
+	tests := []struct {
+		name       string
+		selectors  string
+		wantIssues int
+	}{
+		{
+			name:       "absent",
+			wantIssues: 2,
+		},
+		{
+			name:       "short managed resource address",
+			selectors:  `ignored_resources = ["azapi_resource.telemetry"]`,
+			wantIssues: 1,
+		},
+		{
+			name:       "explicit managed resource address",
+			selectors:  `ignored_resources = ["resource.azapi_resource.telemetry"]`,
+			wantIssues: 1,
+		},
+		{
+			name:       "data source address",
+			selectors:  `ignored_resources = ["data.azapi_resource.telemetry"]`,
+			wantIssues: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := common.NewConfigurableRule(&blockEmittingRule{})
+			runner := helper.TestRunner(t, map[string]string{
+				".tflint.hcl": fmt.Sprintf(`rule "avm_test_block_rule" {
+  enabled = true
+  %s
+}`, test.selectors),
+				"main.tf": `resource "azapi_resource" "telemetry" {
+  count = 1
+}
+
+data "azapi_resource" "telemetry" {
+  for_each = {}
+}`,
+			})
+
+			require.NoError(t, rule.Check(runner))
+			assert.Len(t, runner.Issues, test.wantIssues)
+		})
+	}
+}
+
+func TestConfigurableRuleRejectsInvalidIgnoredResourceAddress(t *testing.T) {
+	rule := common.NewConfigurableRule(&blockEmittingRule{})
+	runner := helper.TestRunner(t, map[string]string{
+		".tflint.hcl": `rule "avm_test_block_rule" {
+  enabled           = true
+  ignored_resources = ["azapi_resource"]
+}`,
+	})
+
+	err := rule.Check(runner)
+
+	require.ErrorContains(t, err, "ignored_resources entry")
+	assert.Empty(t, runner.Issues)
+}
+
+func TestConfigurableRuleSupportsIgnoredResourcesForEveryConfigurationShape(t *testing.T) {
+	tests := []struct {
+		name   string
+		rule   tflint.Rule
+		config string
+	}{
+		{
+			name: "standard rule",
+			rule: &blockEmittingRule{},
+			config: `rule "avm_test_block_rule" {
+  enabled           = true
+  ignored_resources = ["azapi_resource.telemetry"]
+}`,
+		},
+		{
+			name: "module class rule",
+			rule: &moduleClassBlockEmittingRule{},
+			config: `rule "avm_test_module_class_block_rule" {
+  enabled           = true
+  module_class      = "resource"
+  ignored_resources = ["azapi_resource.telemetry"]
+}`,
+		},
+		{
+			name: "module scope rule",
+			rule: &moduleScopeBlockEmittingRule{},
+			config: `rule "avm_test_module_scope_block_rule" {
+  enabled           = true
+  module_scope      = "root"
+  ignored_resources = ["azapi_resource.telemetry"]
+}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := common.NewConfigurableRule(test.rule)
+			runner := helper.TestRunner(t, map[string]string{
+				".tflint.hcl": test.config,
+				"main.tf":     `resource "azapi_resource" "telemetry" {}`,
+			})
+
+			require.NoError(t, rule.Check(runner))
+			assert.Empty(t, runner.Issues)
+		})
+	}
+}
+
+func TestConfigurableRuleDoesNotHideUnrelatedDiagnostics(t *testing.T) {
+	rule := common.NewConfigurableRule(&emittingRule{severity: tflint.ERROR})
+	runner := helper.TestRunner(t, map[string]string{
+		".tflint.hcl": `rule "avm_test_rule" {
+  enabled           = true
+  ignored_resources = ["azapi_resource.telemetry"]
+}`,
+	})
+
+	require.NoError(t, rule.Check(runner))
+	assert.Len(t, runner.Issues, 1)
 }

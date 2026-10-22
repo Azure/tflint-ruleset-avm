@@ -12,7 +12,8 @@ import (
 // Canonical TFFR7 snapshot:
 // https://github.com/Azure/Azure-Verified-Modules/blob/005b4f94e9197d1e23ea4213c92b4263bf636a2e/docs/content/specs-defs/includes/terraform/shared/functional/TFFR7.md
 const validRetry = `resource "azapi_resource" "example" {
-  type = "Microsoft.Example/widgets@2024-01-01"
+  type  = "Microsoft.Example/widgets@2024-01-01"
+  retry = var.retry
 }
 
 variable "retry" {
@@ -25,7 +26,8 @@ variable "retry" {
 }`
 
 const validTimeouts = `resource "azapi_resource" "example" {
-  type = "Microsoft.Example/widgets@2024-01-01"
+  type     = "Microsoft.Example/widgets@2024-01-01"
+  timeouts = var.timeouts
 }
 
 variable "timeouts" {

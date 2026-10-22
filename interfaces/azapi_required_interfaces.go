@@ -44,6 +44,7 @@ var requiredInterfaceRules = []tflint.Rule{
 			validateDefault:     emptyObjectDefault,
 			nullable:            nullableMustBeFalse,
 		}),
+		validateAzapiInterfaceWiring("type", true),
 	),
 	newRequiredVariableRule(
 		"avm_interface_retry",
@@ -65,6 +66,7 @@ var requiredInterfaceRules = []tflint.Rule{
 			validateDefault: nullableObjectDefault,
 			nullable:        nullableMayBeTrue,
 		}),
+		validateAzapiInterfaceWiring("retry", false),
 	),
 	newRequiredVariableRule(
 		"avm_interface_timeouts",
@@ -87,6 +89,7 @@ var requiredInterfaceRules = []tflint.Rule{
 			validateDefault: nullableObjectDefault,
 			nullable:        nullableMayBeTrue,
 		}),
+		validateAzapiInterfaceWiring("timeouts", false),
 	),
 	newRequiredVariableRule(
 		"avm_interface_ignore_body_changes",
@@ -102,6 +105,7 @@ var requiredInterfaceRules = []tflint.Rule{
 			validateDefault:     emptyObjectDefault,
 			nullable:            nullableMustBeFalse,
 		}),
+		validateAzapiInterfaceWiring("ignore_body_changes", true),
 	),
 	newRequiredVariableRule(
 		"avm_interface_resource_tags",

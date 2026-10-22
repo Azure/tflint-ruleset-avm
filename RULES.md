@@ -1,6 +1,6 @@
 # Rules Reference
 
-This document lists all rules currently registered in this ruleset. AVM rules are enabled by default and support `error`, `warning`, or `notice` severity overrides in TFLint configuration.
+This document lists all rules currently registered in this ruleset. AVM rules are enabled by default and support `error`, `warning`, or `notice` severity overrides plus optional per-rule `ignored_resources` selectors in TFLint configuration.
 
 | Name | Enabled | Severity | Link |
 | ---- | ------- | -------- | ---- |

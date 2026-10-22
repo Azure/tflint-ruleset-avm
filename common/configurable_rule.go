@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
@@ -13,12 +14,14 @@ type ConfigurableRule struct {
 }
 
 type severityConfig struct {
-	Severity string `hclext:"severity,optional"`
+	Severity         string   `hclext:"severity,optional"`
+	IgnoredResources []string `hclext:"ignored_resources,optional"`
 }
 
 type moduleClassConfig struct {
-	Severity    string `hclext:"severity,optional"`
-	ModuleClass string `hclext:"module_class,optional"`
+	Severity         string   `hclext:"severity,optional"`
+	ModuleClass      string   `hclext:"module_class,optional"`
+	IgnoredResources []string `hclext:"ignored_resources,optional"`
 }
 
 type moduleClassRule interface {
@@ -26,8 +29,9 @@ type moduleClassRule interface {
 }
 
 type moduleScopeConfig struct {
-	Severity    string `hclext:"severity,optional"`
-	ModuleScope string `hclext:"module_scope,optional"`
+	Severity         string   `hclext:"severity,optional"`
+	ModuleScope      string   `hclext:"module_scope,optional"`
+	IgnoredResources []string `hclext:"ignored_resources,optional"`
 }
 
 type moduleScopeRule interface {
@@ -57,6 +61,7 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 	scopeRule, hasModuleScope := r.Rule.(moduleScopeRule)
 	moduleClass := ""
 	moduleScope := ""
+	ignoredResourceAddresses := []string(nil)
 	if hasModuleClass {
 		classConfig := moduleClassConfig{ModuleClass: "resource"}
 		if err := runner.DecodeRuleConfig(r.Name(), &classConfig); err != nil {
@@ -64,6 +69,7 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 		}
 		config.Severity = classConfig.Severity
 		moduleClass = classConfig.ModuleClass
+		ignoredResourceAddresses = classConfig.IgnoredResources
 	} else if hasModuleScope {
 		scopeConfig := moduleScopeConfig{ModuleScope: "root"}
 		if err := runner.DecodeRuleConfig(r.Name(), &scopeConfig); err != nil {
@@ -71,10 +77,17 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 		}
 		config.Severity = scopeConfig.Severity
 		moduleScope = scopeConfig.ModuleScope
+		ignoredResourceAddresses = scopeConfig.IgnoredResources
 	} else {
 		if err := runner.DecodeRuleConfig(r.Name(), &config); err != nil {
 			return err
 		}
+		ignoredResourceAddresses = config.IgnoredResources
+	}
+
+	ignoredResources, err := parseIgnoredResources(ignoredResourceAddresses)
+	if err != nil {
+		return fmt.Errorf("invalid configuration for rule %q: %w", r.Name(), err)
 	}
 
 	severity, err := parseSeverity(config.Severity, r.Severity())
@@ -83,7 +96,10 @@ func (r *ConfigurableRule) Check(runner tflint.Runner) error {
 	}
 
 	configuredRunner := &severityRunner{
-		Runner:   runner,
+		Runner: &ignoredResourceRunner{
+			Runner:  runner,
+			ignored: ignoredResources,
+		},
 		rule:     r,
 		severity: severity,
 	}
@@ -113,6 +129,10 @@ func parseSeverity(value string, defaultSeverity tflint.Severity) (tflint.Severi
 
 func (r *severityRunner) EmitIssue(_ tflint.Rule, message string, issueRange hcl.Range) error {
 	return r.Runner.EmitIssue(&severityRule{Rule: r.rule, severity: r.severity}, message, issueRange)
+}
+
+func (r *severityRunner) FilterIgnoredBlocks(blocks []*hclext.Block) []*hclext.Block {
+	return FilterIgnoredBlocks(r.Runner, blocks)
 }
 
 func (r *severityRunner) EmitIssueWithFix(

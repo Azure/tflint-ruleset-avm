@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/tflint-ruleset-avm/common"
 	"github.com/Azure/tflint-ruleset-avm/interfaces"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
@@ -138,6 +139,7 @@ func TestAzapiRequiredInterfaceMissingVariableSourceRange(t *testing.T) {
 		"main.tf": `resource "azapi_resource" "example" {
   type = "Microsoft.Example/widgets@2024-01-01"
 }`,
+		"variables.tf": "",
 	})
 
 	if err := rule.Check(runner); err != nil {
@@ -148,12 +150,172 @@ func TestAzapiRequiredInterfaceMissingVariableSourceRange(t *testing.T) {
 			Rule:    rule,
 			Message: "variable `resource_types` must be declared when the module directly declares an AzAPI resource; see: " + rule.Link(),
 			Range: hcl.Range{
-				Filename: "main.tf",
+				Filename: "variables.tf",
 				Start:    hcl.Pos{Line: 1, Column: 1},
-				End:      hcl.Pos{Line: 1, Column: 36},
+				End:      hcl.Pos{Line: 1, Column: 1},
 			},
 		},
 	}, runner.Issues)
+}
+
+func TestAzapiRequiredInterfacesCheckEveryResourceWiring(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		content  string
+	}{
+		{
+			name:     "resource types",
+			variable: "resource_types",
+			content: validResourceTypes + `
+resource "azapi_resource" "unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`,
+		},
+		{
+			name:     "retry",
+			variable: "retry",
+			content: validRetry + `
+resource "azapi_resource" "unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`,
+		},
+		{
+			name:     "timeouts",
+			variable: "timeouts",
+			content: validTimeouts + `
+resource "azapi_resource" "unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`,
+		},
+		{
+			name:     "ignore body changes",
+			variable: "ignore_body_changes",
+			content: validIgnoreBodyChanges + `
+resource "azapi_resource" "unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := requiredInterfaceRule(t, test.variable)
+			runner := helper.TestRunner(t, map[string]string{"main.tf": test.content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if len(runner.Issues) != 1 {
+				t.Fatalf("expected one resource-local wiring issue, got %#v", runner.Issues)
+			}
+			if !strings.Contains(runner.Issues[0].Message, "using variable `"+test.variable+"`") {
+				t.Fatalf("unexpected issue message %q", runner.Issues[0].Message)
+			}
+		})
+	}
+}
+
+func TestAzapiRequiredInterfacesCheckMultipleUnwiredResources(t *testing.T) {
+	rule := requiredInterfaceRule(t, "resource_types")
+	runner := helper.TestRunner(t, map[string]string{"main.tf": validResourceTypes + `
+resource "azapi_resource" "first_unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}
+
+resource "azapi_resource" "second_unwired" {
+  type = "Microsoft.Example/widgets@2024-01-01"
+}`})
+
+	if err := rule.Check(runner); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if len(runner.Issues) != 2 {
+		t.Fatalf("expected two resource-local wiring issues, got %#v", runner.Issues)
+	}
+}
+
+func TestAzapiRequiredInterfacesAcceptLocalsAndConditionalForwarding(t *testing.T) {
+	rule := requiredInterfaceRule(t, "retry")
+	content := strings.Replace(validRetry, "retry = var.retry", "retry = local.retry", 1) + `
+locals {
+  retry = var.retry == null ? null : var.retry
+}`
+	runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+
+	if err := rule.Check(runner); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+}
+
+func TestAzapiRequiredInterfacesApplyIgnoredResourcesBeforeApplicability(t *testing.T) {
+	rule := common.NewConfigurableRule(requiredInterfaceRule(t, "resource_types"))
+	config := `rule "avm_interface_resource_types" {
+  enabled           = true
+  ignored_resources = ["azapi_resource.telemetry"]
+}`
+	telemetry := `resource "azapi_resource" "telemetry" {
+  type = "Microsoft.Example/telemetry@2024-01-01"
+}`
+
+	for _, content := range []string{
+		telemetry,
+		telemetry + `
+resource "azapi_resource" "business" {
+  type = "Microsoft.Example/business@2024-01-01"
+}`,
+		`resource "azapi_resource" "business" {
+  type = "Microsoft.Example/business@2024-01-01"
+}` + "\n" + telemetry,
+	} {
+		runner := helper.TestRunner(t, map[string]string{
+			".tflint.hcl":  config,
+			"main.tf":      content,
+			"variables.tf": "",
+		})
+
+		if err := rule.Check(runner); err != nil {
+			t.Fatalf("unexpected error: %s", err)
+		}
+
+		wantIssues := 0
+		if strings.Contains(content, `"business"`) {
+			wantIssues = 1
+		}
+		if len(runner.Issues) != wantIssues {
+			t.Fatalf("expected %d issues for %q, got %#v", wantIssues, content, runner.Issues)
+		}
+	}
+}
+
+func TestAzapiRequiredInterfacesKeepExclusionsIsolatedPerRule(t *testing.T) {
+	resourceTypesRule := common.NewConfigurableRule(requiredInterfaceRule(t, "resource_types"))
+	retryRule := common.NewConfigurableRule(requiredInterfaceRule(t, "retry"))
+	runner := helper.TestRunner(t, map[string]string{
+		".tflint.hcl": `rule "avm_interface_resource_types" {
+  enabled           = true
+  ignored_resources = ["azapi_resource.telemetry"]
+}
+
+rule "avm_interface_retry" {
+  enabled = true
+}`,
+		"main.tf": `resource "azapi_resource" "telemetry" {
+  type = "Microsoft.Example/telemetry@2024-01-01"
+}`,
+		"variables.tf": "",
+	})
+
+	if err := resourceTypesRule.Check(runner); err != nil {
+		t.Fatalf("resource types: unexpected error: %s", err)
+	}
+	if err := retryRule.Check(runner); err != nil {
+		t.Fatalf("retry: unexpected error: %s", err)
+	}
+	if len(runner.Issues) != 1 || runner.Issues[0].Rule.Name() != "avm_interface_retry" {
+		t.Fatalf("expected only the retry diagnostic, got %#v", runner.Issues)
+	}
 }
 
 func requiredInterfaceRule(t *testing.T, name string) tflint.Rule {
