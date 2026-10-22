@@ -290,6 +290,73 @@ locals {
 	}
 }
 
+func TestAzapiRequiredInterfacesAcceptValueComposition(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		content  string
+		old      string
+		repl     string
+		locals   string
+	}{
+		{
+			name:     "retry merge",
+			variable: "retry",
+			content:  validRetry,
+			old:      "retry = var.retry",
+			repl:     "retry = merge({ interval_seconds = 1 }, coalesce(var.retry, {}))",
+		},
+		{
+			name:     "ignore body changes concat",
+			variable: "ignore_body_changes",
+			content:  validIgnoreBodyChanges,
+			old:      "ignore_body_changes = var.ignore_body_changes.widget",
+			repl:     `ignore_body_changes = concat(["properties.fixed"], coalesce(var.ignore_body_changes.widget, []))`,
+		},
+		{
+			name:     "resource types lookup",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = lookup(var.resource_types, "widget", "Microsoft.Example/widgets@2024-01-01")`,
+		},
+		{
+			name:     "parenthesized local member",
+			variable: "resource_types",
+			content:  validResourceTypes,
+			old:      "type = var.resource_types.widget",
+			repl:     `type = (coalesce(local.overrides, {})).widget`,
+			locals: `
+locals {
+  overrides = var.resource_types
+}`,
+		},
+		{
+			name:     "timeouts object",
+			variable: "timeouts",
+			content:  validTimeouts,
+			old:      "timeouts = var.timeouts",
+			repl: `timeouts = {
+  create = try(var.timeouts.create, "30m")
+  delete = try(var.timeouts.delete, "30m")
+}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rule := requiredInterfaceRule(t, test.variable)
+			content := strings.Replace(test.content, test.old, test.repl, 1) + test.locals
+			runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			helper.AssertIssues(t, helper.Issues{}, runner.Issues)
+		})
+	}
+}
+
 func TestAzapiRequiredInterfacesRejectConditionOnlyReferences(t *testing.T) {
 	tests := []struct {
 		name     string

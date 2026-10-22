@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"testing"
 )
@@ -41,23 +42,43 @@ func TestResourceExclusionsIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	tests := []struct {
-		name      string
-		dir       string
-		wantCount int
-		filename  string
-		line      int
+		name          string
+		dir           string
+		rule          string
+		wantCount     int
+		expectFailure bool
+		filename      string
+		lines         []int
 	}{
 		{
-			name:      "wiring applies only to business resources",
-			dir:       "resource-exclusions-wiring",
-			wantCount: 2,
-			filename:  "main.tf",
-			line:      6,
+			name:          "wiring applies only to business resources",
+			dir:           "resource-exclusions-wiring",
+			rule:          "avm_interface_resource_types",
+			wantCount:     2,
+			expectFailure: true,
+			filename:      "main.tf",
+			lines:         []int{6, 10},
 		},
 		{
-			name:      "fileless variable diagnostic remains explicit",
-			dir:       "resource-exclusions-fileless",
-			wantCount: 1,
+			name:          "mixed resources retain a fileless definition diagnostic",
+			dir:           "resource-exclusions-fileless",
+			rule:          "avm_interface_resource_types",
+			wantCount:     1,
+			expectFailure: true,
+		},
+		{
+			name:      "telemetry only is inapplicable",
+			dir:       "resource-exclusions-telemetry-only",
+			rule:      "avm_interface_resource_types",
+			wantCount: 0,
+		},
+		{
+			name:      "raw heredocs honor managed and data selectors",
+			dir:       "resource-exclusions-raw",
+			rule:      "avm_terraform_literal_heredoc_disallowed",
+			wantCount: 2,
+			filename:  "main.tf",
+			lines:     []int{14, 20},
 		},
 	}
 
@@ -68,14 +89,14 @@ func TestResourceExclusionsIntegration(t *testing.T) {
 				"--chdir="+filepath.Join(dir, test.dir),
 				"--format",
 				"json",
-				"--only=avm_interface_resource_types",
+				"--only="+test.rule,
 				"--minimum-failure-severity=warning",
 			)
 			var stdout, stderr bytes.Buffer
 			command.Stdout = &stdout
 			command.Stderr = &stderr
-			if err := command.Run(); err == nil {
-				t.Fatalf("tflint succeeded but diagnostics were expected, stdout=%s stderr=%s", stdout.String(), stderr.String())
+			if err := command.Run(); (err != nil) != test.expectFailure {
+				t.Fatalf("unexpected tflint exit state: %v, stdout=%s stderr=%s", err, stdout.String(), stderr.String())
 			}
 
 			var output tflintOutput
@@ -86,8 +107,11 @@ func TestResourceExclusionsIntegration(t *testing.T) {
 				t.Fatalf("expected %d issues, got %s", test.wantCount, stdout.String())
 			}
 			for _, issue := range output.Issues {
-				if issue.Rule.Name != "avm_interface_resource_types" {
+				if issue.Rule.Name != test.rule {
 					t.Fatalf("unexpected issue %#v", issue)
+				}
+				if test.rule == "avm_terraform_literal_heredoc_disallowed" {
+					continue
 				}
 				if !bytes.Contains([]byte(issue.Message), []byte("variable `resource_types`")) &&
 					!bytes.Contains([]byte(issue.Message), []byte("using variable `resource_types`")) {
@@ -95,12 +119,17 @@ func TestResourceExclusionsIntegration(t *testing.T) {
 				}
 			}
 			if test.filename != "" {
+				actualLines := make([]int, 0, len(output.Issues))
 				for _, issue := range output.Issues {
-					if filepath.Base(issue.Range.Filename) != test.filename || issue.Range.Start.Line < test.line {
-						t.Fatalf("expected business resource diagnostic at %s:%d, got %#v", test.filename, test.line, issue.Range)
+					if filepath.Base(issue.Range.Filename) != test.filename {
+						t.Fatalf("expected diagnostic in %s, got %#v", test.filename, issue.Range)
 					}
+					actualLines = append(actualLines, issue.Range.Start.Line)
 				}
-			} else if output.Issues[0].Range.Filename != "" || output.Issues[0].Range.Start.Line != 0 {
+				if !slices.Equal(actualLines, test.lines) {
+					t.Fatalf("expected diagnostic lines %v, got %v", test.lines, actualLines)
+				}
+			} else if test.wantCount > 0 && (output.Issues[0].Range.Filename != "" || output.Issues[0].Range.Start.Line != 0) {
 				t.Fatalf("expected the missing variables.tf diagnostic to be explicitly fileless, got %#v", output.Issues[0].Range)
 			}
 		})

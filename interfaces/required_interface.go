@@ -345,25 +345,44 @@ func expressionForwardsInterface(
 	case *hclsyntax.ScopeTraversalExpr:
 		return traversalForwardsInterface(expression.Traversal, suffix, variableName, requiresMember, locals, visitedLocals)
 	case *hclsyntax.RelativeTraversalExpr:
-		traversal, diagnostics := hcl.AbsTraversalForExpr(expression)
-		return !diagnostics.HasErrors() &&
-			traversalForwardsInterface(traversal, suffix, variableName, requiresMember, locals, visitedLocals)
+		return expressionForwardsInterface(
+			expression.Source,
+			append(append(hcl.Traversal{}, expression.Traversal...), suffix...),
+			variableName,
+			requiresMember,
+			locals,
+			visitedLocals,
+		)
 	case *hclsyntax.ParenthesesExpr:
 		return expressionForwardsInterface(expression.Expression, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.TemplateWrapExpr:
+		return expressionForwardsInterface(expression.Wrapped, suffix, variableName, requiresMember, locals, visitedLocals)
+	case *hclsyntax.TemplateExpr:
+		for _, part := range expression.Parts {
+			if expressionForwardsInterface(part, suffix, variableName, requiresMember, locals, visitedLocals) {
+				return true
+			}
+		}
 	case *hclsyntax.ConditionalExpr:
 		return expressionForwardsInterface(expression.TrueResult, suffix, variableName, requiresMember, locals, visitedLocals) ||
 			expressionForwardsInterface(expression.FalseResult, suffix, variableName, requiresMember, locals, visitedLocals)
 	case *hclsyntax.FunctionCallExpr:
-		switch strings.ToLower(expression.Name) {
-		case "coalesce", "try":
-			for _, argument := range expression.Args {
-				if expressionForwardsInterface(argument, suffix, variableName, requiresMember, locals, visitedLocals) {
-					return true
-				}
+		for index, argument := range expression.Args {
+			argumentSuffix := suffix
+			if strings.EqualFold(expression.Name, "lookup") && index == 0 && requiresMember {
+				argumentSuffix = append(hcl.Traversal{hcl.TraverseAttr{Name: "lookup"}}, suffix...)
+			}
+			if expressionForwardsInterface(argument, argumentSuffix, variableName, requiresMember, locals, visitedLocals) {
+				return true
 			}
 		}
 	case *hclsyntax.ObjectConsExpr:
 		if len(suffix) == 0 {
+			for _, item := range expression.Items {
+				if expressionForwardsInterface(item.ValueExpr, nil, variableName, requiresMember, locals, visitedLocals) {
+					return true
+				}
+			}
 			return false
 		}
 		member, ok := traversalMemberName(suffix[0])
