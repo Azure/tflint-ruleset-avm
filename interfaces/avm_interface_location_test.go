@@ -76,7 +76,7 @@ func TestTerraformLocationInterface(t *testing.T) {
 				if len(runner.Issues) == 0 {
 					t.Fatal("registered location rule accepted a telemetry-only location without a telemetry guard")
 				}
-				continue
+				return
 			}
 
 			helper.AssertIssuesWithoutRange(t, tc.Expected, runner.Issues)
