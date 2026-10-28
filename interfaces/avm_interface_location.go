@@ -19,3 +19,17 @@ var Location = AvmInterface{
 	RuleLink:      "https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming",
 	RuleSeverity:  tflint.ERROR,
 }
+
+// TelemetryLocation defines the optional location interface used when location is only required for telemetry.
+var TelemetryLocation = AvmInterface{
+	VarCheck:                  varcheck.NewVarCheck(locationType, cty.NullVal(cty.String), true),
+	RuleName:                  "avm_interface_location",
+	VariableName:              "location",
+	VarTypeString:             LocationTypeString,
+	RuleEnabled:               true,
+	RuleLink:                  "https://azure.github.io/Azure-Verified-Modules/specs/tf/res/#id-rmnfr2---category-inputs---parametervariable-naming",
+	RuleSeverity:              tflint.ERROR,
+	allowExplicitNullableTrue: true,
+	validationCondition:       telemetryLocationValidationCondition,
+	validationMessage:         "location must include a validation condition that requires a value when telemetry is enabled",
+}
