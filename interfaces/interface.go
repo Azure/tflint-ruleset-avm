@@ -9,12 +9,15 @@ import (
 // with additional information for use in TFLint.
 type AvmInterface struct {
 	varcheck.VarCheck
-	RuleName      string          // RuleName is the public TFLint rule name.
-	VariableName  string          // VariableName is the Terraform variable checked by the rule.
-	VarTypeString string          // The variable type value as a sting.
-	RuleEnabled   bool            // Whether the rule is enabled by default.
-	RuleLink      string          // RuleLink to the interface specification.
-	RuleSeverity  tflint.Severity // Severity of the interface.
+	RuleName                  string          // RuleName is the public TFLint rule name.
+	VariableName              string          // VariableName is the Terraform variable checked by the rule.
+	VarTypeString             string          // The variable type value as a sting.
+	RuleEnabled               bool            // Whether the rule is enabled by default.
+	RuleLink                  string          // RuleLink to the interface specification.
+	RuleSeverity              tflint.Severity // Severity of the interface.
+	allowExplicitNullableTrue bool
+	validationCondition       validationCondition
+	validationMessage         string
 }
 
 // StringToTypeConstraintWithDefaults converts a string to a TypeConstraintWithDefaults.

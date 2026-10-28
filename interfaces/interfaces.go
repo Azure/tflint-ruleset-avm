@@ -26,7 +26,7 @@ type interfaceRuleRegistration struct {
 
 var interfaceRuleRegistrations = []interfaceRuleRegistration{
 	{name: "avm_interface_customer_managed_key", variants: []AvmInterface{CustomerManagedKeyV2, CustomerManagedKey}},
-	{name: "avm_interface_location", variants: []AvmInterface{Location}},
+	{name: "avm_interface_location", variants: []AvmInterface{Location, TelemetryLocation}},
 	{name: "avm_interface_lock", variants: []AvmInterface{LockV2, LockV1}},
 	{name: "avm_interface_managed_identities", variants: []AvmInterface{ManagedIdentities}},
 	{name: "avm_interface_role_assignments", variants: []AvmInterface{RoleAssignmentsV2, RoleAssignmentsV1}},
