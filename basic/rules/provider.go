@@ -20,4 +20,7 @@ var Rules = []tflint.Rule{
 	NewTerraformParentIDVariableRule(),
 	NewAzapiPrimaryResourceNamingRule(),
 	NewTerraformPatternModuleSourceRule(),
+	NewTerraformResourceIDVariableValidationRule(),
+	NewTerraformCollectionVariableNullableRule(),
+	NewTerraformCountForEachUsageRule(),
 }

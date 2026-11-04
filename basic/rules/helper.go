@@ -67,6 +67,54 @@ func staticString(block *hclsyntax.Block, name string) (value string, ok bool) {
 	return v.AsString(), true
 }
 
+// variableReference returns the name of the input variable that expr references directly, as in `var.name`.
+func variableReference(expr hcl.Expression) (string, bool) {
+	traversal, diags := hcl.AbsTraversalForExpr(expr)
+	if diags.HasErrors() || len(traversal) != 2 {
+		return "", false
+	}
+	root, ok := traversal[0].(hcl.TraverseRoot)
+	if !ok || root.Name != "var" {
+		return "", false
+	}
+	attr, ok := traversal[1].(hcl.TraverseAttr)
+	if !ok {
+		return "", false
+	}
+	return attr.Name, true
+}
+
+// variableType returns the top-level type keyword or type constructor of a variable block, such as `string` or `map`, plus the constructor arguments. It returns an empty name when the type is omitted.
+func variableType(block *hclsyntax.Block) (string, []hclsyntax.Expression) {
+	attr, ok := block.Body.Attributes["type"]
+	if !ok {
+		return "", nil
+	}
+	if call, ok := unwrapParens(attr.Expr).(*hclsyntax.FunctionCallExpr); ok {
+		return call.Name, call.Args
+	}
+	return hcl.ExprAsKeyword(attr.Expr), nil
+}
+
+// collectionTypeNames lists the type constructors and legacy keywords that declare collection-shaped variables.
+var collectionTypeNames = map[string]bool{
+	"list":  true,
+	"set":   true,
+	"map":   true,
+	"tuple": true,
+}
+
+// unwrapParens strips any parentheses around expr.
+func unwrapParens(expr hclsyntax.Expression) hclsyntax.Expression {
+	for {
+		parens, ok := expr.(*hclsyntax.ParenthesesExpr)
+		if !ok {
+			return expr
+		}
+		expr = parens.Expression
+	}
+}
+
 // hasDeprecatedDescription reports whether a block's literal description starts with `DEPRECATED`.
 func hasDeprecatedDescription(block *hclsyntax.Block) bool {
 	desc, ok := staticString(block, "description")
