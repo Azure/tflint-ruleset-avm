@@ -102,6 +102,25 @@ Use `module_class = "utility"` for a utility root or `module_class = "resource"`
 
 The `module_class` option requires a plugin release containing this change. Existing releases such as v1.0.0 and v1.1.0 reject it; do not add it to configurations pinned to those versions.
 
+### Resource module rules
+
+These rules apply only to resource modules and accept the same `module_class` option as `avm_output_resource_id_required`:
+
+- `avm_terraform_parent_id_variable_required`
+- `avm_azapi_primary_resource_naming_valid`
+- `avm_terraform_pattern_module_source_disallowed`
+
+They default to `module_class = "resource"`. Pattern and utility roots must set the class on each rule:
+
+```hcl
+rule "avm_terraform_parent_id_variable_required" {
+  enabled      = true
+  module_class = "pattern"
+}
+```
+
+Other values are rejected, and child modules are ignored. Each rule reads its own `module_class`, so set it on every rule block that should skip the root. Modules that use the spec's exception for peer AzAPI resources should disable `avm_azapi_primary_resource_naming_valid` instead.
+
 ### Module source rule
 
 `avm_terraform_module_source_required` defaults to `module_scope = "root"`, allowing direct local submodules through `./modules/<name>`. When linting a direct `modules/*` scope independently, configure:
@@ -125,6 +144,7 @@ The `module_scope` option requires a published plugin release containing this fi
 | Name | Enabled | Severity | Link |
 | ---- | ------- | -------- | ---- |
 | avm_azapi_data_response_export_values_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
+| avm_azapi_primary_resource_naming_valid | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFRMN...](https://azure.github.io/Azure-Verified-Modules/spec/TFRMNFR2/) |
 | avm_azapi_replace_triggers_refs_valid | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR5/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR5/) |
 | avm_azapi_resource_tags_required | true | ERROR | [https://aka.ms/avm/spec/TFFR9](https://aka.ms/avm/spec/TFFR9) |
 | avm_azapi_response_export_values_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
@@ -159,6 +179,8 @@ The `module_scope` option requires a published plugin release containing this fi
 | avm_terraform_locals_file_non_locals_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/) |
 | avm_terraform_module_control_variable_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/) |
 | avm_terraform_module_source_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr1---category-composition---cross-referencing-modules) |
+| avm_terraform_parent_id_variable_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/](https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/) |
+| avm_terraform_pattern_module_source_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/RMFR8/](https://azure.github.io/Azure-Verified-Modules/spec/RMFR8/) |
 | avm_terraform_provider_block_disallowed | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
 | avm_terraform_required_version_constraint | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/) |
 | avm_terraform_sensitive_false_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/) |

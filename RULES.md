@@ -5,6 +5,7 @@ This document lists all rules currently registered in this ruleset. AVM rules ar
 | Name | Enabled | Severity | Link |
 | ---- | ------- | -------- | ---- |
 | avm_azapi_data_response_export_values_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
+| avm_azapi_primary_resource_naming_valid | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFRMN...](https://azure.github.io/Azure-Verified-Modules/spec/TFRMNFR2/) |
 | avm_azapi_replace_triggers_refs_valid | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFFR5/](https://azure.github.io/Azure-Verified-Modules/spec/TFFR5/) |
 | avm_azapi_resource_tags_required | true | ERROR | [https://aka.ms/avm/spec/TFFR9](https://aka.ms/avm/spec/TFFR9) |
 | avm_azapi_response_export_values_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/tf/a...](https://azure.github.io/Azure-Verified-Modules/specs/tf/azapi/#response_export_values-required) |
@@ -39,6 +40,8 @@ This document lists all rules currently registered in this ruleset. AVM rules ar
 | avm_terraform_locals_file_non_locals_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/) |
 | avm_terraform_module_control_variable_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/) |
 | avm_terraform_module_source_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr1---category-composition---cross-referencing-modules) |
+| avm_terraform_parent_id_variable_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/](https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/) |
+| avm_terraform_pattern_module_source_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/RMFR8/](https://azure.github.io/Azure-Verified-Modules/spec/RMFR8/) |
 | avm_terraform_provider_block_disallowed | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
 | avm_terraform_required_version_constraint | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/) |
 | avm_terraform_sensitive_false_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/) |

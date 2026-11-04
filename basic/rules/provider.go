@@ -17,4 +17,7 @@ var Rules = []tflint.Rule{
 	NewTerraformDeprecatedOutputFileRule(),
 	NewTerraformVariableNegativeToggleRule(),
 	NewTerraformRequiredVersionRule(),
+	NewTerraformParentIDVariableRule(),
+	NewAzapiPrimaryResourceNamingRule(),
+	NewTerraformPatternModuleSourceRule(),
 }
