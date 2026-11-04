@@ -17,7 +17,7 @@ var parentScopeVariableNames = map[string]bool{
 	"resource_group_resource_id": true,
 }
 
-// TerraformParentIDVariableRule checks that AzAPI resource modules expose their parent scope as a required `parent_id` string variable.
+// TerraformParentIDVariableRule checks that AzAPI resource modules expose their parent scope as a required, non-nullable `parent_id` string variable.
 type TerraformParentIDVariableRule struct {
 	tflint.DefaultRule
 }
@@ -95,6 +95,11 @@ func (r *TerraformParentIDVariableRule) checkModule(runner tflint.Runner) error 
 		}
 		if defaultAttr, ok := parentID.Body.Attributes["default"]; ok {
 			emit("Variable `parent_id` must be required and must not declare a default value", defaultAttr.SrcRange)
+		}
+		if nullableAttr, ok := parentID.Body.Attributes["nullable"]; !ok {
+			emit("Variable `parent_id` must set `nullable = false`", parentID.DefRange())
+		} else if nullable, ok := staticBool(parentID, "nullable"); !ok || nullable {
+			emit("Variable `parent_id` must set `nullable = false`", nullableAttr.SrcRange)
 		}
 	}
 

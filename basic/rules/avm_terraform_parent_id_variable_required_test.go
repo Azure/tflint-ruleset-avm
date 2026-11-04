@@ -67,8 +67,9 @@ resource "azapi_resource" "this" {
 			Files: map[string]string{
 				"variables.tf": `
 variable "parent_id" {
-  type    = any
-  default = null
+  type     = any
+  default  = null
+  nullable = false
 }`,
 				"main.tf": `
 resource "azapi_resource" "this" {
@@ -93,6 +94,57 @@ resource "azapi_resource" "this" {
 			},
 			Expected: helper.Issues{
 				{Rule: rule, Message: "Variable `parent_id` must be of type `string`"},
+				{Rule: rule, Message: "Variable `parent_id` must set `nullable = false`"},
+			},
+		},
+		{
+			Name: "parent_id without nullable is flagged",
+			Files: map[string]string{
+				"variables.tf": `
+variable "parent_id" {
+  type = string
+}`,
+				"main.tf": `
+resource "azapi_resource" "this" {
+  parent_id = var.parent_id
+}`,
+			},
+			Expected: helper.Issues{
+				{Rule: rule, Message: "Variable `parent_id` must set `nullable = false`"},
+			},
+		},
+		{
+			Name: "parent_id with nullable true is flagged",
+			Files: map[string]string{
+				"variables.tf": `
+variable "parent_id" {
+  type     = string
+  nullable = true
+}`,
+				"main.tf": `
+resource "azapi_resource" "this" {
+  parent_id = var.parent_id
+}`,
+			},
+			Expected: helper.Issues{
+				{Rule: rule, Message: "Variable `parent_id` must set `nullable = false`"},
+			},
+		},
+		{
+			Name: "parent_id with non-literal nullable is flagged",
+			Files: map[string]string{
+				"variables.tf": `
+variable "parent_id" {
+  type     = string
+  nullable = local.parent_id_nullable
+}`,
+				"main.tf": `
+resource "azapi_resource" "this" {
+  parent_id = var.parent_id
+}`,
+			},
+			Expected: helper.Issues{
+				{Rule: rule, Message: "Variable `parent_id` must set `nullable = false`"},
 			},
 		},
 		{

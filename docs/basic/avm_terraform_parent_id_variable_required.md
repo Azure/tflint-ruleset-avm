@@ -1,6 +1,6 @@
 # avm_terraform_parent_id_variable_required
 
-checks that AzAPI resource modules expose their parent scope through a required `parent_id` string variable
+checks that AzAPI resource modules expose their parent scope through a required, non-nullable `parent_id` string variable
 
 ## Example
 
@@ -45,15 +45,16 @@ Reference: https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/
 ```
 
 ## Why
-[TFRMFR1](https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/) says a Terraform resource module MUST expose its parent scope as a single required `string` variable named `parent_id`, and MUST assign it to the `parent_id` argument of the primary AzAPI resource. Modules MUST NOT expose parent-scope-specific variables such as `resource_group_name`. [RMFR3](https://azure.github.io/Azure-Verified-Modules/spec/RMFR3/) states the same requirement for Terraform.
+[TFRMFR1](https://azure.github.io/Azure-Verified-Modules/spec/TFRMFR1/) says a Terraform resource module MUST expose its parent scope as a single required `string` variable named `parent_id`, and MUST assign it to the `parent_id` argument of the primary AzAPI resource. The spec's canonical declaration sets `nullable = false`. Modules MUST NOT expose parent-scope-specific variables such as `resource_group_name`. [RMFR3](https://azure.github.io/Azure-Verified-Modules/spec/RMFR3/) states the same requirement for Terraform.
 
 The rule runs only when the module declares at least one AzAPI managed resource, so AzureRM-based modules aren't flagged. It checks that:
 
 - A `parent_id` variable exists, has `type = string`, and has no `default`.
+- The `parent_id` variable sets `nullable = false` as a literal. Terraform defaults `nullable` to `true`, so an omitted `nullable` is flagged, and so is any value other than literal `false`.
 - No variable is named `resource_group_name` or `resource_group_resource_id`.
 - `azapi_resource.this`, when present, sets `parent_id = var.parent_id` directly.
 
-Satellite resources may derive their `parent_id` from the primary resource, for example `azapi_resource.this.id`. The rule doesn't check `nullable = false`, which the spec requires only for extension-resource modules. Validation of `parent_id` with `provider::azapi::parse_resource_id` is out of scope for this rule.
+Satellite resources may derive their `parent_id` from the primary resource, for example `azapi_resource.this.id`. Validation of `parent_id` with `provider::azapi::parse_resource_id` is out of scope for this rule.
 
 The rule applies to resource modules only. See [Resource module rules](../../README.md#resource-module-rules) to configure `module_class` for pattern and utility modules.
 
