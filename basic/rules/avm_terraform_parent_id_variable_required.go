@@ -118,14 +118,6 @@ func (r *TerraformParentIDVariableRule) checkModule(runner tflint.Runner) error 
 }
 
 func isVarParentIDReference(expr hcl.Expression) bool {
-	traversal, diags := hcl.AbsTraversalForExpr(expr)
-	if diags.HasErrors() || len(traversal) != 2 {
-		return false
-	}
-	root, ok := traversal[0].(hcl.TraverseRoot)
-	if !ok || root.Name != "var" {
-		return false
-	}
-	attr, ok := traversal[1].(hcl.TraverseAttr)
-	return ok && attr.Name == "parent_id"
+	name, ok := variableReference(expr)
+	return ok && name == "parent_id"
 }
