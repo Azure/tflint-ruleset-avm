@@ -32,8 +32,16 @@ This document lists all rules currently registered in this ruleset. AVM rules ar
 | avm_provider_azurerm_version_constraint | true | ERROR | - |
 | avm_provider_modtm_version_constraint | true | ERROR | - |
 | avm_terraform_configuration_file_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/) |
+| avm_terraform_deprecated_output_file_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR30/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR30/) |
+| avm_terraform_deprecated_variable_file_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR24/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR24/) |
 | avm_terraform_ignore_changes_unquoted_references | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr10---category-code-style---no-double-quotes-in-ignore_changes) |
 | avm_terraform_literal_heredoc_disallowed | true | NOTICE | [https://aka.ms/avm/spec/TFNFR40](https://aka.ms/avm/spec/TFNFR40) |
+| avm_terraform_locals_file_non_locals_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR31/) |
+| avm_terraform_module_control_variable_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR14/) |
 | avm_terraform_module_source_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr1---category-composition---cross-referencing-modules) |
 | avm_terraform_provider_block_disallowed | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR27/) |
+| avm_terraform_required_version_constraint | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25/) |
+| avm_terraform_sensitive_false_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR22/) |
 | avm_terraform_sensitive_variable_default_disallowed | true | WARNING | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR23/) |
+| avm_terraform_variable_negative_toggle_disallowed | true | NOTICE | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR16/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR16/) |
+| avm_terraform_variable_nullable_true_disallowed | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR21/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR21/) |
