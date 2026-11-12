@@ -17,9 +17,6 @@ var _ tflint.Rule = new(TerraformRequiredVersionRule)
 
 const recommendedRequiredVersionFormat = "use `~> #.#` or `>= #.#.#, < #.#.#`"
 
-// noUpperBoundProbe is a Terraform version far enough in the future that any upper bound excludes it.
-var noUpperBoundProbe = goversion.Must(goversion.NewVersion("999999.0.0"))
-
 // TerraformRequiredVersionRule checks that `required_version` in `terraform.tf` bounds both the minimum version and the maximum major version.
 type TerraformRequiredVersionRule struct {
 	tflint.DefaultRule
@@ -96,47 +93,94 @@ func (r *TerraformRequiredVersionRule) checkConstraint(runner tflint.Runner, att
 		}
 	}
 
-	lower := lowerBound(constraints)
+	lower, upper := constraintBounds(constraints)
 	if lower == nil {
 		emit(fmt.Sprintf("`required_version` must include a minimum Terraform version, got `%s`; %s", raw, recommendedRequiredVersionFormat))
-		if constraints.Check(noUpperBoundProbe) {
+		if upper == nil {
 			emit(fmt.Sprintf("`required_version` must include a maximum major Terraform version, got `%s`; %s", raw, recommendedRequiredVersionFormat))
 		}
 		return err
 	}
 
 	nextMajor := goversion.Must(goversion.NewVersion(fmt.Sprintf("%d.0.0", lower.Segments()[0]+1)))
-	if constraints.Check(nextMajor) {
+	if !upper.below(nextMajor) {
 		emit(fmt.Sprintf("`required_version` must exclude Terraform %s and later, got `%s`; %s", nextMajor, raw, recommendedRequiredVersionFormat))
 	}
 	return err
 }
 
-// lowerBound returns the highest version used by a lower-bound operator (`>=`, `>`, `~>`, `=`, or none), or nil if there is none.
-func lowerBound(constraints goversion.Constraints) *goversion.Version {
-	var lower *goversion.Version
-	for _, c := range constraints {
-		s := strings.TrimSpace(c.String())
-		var rest string
-		switch {
-		case strings.HasPrefix(s, "~>"):
-			rest = s[2:]
-		case strings.HasPrefix(s, ">="):
-			rest = s[2:]
-		case strings.HasPrefix(s, "!="), strings.HasPrefix(s, "<"):
-			continue
-		case strings.HasPrefix(s, ">"), strings.HasPrefix(s, "="):
-			rest = s[1:]
-		default:
-			rest = s
+// upperBound is the tightest maximum version a constraint allows.
+type upperBound struct {
+	version   *goversion.Version
+	inclusive bool
+}
+
+// below reports whether every version allowed by the bound is lower than limit. A nil bound has no maximum.
+func (u *upperBound) below(limit *goversion.Version) bool {
+	if u == nil {
+		return false
+	}
+	if u.inclusive {
+		return u.version.LessThan(limit)
+	}
+	return u.version.LessThanOrEqual(limit)
+}
+
+func (u *upperBound) tighten(version *goversion.Version, inclusive bool) *upperBound {
+	if u == nil || version.LessThan(u.version) || (version.Equal(u.version) && !inclusive) {
+		return &upperBound{version: version, inclusive: inclusive}
+	}
+	return u
+}
+
+// constraintBounds returns the highest lower bound and the tightest upper bound across all constraints. `!=` never bounds a range, so it is ignored.
+func constraintBounds(constraints goversion.Constraints) (lower *goversion.Version, upper *upperBound) {
+	raiseLower := func(v *goversion.Version) {
+		if lower == nil || v.GreaterThan(lower) {
+			lower = v
 		}
-		ver, verErr := goversion.NewVersion(strings.TrimSpace(rest))
+	}
+	for _, c := range constraints {
+		op, rest := splitConstraintOperator(strings.TrimSpace(c.String()))
+		ver, verErr := goversion.NewVersion(rest)
 		if verErr != nil {
 			continue
 		}
-		if lower == nil || ver.GreaterThan(lower) {
-			lower = ver
+		switch op {
+		case "!=":
+		case "<":
+			upper = upper.tighten(ver, false)
+		case "<=":
+			upper = upper.tighten(ver, true)
+		case ">", ">=":
+			raiseLower(ver)
+		case "~>":
+			raiseLower(ver)
+			// `~> X` with a single segment has no maximum. With more segments, the maximum is at most the next major.
+			if versionSegmentCount(rest) > 1 {
+				nextMajor := goversion.Must(goversion.NewVersion(fmt.Sprintf("%d.0.0", ver.Segments()[0]+1)))
+				upper = upper.tighten(nextMajor, false)
+			}
+		default:
+			raiseLower(ver)
+			upper = upper.tighten(ver, true)
 		}
 	}
-	return lower
+	return lower, upper
+}
+
+func splitConstraintOperator(s string) (op, rest string) {
+	for _, candidate := range []string{"~>", ">=", "<=", "!=", ">", "<", "="} {
+		if strings.HasPrefix(s, candidate) {
+			return candidate, strings.TrimSpace(s[len(candidate):])
+		}
+	}
+	return "", s
+}
+
+// versionSegmentCount counts the numeric segments written in a version, ignoring pre-release and metadata suffixes.
+func versionSegmentCount(v string) int {
+	core, _, _ := strings.Cut(v, "-")
+	core, _, _ = strings.Cut(core, "+")
+	return len(strings.Split(core, "."))
 }

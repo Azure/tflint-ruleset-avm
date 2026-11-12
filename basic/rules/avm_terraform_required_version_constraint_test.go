@@ -55,6 +55,16 @@ terraform {
 			Expected: helper.Issues{{Rule: rule, Message: nextMajorMsg("2.0.0", ">= 1.9, < 3.0")}},
 		},
 		ruleTestCase{
+			Name:     "excluding only the next major release still allows later releases",
+			Files:    terraformTf(">= 1.9, != 2.0.0"),
+			Expected: helper.Issues{{Rule: rule, Message: nextMajorMsg("2.0.0", ">= 1.9, != 2.0.0")}},
+		},
+		ruleTestCase{
+			Name:     "inclusive upper bound at the next major release",
+			Files:    terraformTf(">= 1.9, <= 2.0.0"),
+			Expected: helper.Issues{{Rule: rule, Message: nextMajorMsg("2.0.0", ">= 1.9, <= 2.0.0")}},
+		},
+		ruleTestCase{
 			Name:  "no bounds at all",
 			Files: terraformTf("!= 1.5.0"),
 			Expected: helper.Issues{
