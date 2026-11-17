@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/tflint-ruleset-avm/internal/tfvarcheck/check"
 	"github.com/Azure/tflint-ruleset-avm/internal/tfvarcheck/varcheck"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 	"github.com/zclconf/go-cty/cty"
@@ -49,6 +50,8 @@ type InterfaceVarCheckRule struct {
 	tflint.DefaultRule
 	AvmInterface // This is the interface we are checking for.
 }
+
+type validationCondition func(hcl.Expression) bool
 
 // NewVarCheckRuleFromAvmInterface returns a new rule with the given variable.
 func NewVarCheckRuleFromAvmInterface(ifce AvmInterface) *InterfaceVarCheckRule {
@@ -116,10 +119,10 @@ func (vcr *InterfaceVarCheckRule) Check(r tflint.Runner) error {
 		}
 		if c = c.Check(checkVarType(vcr, r, typeAttr)).
 			Check(checkDefaultValue(vcr, r, b, defaultAttr)).
-			Check(checkNullableValue(vcr, r, b)); c.err != nil {
+			Check(checkNullableValue(vcr, r, b)).
+			Check(checkValidationCondition(vcr, r, b)); c.err != nil {
 			return c.err
 		}
-		// TODO: Check validation rules.
 		return nil
 	}
 	return nil
@@ -165,6 +168,9 @@ func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.B
 			return false, diags
 		}
 		// Check nullable attribute.
+		if vcr.Nullable && vcr.allowExplicitNullableTrue && nullableVal.RawEquals(cty.True) {
+			return true, nil
+		}
 		if ok := check.Nullable(nullableVal, vcr.Nullable); ok {
 			return true, nil
 		}
@@ -177,6 +183,85 @@ func checkNullableValue(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.B
 			rg = nullableAttr.Range
 		}
 		return false, r.EmitIssue(vcr, msg, rg)
+	}
+}
+
+func checkValidationCondition(vcr *InterfaceVarCheckRule, r tflint.Runner, b *hclext.Block) func() (bool, error) {
+	return func() (bool, error) {
+		if vcr.validationCondition == nil {
+			return true, nil
+		}
+
+		for _, validationBlock := range b.Body.Blocks {
+			if validationBlock.Type != "validation" {
+				continue
+			}
+			condition, exists := validationBlock.Body.Attributes["condition"]
+			if exists && vcr.validationCondition(condition.Expr) {
+				return true, nil
+			}
+		}
+
+		return false, r.EmitIssue(vcr, vcr.validationMessage, b.DefRange)
+	}
+}
+
+func telemetryLocationValidationCondition(expression hcl.Expression) bool {
+	expression = unparenthesize(expression)
+	binary, ok := expression.(*hclsyntax.BinaryOpExpr)
+	if !ok || binary.Op != hclsyntax.OpLogicalOr {
+		return false
+	}
+
+	return telemetryEnabledIsFalse(binary.LHS) && locationIsNotNull(binary.RHS) ||
+		telemetryEnabledIsFalse(binary.RHS) && locationIsNotNull(binary.LHS)
+}
+
+func telemetryEnabledIsFalse(expression hcl.Expression) bool {
+	expression = unparenthesize(expression)
+	unary, ok := expression.(*hclsyntax.UnaryOpExpr)
+	return ok && unary.Op == hclsyntax.OpLogicalNot && matchesVariable(unary.Val, "enable_telemetry")
+}
+
+func locationIsNotNull(expression hcl.Expression) bool {
+	expression = unparenthesize(expression)
+	binary, ok := expression.(*hclsyntax.BinaryOpExpr)
+	if !ok || binary.Op != hclsyntax.OpNotEqual {
+		return false
+	}
+
+	return matchesVariable(binary.LHS, "location") && isNull(binary.RHS) ||
+		matchesVariable(binary.RHS, "location") && isNull(binary.LHS)
+}
+
+func matchesVariable(expression hcl.Expression, name string) bool {
+	expression = unparenthesize(expression)
+	traversalExpression, ok := expression.(*hclsyntax.ScopeTraversalExpr)
+	if !ok || len(traversalExpression.Traversal) != 2 {
+		return false
+	}
+
+	root, ok := traversalExpression.Traversal[0].(hcl.TraverseRoot)
+	if !ok || root.Name != "var" {
+		return false
+	}
+	attribute, ok := traversalExpression.Traversal[1].(hcl.TraverseAttr)
+	return ok && attribute.Name == name
+}
+
+func isNull(expression hcl.Expression) bool {
+	expression = unparenthesize(expression)
+	literal, ok := expression.(*hclsyntax.LiteralValueExpr)
+	return ok && literal.Val.IsNull()
+}
+
+func unparenthesize(expression hcl.Expression) hcl.Expression {
+	for {
+		parentheses, ok := expression.(*hclsyntax.ParenthesesExpr)
+		if !ok {
+			return expression
+		}
+		expression = parentheses.Expression
 	}
 }
 
