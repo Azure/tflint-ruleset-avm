@@ -9,4 +9,12 @@ var Rules = []tflint.Rule{
 	NewTerraformHeredocUsageRule(),
 	NewTerraformModuleProviderDeclarationRule(),
 	NewTerraformSensitiveVariableNoDefaultRule(),
+	NewTerraformSensitiveFalseRule(),
+	NewTerraformVariableNullableTrueRule(),
+	NewTerraformModuleControlVariableRule(),
+	NewTerraformLocalsFileRule(),
+	NewTerraformDeprecatedVariableFileRule(),
+	NewTerraformDeprecatedOutputFileRule(),
+	NewTerraformVariableNegativeToggleRule(),
+	NewTerraformRequiredVersionRule(),
 }
