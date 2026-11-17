@@ -261,6 +261,16 @@ func TestIntegration(t *testing.T) {
 			Dir:  filepath.Join("azapi-required-interfaces-child", "child"),
 		},
 		{
+			Name:     "modtm-provider-disallowed",
+			Dir:      "modtm-provider-disallowed",
+			OnlyRule: "avm_provider_modtm_disallowed",
+			ExpectedIssues: []expectedIssue{
+				{Name: "avm_provider_modtm_disallowed", Severity: "error"},
+				{Name: "avm_provider_modtm_disallowed", Severity: "error"},
+			},
+			ExpectFailure: true,
+		},
+		{
 			Name:          "invalid-severity",
 			Dir:           "invalid-severity",
 			ExpectFailure: true,
