@@ -50,6 +50,39 @@ resource "azurerm_resource_group" "rg" {
 	}
 }
 
+func TestDisallowedModtmProviderRule(t *testing.T) {
+	const content = `terraform {
+    required_providers {
+        modtm = {
+            source = "Azure/modtm"
+        }
+    }
+}
+resource "modtm_telemetry" "telemetry" {}`
+	for _, registeredRule := range rules.Rules {
+		if registeredRule.Name() != "avm_provider_modtm_disallowed" {
+			continue
+		}
+		runner := helper.TestRunner(t, map[string]string{"main.tf": content})
+		if err := registeredRule.Check(runner); err != nil {
+			t.Fatalf("unexpected error: %s", err)
+		}
+		if len(runner.Issues) != 2 {
+			t.Fatalf("expected 2 issues, got %d", len(runner.Issues))
+		}
+		for _, issue := range runner.Issues {
+			if issue.Rule.Name() != "avm_provider_modtm_disallowed" {
+				t.Fatalf("unexpected rule name: %s", issue.Rule.Name())
+			}
+		}
+		if !registeredRule.Enabled() {
+			t.Fatal("expected modtm disallowed rule to be enabled by default")
+		}
+		return
+	}
+	t.Fatal("avm_provider_modtm_disallowed rule was not registered")
+}
+
 func TestDisallowedProviderRule_NoIssues(t *testing.T) {
 	const content = `terraform {
     required_providers {

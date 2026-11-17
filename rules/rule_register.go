@@ -20,6 +20,7 @@ var Rules = func() []tflint.Rule {
 			NewModuleSourceRule(),
 			NewNoDoubleQuotesInIgnoreChangesRule(),
 			NewDisallowedProviderRule("azurerm", "hashicorp/azurerm"),
+			NewDisallowedProviderRule("modtm", "Azure/modtm"),
 			NewProviderVersionRule("modtm", "Azure/modtm", "0.3.0", "~> 0.3", true),
 			NewProviderVersionRule("azapi", "Azure/azapi", "2.999.0", "~> 2.0", false),
 			NewProviderVersionRule("azurerm", "hashicorp/azurerm", "4.999.0", "~> 4.0", false),

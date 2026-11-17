@@ -30,6 +30,7 @@ This document lists all rules currently registered in this ruleset. AVM rules ar
 | avm_provider_azapi_version_constraint | true | ERROR | - |
 | avm_provider_azurerm_disallowed | true | ERROR | - |
 | avm_provider_azurerm_version_constraint | true | ERROR | - |
+| avm_provider_modtm_disallowed | true | ERROR | - |
 | avm_provider_modtm_version_constraint | true | ERROR | - |
 | avm_terraform_configuration_file_required | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR39/) |
 | avm_terraform_ignore_changes_unquoted_references | true | ERROR | [https://azure.github.io/Azure-Verified-Modules/specs/terr...](https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tfnfr10---category-code-style---no-double-quotes-in-ignore_changes) |

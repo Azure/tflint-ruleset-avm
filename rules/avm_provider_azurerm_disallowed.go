@@ -11,13 +11,8 @@ import (
 )
 
 // DisallowedProviderRule checks that a specific provider is not used in the module.
-// It performs two checks when ProviderName is "azurerm":
-//  1. The `required_providers` block must not declare a provider whose source is hashicorp/azurerm.
-//  2. No resource / data / ephemeral blocks whose first label starts with "azurerm_" should exist.
-//
-// If any are found, an issue is emitted.
-// The rule is generic for potential future expansion by changing ProviderName/ProviderSource/Prefix.
-// Currently only azurerm is required per user request.
+// It checks that required_providers does not declare the configured source and that
+// no resource, data, or ephemeral blocks use the provider's resource-type prefix.
 var _ tflint.Rule = new(DisallowedProviderRule)
 
 type DisallowedProviderRule struct {
