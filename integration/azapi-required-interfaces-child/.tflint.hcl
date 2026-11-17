@@ -9,3 +9,7 @@ plugin "avm" {
 rule "avm_terraform_module_source_required" {
   enabled = false
 }
+
+rule "avm_provider_modtm_disallowed" {
+  enabled = false
+}

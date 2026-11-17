@@ -5,3 +5,7 @@ plugin "terraform" {
 plugin "avm" {
   enabled = true
 }
+
+rule "avm_provider_modtm_disallowed" {
+  enabled = false
+}
